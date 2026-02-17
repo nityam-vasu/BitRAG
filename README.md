@@ -2,7 +2,6 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/Version-0.1.0-orange?style=flat-square" alt="Version">
 </p>
 
@@ -31,7 +30,7 @@ A lightweight **Retrieval-Augmented Generation (RAG)** system using 1-bit LLMs f
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/yourusername/bitrag.git
+git clone https://github.com/nityam-vasu/BitRAG.git
 cd bitrag
 
 # 2. Create virtual environment
@@ -220,9 +219,7 @@ lsof -i :11434
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🙏 Acknowledgments
 
@@ -233,4 +230,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-<p align="center">Made with ❤️ for AI-powered document chat</p>
+<p align="center">BTech Project</p>
