@@ -8,6 +8,16 @@ Terminal-based RAG application for chatting with your PDF documents.
 import sys
 import os
 import argparse
+import warnings
+import logging
+
+# Suppress warnings
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+warnings.filterwarnings("ignore")
+logging.getLogger("transformers").setLevel(logging.ERROR)
+logging.getLogger("sentence_transformers").setLevel(logging.ERROR)
 
 # Add src to path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
