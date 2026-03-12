@@ -575,7 +575,7 @@ class BitRAGApp:
         # Show splash screen
         print("\n" + "=" * 50)
         print("  BitRAG - 1-bit LLM RAG System")
-        print("  PyTermGUI Terminal Interface")
+        print("  Terminal User Interface")
         print("=" * 50)
         print()
 
@@ -583,120 +583,181 @@ class BitRAGApp:
         self.initialize()
 
         if interactive:
-            # Try to run in interactive mode
-            self._run_interactive()
+            # Run interactive menu
+            self._run_interactive_menu()
         else:
             # Demo mode
             self._run_demo()
 
-    def _run_interactive(self) -> None:
-        """Run in command mode (non-interactive but functional)."""
-        # Just show the demo layout with instructions
-        print("\n[TUI] Starting in command mode...")
-        print()
-        print("Available commands:")
-        print("  1. Chat    - Ask questions about documents")
-        print("  2. Documents - Manage indexed documents")
-        print("  3. Settings - Configure BitRAG")
-        print("  4. Status   - Show system status")
-        print()
-        print("Use CLI commands instead:")
-        print("  ./run.sh cli query 'your question'")
-        print("  ./run.sh cli upload <file>")
-        print("  ./run.sh cli documents")
-        print("  ./run.sh cli status")
-        print()
+    def _run_interactive_menu(self) -> None:
+        """Run interactive menu system."""
+        while True:
+            print("\n" + "=" * 50)
+            print("  BitRAG - Interactive Menu")
+            print("=" * 50)
+            print()
+            print("  1. 💬 Chat - Ask questions about your documents")
+            print("  2. 📄 Documents - Manage indexed documents")
+            print("  3. ⚙️ Settings - View configuration")
+            print("  4. ℹ️ Status - System information")
+            print("  5. 🚪 Exit")
+            print()
 
-        # Show layout
-        self._run_demo()
+            try:
+                choice = input("  Enter choice (1-5): ").strip()
+            except (EOFError, KeyboardInterrupt):
+                print("\n\n  Goodbye! 👋")
+                break
+
+            if choice == "1":
+                self._interactive_chat()
+            elif choice == "2":
+                self._interactive_documents_menu()
+            elif choice == "3":
+                self._interactive_settings()
+            elif choice == "4":
+                self._interactive_status()
+            elif choice == "5":
+                print("\n  Goodbye! 👋")
+                break
+            else:
+                print("\n  Invalid choice. Please enter 1-5.")
+
+    def _interactive_documents_menu(self) -> None:
+        """Interactive documents menu."""
+        from bitrag.tui.document_manager import DocumentManager
+
+        doc_manager = DocumentManager(session_id=self.session_id)
+
+        while True:
+            print("\n" + "-" * 50)
+            print("  📄 Document Management")
+            print("-" * 50)
+            print()
+            print("  1. 📋 List indexed documents")
+            print("  2. 📤 Upload document")
+            print("  3. 🗑️ Delete document")
+            print("  4. ← Back to main menu")
+            print()
+
+            try:
+                choice = input("  Enter choice (1-4): ").strip()
+            except (EOFError, KeyboardInterrupt):
+                print()
+                return
+
+            if choice == "1":
+                doc_manager.show_list_documents()
+            elif choice == "2":
+                print("\n  Enter file path (or type 'browse' to search):")
+                try:
+                    path = input("  > ").strip()
+                except (EOFError, KeyboardInterrupt):
+                    print()
+                    continue
+
+                if path.lower() == "browse":
+                    pdfs = doc_manager.ui.browse_pdfs()
+                    if pdfs:
+                        print(f"\n  Found {len(pdfs)} PDF files:")
+                        for i, pdf in enumerate(pdfs[:10], 1):
+                            print(f"    {i}. {pdf}")
+                        if len(pdfs) > 10:
+                            print(f"    ... and {len(pdfs) - 10} more")
+                    else:
+                        print("\n  No PDF files found in common directories")
+                        print("  Try entering full path instead")
+                elif path:
+                    doc_manager.upload_document(path)
+            elif choice == "3":
+                doc_manager.show_delete_dialog()
+                print("\n  Enter document name/ID to delete (or 'cancel'):")
+                try:
+                    identifier = input("  > ").strip()
+                except (EOFError, KeyboardInterrupt):
+                    print()
+                    continue
+
+                if identifier.lower() != "cancel" and identifier:
+                    doc_manager.delete_document(identifier)
+            elif choice == "4":
+                return
 
     def _interactive_chat(self) -> None:
-        """Interactive chat loop."""
-        print("\n" + "=" * 50)
+        """Interactive chat session."""
+        print("\n" + "-" * 50)
         print("  💬 Chat Mode")
-        print("=" * 50)
-        print("  Type your questions below.")
-        print("  Type 'exit' to return to main menu.")
+        print("-" * 50)
+        print("  Type your question and press Enter")
+        print("  Type 'exit' or 'quit' to return to menu")
         print()
 
-        # Check query engine
         if self.query_engine is None:
-            print("  [ERROR] Query engine not initialized.")
-            print("  Please check Ollama is running and try again.")
+            print("  [ERROR] Query engine not initialized")
+            print("  Check that Ollama is running: ollama serve")
             return
 
-        # Check for documents
         if not self._has_documents():
-            print("  [INFO] No documents indexed yet.")
-            print("  Please upload documents first (Menu > Documents).")
+            print("  [INFO] No documents indexed yet")
+            print("  Upload documents first (Main Menu > Documents)")
             return
 
         while True:
-            query = input("\n  You: ").strip()
+            try:
+                query = input("\n  You: ").strip()
+            except (EOFError, KeyboardInterrupt):
+                print("\n")
+                return
 
             if not query:
                 continue
 
             if query.lower() in ["exit", "quit", "back"]:
-                break
+                return
 
             # Process query
-            print("  ...")
+            print("  Processing...")
             try:
                 result = self.query_engine.query(query)
                 response = result.get("response", "No response")
                 sources = result.get("sources", [])
 
+                # Print response
                 print(f"\n  Bot: {response[:500]}")
                 if len(response) > 500:
                     print("  ...")
 
+                # Print sources
                 if sources:
-                    print(f"\n  Sources ({len(sources)}):")
+                    print(f"\n  📚 Sources ({len(sources)}):")
                     for i, src in enumerate(sources[:3], 1):
                         text = src.get("text", "")[:60]
                         print(f"    {i}. {text}...")
             except Exception as e:
                 print(f"  [ERROR] {e}")
 
-    def _interactive_documents(self, doc_manager: "DocumentManager") -> None:
-        """Interactive document management."""
-        while True:
-            print("\n" + "=" * 50)
-            print("  📄 Document Management")
-            print("=" * 50)
-            print()
-            print("  1. 📋 List Documents")
-            print("  2. 📤 Upload Document")
-            print("  3. 🗑️ Delete Document")
-            print("  4. 🔍 Browse for PDFs")
-            print("  0. ← Back")
-            print()
+    def _interactive_settings(self) -> None:
+        """Show settings."""
+        from bitrag.tui.settings import SettingsDialogExtended
 
-            choice = input("  Enter choice: ").strip()
+        settings = SettingsDialogExtended()
+        settings.show_full_settings()
 
-            if choice == "1":
-                doc_manager.show_list_documents()
-            elif choice == "2":
-                path = input("  Enter file path: ").strip()
-                if path:
-                    doc_manager.upload_document(path)
-            elif choice == "3":
-                doc_manager.show_delete_dialog()
-                identifier = input("  Enter document name/ID to delete: ").strip()
-                if identifier:
-                    doc_manager.delete_document(identifier)
-            elif choice == "4":
-                doc_manager.show_upload_dialog()
-            elif choice == "0":
-                break
-
-    def _show_status(self) -> None:
+    def _interactive_status(self) -> None:
         """Show system status."""
-        print("\n[System Status]")
-        print(f"  Model: {self.config.default_model if self.config else 'N/A'}")
-        print(f"  Ollama: {self.config.ollama_base_url if self.config else 'N/A'}")
-        print(f"  Documents: {self._count_documents()}")
+        print("\n" + "-" * 50)
+        print("  ℹ️ System Status")
+        print("-" * 50)
+        print()
+
+        if self.config:
+            print(f"  Model:       {self.config.default_model}")
+            print(f"  Ollama URL:  {self.config.ollama_base_url}")
+            print(f"  Data Dir:    {self.config.data_dir}")
+
+        # Document count
+        doc_count = self._count_documents()
+        print(f"  Documents:   {doc_count}")
 
         # Check Ollama
         import subprocess
@@ -705,10 +766,17 @@ class BitRAGApp:
             result = subprocess.run(["ollama", "list"], capture_output=True, text=True, timeout=5)
             if result.returncode == 0:
                 lines = result.stdout.strip().split("\n")
-                model_count = len(lines) - 1
-                print(f"  Ollama Models: {model_count}")
+                model_count = len(lines) - 1 if len(lines) > 1 else 0
+                print(f"  Ollama:     Running ({model_count} models)")
+            else:
+                print("  Ollama:     Not responding")
+        except FileNotFoundError:
+            print("  Ollama:     Not installed")
         except:
-            print("  Ollama: Not running")
+            print("  Ollama:     Not running")
+
+        print()
+        print("-" * 50)
 
     def _has_documents(self) -> bool:
         """Check if there are indexed documents."""
@@ -727,198 +795,21 @@ class BitRAGApp:
             return self.query_engine.get_document_count()
         except:
             return 0
-        try:
-            return self.query_engine.get_document_count()
-        except:
-            return 0
-        try:
-            docs = self.query_engine.list_documents()
-            return len(docs) if docs else 0
-        except:
-            return 0
-
-    def _create_interactive_window(self) -> ptg.Window:
-        """Create interactive window."""
-        import pytermgui as ptg
-
-        # Create widgets
-        header = ptg.Window(
-            ptg.Label("[bold cyan]BitRAG[/]"),
-            ptg.Splitter(
-                ptg.Button("[📄 Documents]", lambda w: self.show_documents()),
-                ptg.Button("[⚙ Settings]", lambda w: self.show_settings()),
-            ),
-        )
-
-        resources = self.resources.create()
-
-        # Chat area
-        chat = self.chat_area.create()
-
-        # Chat bar
-        chat_bar = self.chat_bar.create()
-
-        # Footer
-        footer = self.footer.create()
-
-        # Assemble
-        window = ptg.Window(
-            ptg.Splitter(header, resources),
-            ptg.Label(""),
-            chat,
-            ptg.Label(""),
-            chat_bar,
-            ptg.Label(""),
-            footer,
-        )
-
-        return window
-
-    def _run_demo(self) -> None:
-        """Run in demo mode (non-interactive)."""
-        # Create and show main window
-        main_window = self.create_main_window()
-
-        print("\n[TUI] Main window created successfully!")
-        print("[TUI] Running in demo mode (non-interactive)")
-        print()
-
-        # Show the layout structure
-        self._print_layout_demo()
-
-    def _print_layout_demo(self) -> None:
-        """Print a demo of the layout structure."""
-        print("┌──────────────────────────────────────────────┐")
-        print("│ BitRAG                              ⚙ Settings │")
-        print("│ 📄 Documents                                   │")
-        print("├──────────────────────────────────────────────┤")
-        print("│                                              │")
-        print("│                Chat Messages                 │")
-        print("│                                              │")
-        print("├──────────────────────────────────────────────┤")
-        print("│ 📁 Upload | [ User Query Input ] | Send ▶     │")
-        print("└──────────────────────────────────────────────┘")
-        print()
-        print("Keyboard shortcuts:", KEYBOARD_SHORTCUTS)
-        print()
-
-    def handle_query(self, query: str) -> None:
-        """Handle a user query with RAG integration."""
-        print(f"\n[Query] {query}")
-
-        # Add user message to chat
-        self.chat_area.add_user_message(query)
-
-        # Check if query engine is available
-        if self.query_engine is None:
-            print("[BitRAG] Query engine not available")
-            response = "Query engine not initialized. Please check your configuration."
-            sources = []
-            self.chat_area.add_assistant_message(response, sources)
-            return
-
-        # Show "thinking" message
-        print("[BitRAG] Searching documents...")
-
-        try:
-            # Check if there are documents indexed
-            if not self.query_engine.has_documents():
-                print("[BitRAG] No documents found")
-                response = "No documents found in the index. Please upload documents first using the Documents panel."
-                sources = []
-                self.chat_area.add_assistant_message(response, sources)
-                return
-
-            # Use streaming for better UX
-            print("[BitRAG] Generating response...")
-
-            # For demo mode, we'll use the non-streaming query
-            # In full mode, would use query_engine.query_streaming()
-            result = self.query_engine.query(query)
-
-            response = result.get("response", "")
-            sources = result.get("sources", [])
-
-            # Add assistant response with sources
-            self.chat_area.add_assistant_message(response, sources)
-
-            print(f"[BitRAG] Response received ({len(sources)} sources)")
-
-            # Print sources for demo
-            if sources:
-                print("\n[Sources]")
-                for i, src in enumerate(sources[:3], 1):
-                    text = src.get("text", "")[:80]
-                    print(f"  [{i}] {text}...")
-
-        except Exception as e:
-            print(f"[ERROR] Query failed: {e}")
-            response = f"Error processing query: {str(e)}"
-            sources = []
-            self.chat_area.add_assistant_message(response, sources)
-
-    def show_settings(self) -> None:
-        """Show settings dialog."""
-        print("\n[BitRAG] Opening Settings...")
-
-        # Import settings components
-        try:
-            from bitrag.tui.settings import SettingsDialogExtended
-
-            # Create settings dialog with callbacks
-            settings_dialog = SettingsDialogExtended(on_show_documents=self.show_documents)
-
-            # Show full settings
-            settings_dialog.show_full_settings()
-
-        except Exception as e:
-            print(f"[ERROR] Could not load settings: {e}")
-            # Fallback to basic settings
-            print("\n[BitRAG] Settings")
-            print("  - Ollama Port Configuration")
-            print("  - Model Selection")
-            print("  - Model Download/Delete")
-            print("  - Dual Model Mode")
-            print("  - Hybrid Retrieval Slider")
-            print("  - Document Management")
-
-        print()
-
-    def show_documents(self) -> None:
-        """Show document management."""
-        print("\n[BitRAG] Opening Document Management...")
-
-        # Import document management
-        try:
-            from bitrag.tui.document_manager import DocumentManager
-
-            # Create document manager
-            doc_manager = DocumentManager(session_id=self.session_id)
-
-            # Show full menu
-            doc_manager.show_full_menu()
-
-        except Exception as e:
-            print(f"[ERROR] Could not load document management: {e}")
-            # Fallback to basic
-            print("\n[BitRAG] Document Management")
-            print("  - List Documents")
-            print("  - Upload Document")
-            print("  - Delete Document")
-
-        print()
 
 
 def main():
     """Main entry point."""
     app = BitRAGApp()
 
-    # Run in demo/interactive mode
-    print("\n[Info] Starting BitRAG TUI in demo mode")
-    print("[Info] Keyboard shortcuts available in full TUI mode")
+    # Check for command-line arguments
+    import sys
 
-    # Run the app
-    app.run()
+    if len(sys.argv) > 2:
+        # Run command mode
+        app.run_command(sys.argv[2])
+    else:
+        # Run interactive
+        app.run()
 
     return 0
 
