@@ -578,11 +578,26 @@ class BitRAGApp:
     def show_documents(self) -> None:
         """Show document management."""
         print("\n[BitRAG] Opening Document Management...")
-        print("  - List Documents")
-        print("  - Upload Document")
-        print("  - Delete Document")
+
+        # Import document management
+        try:
+            from bitrag.tui.document_manager import DocumentManager
+
+            # Create document manager
+            doc_manager = DocumentManager(session_id=self.session_id)
+
+            # Show full menu
+            doc_manager.show_full_menu()
+
+        except Exception as e:
+            print(f"[ERROR] Could not load document management: {e}")
+            # Fallback to basic
+            print("\n[BitRAG] Document Management")
+            print("  - List Documents")
+            print("  - Upload Document")
+            print("  - Delete Document")
+
         print()
-        # Note: Full document management would be implemented in 08-04
 
 
 def main():
