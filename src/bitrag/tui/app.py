@@ -453,7 +453,7 @@ class BitRAGApp:
 
         return self._main_window
 
-    def run(self) -> None:
+    def run(self, interactive: bool = True) -> None:
         """Run the application."""
         # Show splash screen
         print("\n" + "=" * 50)
@@ -465,11 +465,203 @@ class BitRAGApp:
         # Initialize
         self.initialize()
 
+        if interactive:
+            # Try to run in interactive mode
+            self._run_interactive()
+        else:
+            # Demo mode
+            self._run_demo()
+
+    def _run_interactive(self) -> None:
+        """Run in command mode (non-interactive but functional)."""
+        # Just show the demo layout with instructions
+        print("\n[TUI] Starting in command mode...")
+        print()
+        print("Available commands:")
+        print("  1. Chat    - Ask questions about documents")
+        print("  2. Documents - Manage indexed documents")
+        print("  3. Settings - Configure BitRAG")
+        print("  4. Status   - Show system status")
+        print()
+        print("Use CLI commands instead:")
+        print("  ./run.sh cli query 'your question'")
+        print("  ./run.sh cli upload <file>")
+        print("  ./run.sh cli documents")
+        print("  ./run.sh cli status")
+        print()
+
+        # Show layout
+        self._run_demo()
+
+    def _interactive_chat(self) -> None:
+        """Interactive chat loop."""
+        print("\n" + "=" * 50)
+        print("  💬 Chat Mode")
+        print("=" * 50)
+        print("  Type your questions below.")
+        print("  Type 'exit' to return to main menu.")
+        print()
+
+        # Check query engine
+        if self.query_engine is None:
+            print("  [ERROR] Query engine not initialized.")
+            print("  Please check Ollama is running and try again.")
+            return
+
+        # Check for documents
+        if not self._has_documents():
+            print("  [INFO] No documents indexed yet.")
+            print("  Please upload documents first (Menu > Documents).")
+            return
+
+        while True:
+            query = input("\n  You: ").strip()
+
+            if not query:
+                continue
+
+            if query.lower() in ["exit", "quit", "back"]:
+                break
+
+            # Process query
+            print("  ...")
+            try:
+                result = self.query_engine.query(query)
+                response = result.get("response", "No response")
+                sources = result.get("sources", [])
+
+                print(f"\n  Bot: {response[:500]}")
+                if len(response) > 500:
+                    print("  ...")
+
+                if sources:
+                    print(f"\n  Sources ({len(sources)}):")
+                    for i, src in enumerate(sources[:3], 1):
+                        text = src.get("text", "")[:60]
+                        print(f"    {i}. {text}...")
+            except Exception as e:
+                print(f"  [ERROR] {e}")
+
+    def _interactive_documents(self, doc_manager: "DocumentManager") -> None:
+        """Interactive document management."""
+        while True:
+            print("\n" + "=" * 50)
+            print("  📄 Document Management")
+            print("=" * 50)
+            print()
+            print("  1. 📋 List Documents")
+            print("  2. 📤 Upload Document")
+            print("  3. 🗑️ Delete Document")
+            print("  4. 🔍 Browse for PDFs")
+            print("  0. ← Back")
+            print()
+
+            choice = input("  Enter choice: ").strip()
+
+            if choice == "1":
+                doc_manager.show_list_documents()
+            elif choice == "2":
+                path = input("  Enter file path: ").strip()
+                if path:
+                    doc_manager.upload_document(path)
+            elif choice == "3":
+                doc_manager.show_delete_dialog()
+                identifier = input("  Enter document name/ID to delete: ").strip()
+                if identifier:
+                    doc_manager.delete_document(identifier)
+            elif choice == "4":
+                doc_manager.show_upload_dialog()
+            elif choice == "0":
+                break
+
+    def _show_status(self) -> None:
+        """Show system status."""
+        print("\n[System Status]")
+        print(f"  Model: {self.config.default_model if self.config else 'N/A'}")
+        print(f"  Ollama: {self.config.ollama_base_url if self.config else 'N/A'}")
+        print(f"  Documents: {self._count_documents()}")
+
+        # Check Ollama
+        import subprocess
+
+        try:
+            result = subprocess.run(["ollama", "list"], capture_output=True, text=True, timeout=5)
+            if result.returncode == 0:
+                lines = result.stdout.strip().split("\n")
+                model_count = len(lines) - 1
+                print(f"  Ollama Models: {model_count}")
+        except:
+            print("  Ollama: Not running")
+
+    def _has_documents(self) -> bool:
+        """Check if there are indexed documents."""
+        if self.query_engine is None:
+            return False
+        try:
+            return self.query_engine.has_documents()
+        except:
+            return False
+
+    def _count_documents(self) -> int:
+        """Count indexed documents."""
+        if self.query_engine is None:
+            return 0
+        try:
+            return self.query_engine.get_document_count()
+        except:
+            return 0
+        try:
+            return self.query_engine.get_document_count()
+        except:
+            return 0
+        try:
+            docs = self.query_engine.list_documents()
+            return len(docs) if docs else 0
+        except:
+            return 0
+
+    def _create_interactive_window(self) -> ptg.Window:
+        """Create interactive window."""
+        import pytermgui as ptg
+
+        # Create widgets
+        header = ptg.Window(
+            ptg.Label("[bold cyan]BitRAG[/]"),
+            ptg.Splitter(
+                ptg.Button("[📄 Documents]", lambda w: self.show_documents()),
+                ptg.Button("[⚙ Settings]", lambda w: self.show_settings()),
+            ),
+        )
+
+        resources = self.resources.create()
+
+        # Chat area
+        chat = self.chat_area.create()
+
+        # Chat bar
+        chat_bar = self.chat_bar.create()
+
+        # Footer
+        footer = self.footer.create()
+
+        # Assemble
+        window = ptg.Window(
+            ptg.Splitter(header, resources),
+            ptg.Label(""),
+            chat,
+            ptg.Label(""),
+            chat_bar,
+            ptg.Label(""),
+            footer,
+        )
+
+        return window
+
+    def _run_demo(self) -> None:
+        """Run in demo mode (non-interactive)."""
         # Create and show main window
         main_window = self.create_main_window()
 
-        # For now, just print that we're running
-        # Full PyTermGUI rendering would require a proper terminal
         print("\n[TUI] Main window created successfully!")
         print("[TUI] Running in demo mode (non-interactive)")
         print()
