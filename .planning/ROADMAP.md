@@ -4,7 +4,7 @@
 - **Name**: BitRAG - 1-Bit LLM RAG System
 - **Description**: RAG software using 1-bit LLMs for chatting with user-uploaded PDFs with Hybrid Search
 - **Tech Stack**: LlamaIndex (indexing), 1-bit LLM via Ollama, Python CLI, PyTermGUI Terminal UI, Hybrid RAG (Vector + BM25)
-- **Current Phase**: Phase 08 - PyTermGUI Terminal Application
+- **Current Phase**: Phase 08 - PyTermGUI TUI v2 Implementation
 
 ---
 
@@ -91,7 +91,22 @@ Build PyTermGUI terminal application with Hybrid RAG (Vector + Keyword search).
 
 ---
 
-## Phase 08: Optional Docker Containerization
+## Phase 08: PyTermGUI TUI v2 Implementation
+**Status**: Planning complete | **Plans**: 5 plan(s)
+
+### Goal
+Implement full-featured PyTermGUI TUI based on the detailed specification (splash screen, main window, settings, document management, chat with streaming).
+
+### Plans
+- [x] 08-01-PLAN.md — Splash Screen & Main Window Layout
+- [x] 08-02-PLAN.md — Chat Interface with Streaming & Sources
+- [x] 08-03-PLAN.md — Settings Page with Model Management
+- [x] 08-04-PLAN.md — Document Management Page
+- [x] 08-05-PLAN.md — Navigation, Polish & Entry Point
+
+---
+
+## Phase 09: Optional Docker Containerization
 **Status**: Deferred | **Plans**: 0 plan(s)
 
 ### Goal
@@ -111,7 +126,8 @@ Containerize the application with Docker (optional, for advanced users).
 - Phase 04 → Phase 05 (refine working system)
 - Phase 05 → Phase 06 (CLI verified, proceed to Hybrid RAG)
 - Phase 06 → Phase 07 (Research complete, proceed to PyTermGUI)
-- Phase 07 → Phase 08 (PyTermGUI ready, optional Docker)
+- Phase 07 → Phase 08 (PyTermGUI v1 complete, proceed to v2 spec)
+- Phase 08 → Phase 09 (TUI v2 ready, optional Docker)
 
 ### External Dependencies
 - Ollama for LLM runtime
@@ -156,10 +172,23 @@ Containerize the application with Docker (optional, for advanced users).
 - [x] Hybrid RAG research complete
 
 ### Phase 07 (PyTermGUI Terminal Application)
-- [ ] PyTermGUI app launches
-- [ ] Core TUI widgets implemented
-- [ ] Hybrid search combines vector + keyword search
-- [ ] Chat interface works with streaming responses
-- [ ] Document management UI functional
-- [ ] Settings dialog works
-- [ ] Application packaged and production-ready
+- [x] PyTermGUI app launches
+- [x] Core TUI widgets implemented
+- [x] Hybrid search combines vector + keyword search
+- [x] Chat interface works with streaming responses
+- [x] Document management UI functional
+- [x] Settings dialog works
+- [x] Application packaged and production-ready
+
+### Phase 08 (PyTermGUI TUI v2)
+- [ ] Splash screen with ASCII art on startup
+- [ ] Main window layout (header, chat, chat bar, footer)
+- [ ] Chat interface with thinking box, model output, sources
+- [ ] Streaming responses display progressively
+- [ ] Settings page with model management (download/delete)
+- [ ] Dual model mode with disclaimer
+- [ ] Hybrid retrieval slider (vector/keyword balance)
+- [ ] Document management (list, upload, delete)
+- [ ] Keyboard shortcuts (C, S, U, Q)
+- [ ] System resource display in header
+- [ ] Production-ready entry point

@@ -1,0 +1,122 @@
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 10278.44it/s]
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=51, family=2, type=1, proto=6, laddr=('127.0.0.1', 47846), raddr=('127.0.0.1', 11434)>
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 11963.15it/s]
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=52, family=2, type=1, proto=6, laddr=('127.0.0.1', 34108), raddr=('127.0.0.1', 11434)>
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+Usage: main.py [OPTIONS] COMMAND [ARGS]...
+
+  BitRAG - Chat with your PDF documents using 1-bit LLM
+
+  Use /commands in interactive mode or standard CLI commands below.
+
+Options:
+  --version  Show the version and exit.
+  --help     Show this message and exit.
+
+Commands:
+  chat             Start interactive chat
+  delete           Delete a document by ID (use filename or ID from...
+  documents        List indexed documents
+  get-document     Get document details by filename
+  interactive      Start interactive TUI mode
+  model            Model management
+  query            Query indexed documents
+  session          Session management
+  status           Show system status
+  update-document  Update document metadata by filename
+  upload           Upload and index a PDF document
+Usage: main.py [OPTIONS] COMMAND [ARGS]...
+
+  BitRAG - Chat with your PDF documents using 1-bit LLM
+
+  Use /commands in interactive mode or standard CLI commands below.
+
+Options:
+  --version  Show the version and exit.
+  --help     Show this message and exit.
+
+Commands:
+  chat             Start interactive chat
+  delete           Delete a document by ID (use filename or ID from...
+  documents        List indexed documents
+  get-document     Get document details by filename
+  interactive      Start interactive TUI mode
+  model            Model management
+  query            Query indexed documents
+  session          Session management
+  status           Show system status
+  update-document  Update document metadata by filename
+  upload           Upload and index a PDF document
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 13059.65it/s]
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=51, family=2, type=1, proto=6, laddr=('127.0.0.1', 50894), raddr=('127.0.0.1', 11434)>
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 11744.60it/s]
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=51, family=2, type=1, proto=6, laddr=('127.0.0.1', 39786), raddr=('127.0.0.1', 11434)>
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 8994.47it/s]
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=51, family=2, type=1, proto=6, laddr=('127.0.0.1', 58596), raddr=('127.0.0.1', 11434)>
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 12554.15it/s]
+stty: 'standard input': Inappropriate ioctl for device
+stty: 'standard input': Inappropriate ioctl for device
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 13058.86it/s]
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=51, family=2, type=1, proto=6, laddr=('127.0.0.1', 50334), raddr=('127.0.0.1', 11434)>
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 13275.97it/s]
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=52, family=2, type=1, proto=6, laddr=('127.0.0.1', 35034), raddr=('127.0.0.1', 11434)>
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 14670.88it/s]
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=51, family=2, type=1, proto=6, laddr=('127.0.0.1', 39464), raddr=('127.0.0.1', 11434)>
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+usage: bitrag.py [-h] {tui,cli,status,interactive} ...
+bitrag.py: error: unrecognized arguments: status
+usage: bitrag.py [-h] {tui,cli,status,interactive} ...
+bitrag.py: error: unrecognized arguments: status
+usage: bitrag.py [-h] {tui,cli,status,interactive} ...
+bitrag.py: error: unrecognized arguments: status
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 10044.49it/s]
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=51, family=2, type=1, proto=6, laddr=('127.0.0.1', 35128), raddr=('127.0.0.1', 11434)>
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 10860.34it/s]
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 12566.20it/s]
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=51, family=2, type=1, proto=6, laddr=('127.0.0.1', 60726), raddr=('127.0.0.1', 11434)>
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 12206.18it/s]
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=51, family=2, type=1, proto=6, laddr=('127.0.0.1', 50382), raddr=('127.0.0.1', 11434)>
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 12060.00it/s]
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=51, family=2, type=1, proto=6, laddr=('127.0.0.1', 40688), raddr=('127.0.0.1', 11434)>
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 14425.45it/s]
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 11292.99it/s]
+  Enter choice (1-5):   Enter choice (1-5):   Enter choice (1-5):   Enter choice (1-4): Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 13834.17it/s]
+  Enter choice (1-4): Traceback (most recent call last):
+  File "<string>", line 4, in <module>
+    from bitrag.tui.terminal import main
+  File "/mnt/ed624ec7-962a-4a2a-95ca-e887f1cd9c96/Personal_Project/bitrag/BitRAG/src/bitrag/tui/terminal.py", line 107
+    self.query_input := InputField(prompt="[green]>[/] ", placeholder="Type your question..."),
+                     ^^
+SyntaxError: invalid syntax
+Traceback (most recent call last):
+  File "<string>", line 4, in <module>
+    from bitrag.tui.terminal import main
+  File "/mnt/ed624ec7-962a-4a2a-95ca-e887f1cd9c96/Personal_Project/bitrag/BitRAG/src/bitrag/tui/terminal.py", line 107
+    self.query_input := InputField(prompt="[green]>[/] ", placeholder="Type your question..."),
+                     ^^
+SyntaxError: invalid syntax
+Warning: You are sending unauthenticated requests to the HF Hub. Please set a HF_TOKEN to enable higher rate limits and faster downloads.
+Loading weights:   0%|          | 0/103 [00:00<?, ?it/s]Loading weights: 100%|██████████| 103/103 [00:00<00:00, 14187.16it/s]
+<sys>:0: ResourceWarning: unclosed <socket.socket fd=52, family=2, type=1, proto=6, laddr=('127.0.0.1', 40782), raddr=('127.0.0.1', 11434)>
+ResourceWarning: Enable tracemalloc to get the object allocation traceback

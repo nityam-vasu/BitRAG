@@ -45,8 +45,8 @@ COMMAND="${1:-tui}"
 case "$COMMAND" in
     tui)
         echo "Starting BitRAG TUI..."
-        shift
-        $PYTHON bitrag.py tui "$@" 2>> "$LOG_FILE"
+        # Run the interactive TUI menu (works without TTY)
+        $PYTHON bitrag.py tui 2>> "$LOG_FILE"
         ;;
     cli)
         echo "Starting BitRAG CLI..."

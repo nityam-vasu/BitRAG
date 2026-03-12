@@ -1,254 +1,321 @@
 #!/usr/bin/env python3
 """
-BitRAG PyTermGUI - Main Application
+BitRAG TUI - Main Application
 
-Terminal-based UI for BitRAG RAG system using PyTermGUI v7.
+Terminal-based UI for BitRAG RAG system using PyTermGUI.
+Run with: python src/bitrag/tui/main.py
 """
 
 import sys
 import os
 
 # Add src to path for imports
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
-
-import pytermgui as ptg
-
-
-# Lazy imports for core modules (to avoid import errors during setup)
-def _get_indexer(session_id: str):
-    """Lazy import of DocumentIndexer."""
-    from bitrag.core.indexer import DocumentIndexer
-
-    return DocumentIndexer(session_id)
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(_SCRIPT_DIR)))
+sys.path.insert(0, os.path.join(_PROJECT_ROOT, "src"))
 
 
-def _get_config():
-    """Lazy import of get_config."""
-    from bitrag.core.config import get_config
+def print_header():
+    """Print application header."""
+    print("")
+    print("=" * 50)
+    print("  BitRAG - 1-bit LLM RAG System")
+    print("  PyTermGUI Terminal Interface")
+    print("=" * 50)
+    print("")
 
-    return get_config()
+
+def load_config():
+    """Load and display configuration."""
+    try:
+        from bitrag.core.config import get_config
+
+        config = get_config()
+        print(f"[OK] Config loaded")
+        print(f"     Data dir: {config.data_dir}")
+        print(f"     Sessions: {config.sessions_dir}")
+        print(f"     Model: {config.default_model}")
+        print(f"     Chunk size: {config.chunk_size}")
+        print(f"     Top-K: {config.top_k}")
+        print("")
+        return config
+    except Exception as e:
+        print(f"[WARN] Could not load config: {e}")
+        print("")
+        return None
 
 
-class BitRAGApplication:
-    """Main PyTermGUI application for BitRAG."""
+def run_chat_mode(config):
+    """Run interactive chat mode."""
+    print("\n" + "=" * 50)
+    print("  CHAT MODE - Ask questions about your documents")
+    print("  Type 'exit' to quit, 'help' for commands")
+    print("=" * 50 + "\n")
 
-    def __init__(self):
-        self._config = None
-        self._session_id = "default"
-        self._current_view = "chat"
-        self._indexer = None
+    # Import query engine
+    try:
+        from bitrag.core.query import QueryEngine
 
-    @property
-    def config(self):
-        """Lazy load config."""
-        if self._config is None:
-            self._config = _get_config()
-        return self._config
+        query_engine = QueryEngine(config)
+        print("[OK] Query engine initialized")
+    except Exception as e:
+        print(f"[ERROR] Could not initialize query engine: {e}")
+        return
 
-    @property
-    def session_id(self):
-        return self._session_id
-
-    @session_id.setter
-    def session_id(self, value):
-        self._session_id = value
-        self._indexer = None  # Reset indexer
-
-    @property
-    def indexer(self):
-        """Lazy load indexer."""
-        if self._indexer is None:
-            self._indexer = _get_indexer(self._session_id)
-        return self._indexer
-
-    @property
-    def current_view(self):
-        return self._current_view
-
-    @current_view.setter
-    def current_view(self, value):
-        self._current_view = value
-
-    def setup(self):
-        """Setup the application UI."""
-        # Set up aliases for styling
-        ptg.aliases["logo"] = "[bold cyan]"
-        ptg.aliases["title"] = "[bold light_blue]"
-        ptg.aliases["button.ok"] = "[green]"
-        ptg.aliases["button.danger"] = "[red]"
-
-    def run(self):
-        """Run the application."""
-        self.setup()
-
-        # Create the main window
-        main_window = ptg.Window(
-            self._create_header(),
-            "",
-            self._create_body(),
-            "",
-            self._create_footer(),
-        )
-
-        # Run the application
-        main_window.show()
-
-    def _create_header(self) -> ptg.Label:
-        """Create the header."""
-        return ptg.Label(
-            "[logo]BitRAG[/logo] - [title]1-bit LLM RAG System[/title]",
-            align=ptg.HorizontalAlignment.CENTER,
-        )
-
-    def _create_body(self) -> ptg.Splitter:
-        """Create the main body with sidebar and content."""
-        # Create sidebar
-        sidebar = ptg.Window(
-            "[bold]Navigation[/]",
-            "",
-            ptg.Button("[green]Chat", self._on_chat_click),
-            ptg.Button("[yellow]Documents", self._on_documents_click),
-            ptg.Button("[light_blue]Settings", self._on_settings_click),
-            "",
-            ptg.Button("[green]+ New Session", self._on_new_session),
-            "",
-            ptg.Button("[red]Exit", self._on_exit),
-            width=20,
-        )
-
-        # Create main content
-        content = self._create_main_content()
-
-        # Use Splitter to combine
-        splitter = ptg.Splitter(sidebar, content)
-
-        return splitter
-
-    def _create_main_content(self) -> ptg.Window:
-        """Create the main content window."""
-        view = self.current_view
-        if view == "chat":
-            return self._create_chat_view()
-        elif view == "documents":
-            return self._create_documents_view()
-        elif view == "settings":
-            return self._create_settings_view()
-        return self._create_chat_view()
-
-    def _create_chat_view(self) -> ptg.Window:
-        """Create the chat view."""
-        return ptg.Window(
-            "[bold]Chat View[/] - Ask questions about your documents",
-            "",
-            "[dim]Upload documents first using the Documents tab[/]",
-            "",
-            "Type your question below:",
-            ptg.InputField(prompt="You: ", placeholder="Ask something..."),
-            name="chat",
-        )
-
-    def _create_documents_view(self) -> ptg.Window:
-        """Create the documents view."""
-        return ptg.Window(
-            "[bold]Documents[/bold]",
-            "",
-            ptg.Button("[green]Upload PDF", self._on_upload),
-            ptg.Button("[red]Delete", self._on_delete),
-            "",
-            "[bold]Indexed Documents:[/]",
-            "[dim]No documents indexed yet[/]",
-            name="documents",
-        )
-
-    def _create_settings_view(self) -> ptg.Window:
-        """Create the settings view."""
-        # Try to get config values, with fallbacks
+    # Chat loop
+    while True:
         try:
-            model = self.config.default_model
-            embedding = self.config.embedding_model
-            ollama_url = self.config.ollama_base_url
-        except Exception:
-            model = "Not configured"
-            embedding = "Not configured"
-            ollama_url = "Not configured"
+            user_input = input("\n[You] ").strip()
 
-        return ptg.Window(
-            "[bold]Settings[/bold]",
-            "",
-            f"Model: {model}",
-            f"Embedding: {embedding}",
-            f"Ollama URL: {ollama_url}",
-            "",
-            ptg.Button("[light_blue]Save Settings", lambda w: None),
-            name="settings",
-        )
+            if not user_input:
+                continue
 
-    def _create_footer(self) -> ptg.Label:
-        """Create the footer."""
-        return ptg.Label(
-            "[dim]Ctrl+N: New Chat | Ctrl+D: Documents | Ctrl+S: Settings | Ctrl+Q: Quit[/]",
-            align=ptg.HorizontalAlignment.CENTER,
-        )
+            if user_input.lower() in ["exit", "quit", "q"]:
+                print("\nGoodbye!")
+                break
 
-    # Event handlers
-    def _on_chat_click(self, widget: ptg.Button) -> None:
-        """Handle chat button click."""
-        self.current_view = "chat"
-        print("Switched to Chat view")
+            if user_input.lower() == "help":
+                print_help()
+                continue
 
-    def _on_documents_click(self, widget: ptg.Button) -> None:
-        """Handle documents button click."""
-        self.current_view = "documents"
-        print("Switched to Documents view")
+            if user_input.lower() == "clear":
+                print("\n" + "=" * 50)
+                print("  CHAT MODE - Ask questions about your documents")
+                print("  Type 'exit' to quit, 'help' for commands")
+                print("=" * 50 + "\n")
+                continue
 
-    def _on_settings_click(self, widget: ptg.Button) -> None:
-        """Handle settings button click."""
-        self.current_view = "settings"
-        print("Switched to Settings view")
+            # Query the documents
+            print("\n[BitRAG] Searching...", end="", flush=True)
+            try:
+                response = query_engine.query(user_input)
+                print(f"\n[BitRAG] {response}")
+            except Exception as e:
+                print(f"\n[ERROR] Query failed: {e}")
 
-    def _on_new_session(self, widget: ptg.Button) -> None:
-        """Create a new session."""
+        except KeyboardInterrupt:
+            print("\n\nGoodbye!")
+            break
+        except EOFError:
+            break
+
+
+def run_documents_mode(config):
+    """Run document management mode."""
+    print("\n" + "=" * 50)
+    print("  DOCUMENTS MODE - Manage indexed PDFs")
+    print("  Type 'exit' to quit, 'help' for commands")
+    print("=" * 50 + "\n")
+
+    try:
+        from bitrag.core.indexer import DocumentIndexer
+
+        indexer = DocumentIndexer("default")
+        print("[OK] Document indexer initialized")
+    except Exception as e:
+        print(f"[ERROR] Could not initialize indexer: {e}")
+        return
+
+    print_help_documents()
+
+    # Documents loop
+    while True:
         try:
-            sessions_dir = self.config.sessions_dir
-            if os.path.exists(sessions_dir):
-                count = len(
-                    [
-                        d
-                        for d in os.listdir(sessions_dir)
-                        if os.path.isdir(os.path.join(sessions_dir, d))
-                    ]
-                )
-                self.session_id = f"session_{count + 1}"
+            user_input = input("\n[Documents] ").strip()
+
+            if not user_input:
+                continue
+
+            if user_input.lower() in ["exit", "quit", "q"]:
+                print("\nGoodbye!")
+                break
+
+            if user_input.lower() == "help":
+                print_help_documents()
+                continue
+
+            if user_input.lower() == "list":
+                list_documents(indexer)
+                continue
+
+            # Check if it's a file path to upload
+            if os.path.exists(user_input):
+                upload_document(indexer, user_input)
+                continue
+
+            # Try as command
+            parts = user_input.split()
+            if len(parts) >= 1:
+                cmd = parts[0].lower()
+                if cmd == "upload" and len(parts) >= 2:
+                    upload_document(indexer, parts[1])
+                elif cmd == "delete" and len(parts) >= 2:
+                    delete_document(indexer, parts[1])
+                else:
+                    print(f"[WARN] Unknown command: {cmd}")
+                    print_help_documents()
             else:
-                self.session_id = "session_1"
-            print(f"Created new session: {self.session_id}")
-        except Exception as e:
-            print(f"Could not create session: {e}")
+                print("[WARN] Please enter a command or file path")
 
-    def _on_upload(self, widget: ptg.Button) -> None:
-        """Handle upload button click."""
-        print("Upload - see Plan 07-05")
+        except KeyboardInterrupt:
+            print("\n\nGoodbye!")
+            break
+        except EOFError:
+            break
 
-    def _on_delete(self, widget: ptg.Button) -> None:
-        """Handle delete button click."""
-        print("Delete - see Plan 07-05")
 
-    def _on_exit(self, widget: ptg.Button) -> None:
-        """Handle exit button click."""
-        print("\nGoodbye!")
-        sys.exit(0)
+def list_documents(indexer):
+    """List indexed documents."""
+    try:
+        docs = indexer.list_documents()
+        if not docs:
+            print("\n[INFO] No documents indexed yet.")
+            return
+
+        print("\n--- Indexed Documents ---")
+        for i, doc in enumerate(docs, 1):
+            print(f"{i}. {doc.get('filename', 'Unknown')}")
+            print(f"   ID: {doc.get('id', 'N/A')[:30]}...")
+            print(f"   Chunks: {doc.get('total_chunks', 'N/A')}")
+            print(f"   Indexed: {doc.get('indexed_at', 'N/A')}")
+            print("")
+    except Exception as e:
+        print(f"[ERROR] Could not list documents: {e}")
+
+
+def upload_document(indexer, path):
+    """Upload and index a document."""
+    if not os.path.exists(path):
+        print(f"[ERROR] File not found: {path}")
+        return
+
+    print(f"[INFO] Indexing: {path}...")
+    try:
+        doc_id = indexer.index_document(path, metadata={"source": "tui"})
+        print(f"[OK] Document indexed successfully!")
+        print(f"     ID: {doc_id}")
+    except Exception as e:
+        print(f"[ERROR] Could not index document: {e}")
+
+
+def delete_document(indexer, identifier):
+    """Delete a document."""
+    try:
+        indexer.delete_document(identifier)
+        print(f"[OK] Document deleted: {identifier}")
+    except Exception as e:
+        print(f"[ERROR] Could not delete document: {e}")
+
+
+def print_help():
+    """Print chat mode help."""
+    print("""
+--- Commands ---
+help     - Show this help message
+clear    - Clear the screen
+exit     - Exit chat mode
+
+--- Tips ---
+- Ask questions about your indexed documents
+- The system will search and provide AI-generated answers
+- Make sure you have indexed documents first!
+""")
+
+
+def print_help_documents():
+    """Print documents mode help."""
+    print("""
+--- Commands ---
+list           - List indexed documents
+upload <path>  - Upload and index a PDF
+delete <id>    - Delete a document by ID or filename
+help           - Show this help message
+exit           - Exit documents mode
+
+--- Tips ---
+- Provide full path to PDF files
+- Use 'list' to see indexed documents and their IDs
+""")
+
+
+def run_interactive_menu(config):
+    """Run interactive menu for choosing mode."""
+    while True:
+        print("\n" + "=" * 50)
+        print("  BitRAG - Select Mode")
+        print("=" * 50)
+        print("")
+        print("  1. Chat - Ask questions about your documents")
+        print("  2. Documents - Manage indexed PDFs")
+        print("  3. Settings - View configuration")
+        print("  4. Quit")
+        print("")
+
+        try:
+            choice = input("Select [1-4]: ").strip()
+
+            if choice == "1":
+                run_chat_mode(config)
+            elif choice == "2":
+                run_documents_mode(config)
+            elif choice == "3":
+                print_settings(config)
+            elif choice in ["4", "q", "quit", "exit"]:
+                print("\nGoodbye!")
+                break
+            else:
+                print("[WARN] Invalid choice, please try again")
+        except KeyboardInterrupt:
+            print("\n\nGoodbye!")
+            break
+        except EOFError:
+            break
+
+
+def print_settings(config):
+    """Print current settings."""
+    if config is None:
+        print("\n[ERROR] No configuration loaded")
+        return
+
+    print("\n--- Current Settings ---")
+    print(f"Data Directory:     {config.data_dir}")
+    print(f"Chroma Directory:   {config.chroma_dir}")
+    print(f"Sessions Directory: {config.sessions_dir}")
+    print(f"Default Model:      {config.default_model}")
+    print(f"LLM Type:           {config.llm_type}")
+    print(f"Ollama URL:         {config.ollama_base_url}")
+    print(f"Chunk Size:         {config.chunk_size}")
+    print(f"Chunk Overlap:      {config.chunk_overlap}")
+    print(f"Top-K:              {config.top_k}")
+    print(f"Collection Name:    {config.collection_name}")
+    print("")
 
 
 def main():
     """Main entry point."""
-    print("\n[bold cyan]BitRAG PyTermGUI[/bold] - Loading...")
-    print("[dim]Note: This is Plan 07-01 - Basic skeleton only\n[/]")
+    print_header()
 
-    app = BitRAGApplication()
-    app.setup()
-    print("[green]PyTermGUI application initialized successfully!")
-    print("[dim]Run with: python -m bitrag.tui[/]")
+    # Load configuration
+    config = load_config()
+
+    # Check for command line arguments
+    if len(sys.argv) > 1:
+        mode = sys.argv[1].lower()
+        if mode in ["chat", "c"]:
+            run_chat_mode(config)
+        elif mode in ["documents", "docs", "d"]:
+            run_documents_mode(config)
+        elif mode in ["settings", "s"]:
+            print_settings(config)
+        else:
+            run_interactive_menu(config)
+    else:
+        # Default: run interactive menu
+        run_interactive_menu(config)
+
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

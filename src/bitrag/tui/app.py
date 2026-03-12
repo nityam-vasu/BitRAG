@@ -464,8 +464,13 @@ class BitRAGApp:
         self.initialize()
 
         if command is None:
-            # No command - show help
-            self._run_interactive()
+            # No command - check if we can run interactive
+            if sys.stdin.isatty():
+                # Interactive terminal - run menu
+                self._run_interactive_menu()
+            else:
+                # Non-interactive - show demo
+                self._run_demo()
             return 0
 
         command = command.lower()
