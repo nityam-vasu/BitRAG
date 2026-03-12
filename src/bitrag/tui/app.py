@@ -453,6 +453,123 @@ class BitRAGApp:
 
         return self._main_window
 
+    def run_command(self, command: str = None) -> int:
+        """Run a specific command directly."""
+        import sys
+
+        # Show minimal banner
+        print("\n[BitRAG] Running command...\n")
+
+        # Initialize
+        self.initialize()
+
+        if command is None:
+            # No command - show help
+            self._run_interactive()
+            return 0
+
+        command = command.lower()
+
+        # Handle commands
+        if command == "status":
+            self._show_status()
+        elif command == "chat":
+            self._quick_chat()
+        elif command == "documents":
+            self._list_documents()
+        elif command == "settings":
+            self._show_settings()
+        elif command == "upload":
+            # Get file path from args
+            path = sys.argv[3] if len(sys.argv) > 3 else None
+            if path:
+                self._upload_document(path)
+            else:
+                print("Usage: ./run.sh tui upload <file_path>")
+        elif command == "query":
+            # Get query from args
+            query = " ".join(sys.argv[3:]) if len(sys.argv) > 3 else None
+            if query:
+                self._run_query(query)
+            else:
+                print("Usage: ./run.sh tui query 'your question'")
+        else:
+            print(f"Unknown command: {command}")
+            print("Available: status, chat, documents, settings, upload, query")
+
+        return 0
+
+    def _quick_chat(self) -> None:
+        """Quick chat in non-interactive mode."""
+        print("Chat mode - type your question and press Enter")
+        print("Press Ctrl+C to exit\n")
+
+        while True:
+            try:
+                query = input("You: ").strip()
+                if query:
+                    self._run_query(query)
+                    print()
+            except KeyboardInterrupt:
+                print("\nExiting chat...")
+                break
+
+    def _run_query(self, query: str) -> None:
+        """Run a query and show results."""
+        if self.query_engine is None:
+            print("[ERROR] Query engine not initialized")
+            return
+
+        if not self._has_documents():
+            print("[INFO] No documents indexed. Upload documents first.")
+            return
+
+        print("Processing...")
+        try:
+            result = self.query_engine.query(query)
+            response = result.get("response", "No response")
+            sources = result.get("sources", [])
+
+            print(f"\nBot: {response}")
+
+            if sources:
+                print(f"\nSources ({len(sources)}):")
+                for i, src in enumerate(sources[:3], 1):
+                    text = src.get("text", "")[:80]
+                    print(f"  {i}. {text}...")
+        except Exception as e:
+            print(f"[ERROR] {e}")
+
+    def _list_documents(self) -> None:
+        """List documents."""
+        try:
+            from bitrag.tui.document_manager import DocumentManager
+
+            doc_manager = DocumentManager(session_id=self.session_id)
+            doc_manager.show_list_documents()
+        except Exception as e:
+            print(f"[ERROR] {e}")
+
+    def _show_settings(self) -> None:
+        """Show settings."""
+        try:
+            from bitrag.tui.settings import SettingsDialogExtended
+
+            settings = SettingsDialogExtended()
+            settings.show_full_settings()
+        except Exception as e:
+            print(f"[ERROR] {e}")
+
+    def _upload_document(self, path: str) -> None:
+        """Upload a document."""
+        try:
+            from bitrag.tui.document_manager import DocumentManager
+
+            doc_manager = DocumentManager(session_id=self.session_id)
+            doc_manager.upload_document(path)
+        except Exception as e:
+            print(f"[ERROR] {e}")
+
     def run(self, interactive: bool = True) -> None:
         """Run the application."""
         # Show splash screen

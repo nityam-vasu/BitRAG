@@ -45,8 +45,8 @@ COMMAND="${1:-tui}"
 case "$COMMAND" in
     tui)
         echo "Starting BitRAG TUI..."
-        echo "Logs: ./run.sh logs"
-        $PYTHON bitrag.py tui "${@:2}" 2>> "$LOG_FILE"
+        shift
+        $PYTHON bitrag.py tui "$@" 2>> "$LOG_FILE"
         ;;
     cli)
         echo "Starting BitRAG CLI..."

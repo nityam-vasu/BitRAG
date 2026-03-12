@@ -47,12 +47,32 @@ def run_tui(args):
         from bitrag.tui.app import BitRAGApp
 
         app = BitRAGApp()
-        app.run()
+
+        # Check for extra arguments to run as command
+        if hasattr(args, "tui_args") and args.tui_args:
+            # Run specific command
+            command = args.tui_args[0] if args.tui_args else None
+            app.run_command(command)
+        else:
+            # Show default UI
+            app.run()
         return 0
     except ImportError as e:
         print(f"[ERROR] Missing dependencies: {e}")
         print("\nPlease install required packages:")
         print("  pip install -e .")
+        return 1
+    except Exception as e:
+        print(f"[ERROR] Failed to start TUI: {e}")
+        import traceback
+
+        traceback.print_exc()
+        return 1
+    except Exception as e:
+        print(f"[ERROR] Failed to start TUI: {e}")
+        import traceback
+
+        traceback.print_exc()
         return 1
     except Exception as e:
         print(f"[ERROR] Failed to start TUI: {e}")
@@ -149,6 +169,9 @@ Keyboard Shortcuts (TUI):
     # TUI command
     tui_parser = subparsers.add_parser("tui", help="Start Terminal User Interface")
     tui_parser.add_argument("--session", "-s", default="default", help="Session ID")
+    tui_parser.add_argument(
+        "tui_args", nargs="*", help="TUI subcommands: status, query, upload, documents, settings"
+    )
 
     # CLI command
     cli_parser = subparsers.add_parser("cli", help="Start Command Line Interface")
