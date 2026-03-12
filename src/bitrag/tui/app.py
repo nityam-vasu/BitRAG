@@ -551,14 +551,29 @@ class BitRAGApp:
     def show_settings(self) -> None:
         """Show settings dialog."""
         print("\n[BitRAG] Opening Settings...")
-        print("  - Ollama Port Configuration")
-        print("  - Model Selection")
-        print("  - Model Download/Delete")
-        print("  - Dual Model Mode")
-        print("  - Hybrid Retrieval Slider")
-        print("  - Document Management")
+
+        # Import settings components
+        try:
+            from bitrag.tui.settings import SettingsDialogExtended
+
+            # Create settings dialog with callbacks
+            settings_dialog = SettingsDialogExtended(on_show_documents=self.show_documents)
+
+            # Show full settings
+            settings_dialog.show_full_settings()
+
+        except Exception as e:
+            print(f"[ERROR] Could not load settings: {e}")
+            # Fallback to basic settings
+            print("\n[BitRAG] Settings")
+            print("  - Ollama Port Configuration")
+            print("  - Model Selection")
+            print("  - Model Download/Delete")
+            print("  - Dual Model Mode")
+            print("  - Hybrid Retrieval Slider")
+            print("  - Document Management")
+
         print()
-        # Note: Full settings UI would be implemented in 08-03
 
     def show_documents(self) -> None:
         """Show document management."""
