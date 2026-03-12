@@ -38,46 +38,93 @@ A lightweight **Retrieval-Augmented Generation (RAG)** system using 1-bit LLMs f
 git clone https://github.com/nityam-vasu/BitRAG.git
 cd bitrag
 
-# 2. Create virtual environment
-python3 -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# .venv\Scripts\activate   # Windows
+# 2. Set up environment (uses env_8sem if available)
+# Virtual environment is auto-detected
 
-# 3. Install dependencies
+# 3. Install dependencies (if needed)
 pip install -e .
-# OR use requirements.txt
-pip install -r requirements.txt
 
-# 4. Install Ollama and pull a model
-ollama pull qwen2:0.5b
+# 4. Ensure Ollama is running
+ollama serve
 ```
 
 ### Usage
 
 ```bash
-# Option 1: Run with bitrag.py (Recommended)
-python bitrag.py              # Start TUI
-python bitrag.py tui          # Start Terminal UI
-python bitrag.py cli          # Start CLI
-python bitrag.py status       # Show system status
+# TUI - Interactive Terminal Interface (Recommended)
+./run.sh              # Start TUI with interactive menu
+./run.sh tui         # Start TUI
 
-# Option 2: Run with run.sh (Recommended - starts PyTermGUI TUI by default)
-./run.sh              # Start TUI
-./run.sh tui          # Start TUI
+# CLI - Command Line Interface
 ./run.sh cli          # Start CLI
-./run.sh status       # Show status
+./run.sh cli status   # Show status
+./run.sh cli documents  # List documents
 
-# Option 3: Run with run.sh in CLI mode (legacy)
-./run.sh --cli
+# Direct commands via TUI
+./run.sh tui status      # Show status via TUI
+./run.sh tui documents  # List documents via TUI
+./run.sh tui upload <file>  # Upload document
+./run.sh tui query "your question"  # Query
+
+# View logs
+./run.sh logs         # View log file
+./run.sh clear-logs   # Clear logs
+```
 
 ## 📖 Usage Guide
 
-### Quick Start
+### TUI (Terminal User Interface)
+
+The TUI provides an interactive menu system:
 
 ```bash
-# Start TUI (recommended)
-python bitrag.py
-# OR
+./run.sh
+```
+
+Menu options:
+- **1. Chat** - Ask questions about your documents
+- **2. Documents** - Manage indexed documents (upload, list, delete)
+- **3. Settings** - View configuration
+- **4. Status** - System information
+- **5. Exit** - Exit the application
+
+### CLI Commands
+
+```bash
+# Status & Info
+./run.sh cli status           # Show system status
+./run.sh cli documents        # List indexed documents
+
+# Document Management
+./run.sh cli upload <file>   # Upload and index a PDF
+./run.sh cli delete <id>     # Delete a document
+
+# Chat
+./run.sh cli query "What is this about?"  # Query documents
+./run.sh cli chat            # Start interactive chat
+
+# Model Management
+./run.sh cli model list     # List available models
+./run.sh cli model use <model>  # Switch model
+./run.sh cli model download <model>  # Download model
+```
+
+### Examples
+
+```bash
+# First, upload a document
+./run.sh cli upload /path/to/document.pdf
+
+# List documents
+./run.sh cli documents
+
+# Ask a question
+./run.sh cli query "What is this document about?"
+
+# Or use TUI
+./run.sh
+# Then select option 1 for Chat
+```
 ./run.sh
 
 # Show system status
