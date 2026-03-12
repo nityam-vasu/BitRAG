@@ -53,12 +53,23 @@ def run_cli(args):
     """Run the CLI application."""
     try:
         from bitrag.cli.main import cli
+        import sys
 
-        return cli()
+        # Build argument list for click
+        cli_args = ["bitrag"]
+        # Add any additional args if needed
+
+        sys.argv = cli_args
+        return cli(standalone_mode=False)
+    except SystemExit:
+        return 0
     except ImportError as e:
         print(f"[ERROR] Missing dependencies: {e}")
         print("\nPlease install required packages:")
         print("  pip install -e .")
+        return 1
+    except Exception as e:
+        print(f"[ERROR] Failed to start CLI: {e}")
         return 1
     except Exception as e:
         print(f"[ERROR] Failed to start CLI: {e}")

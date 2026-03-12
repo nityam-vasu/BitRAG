@@ -13,13 +13,22 @@
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-# Activate virtual environment if exists
-if [ -d ".venv" ]; then
-    source .venv/bin/activate
+# Use virtual environment if exists, otherwise use system python
+# Check multiple possible locations
+for dir in "$SCRIPT_DIR/../env_8sem" "$SCRIPT_DIR/../../env_8sem" "$SCRIPT_DIR/.venv" ".venv"; do
+    if [ -d "$dir" ] && [ -f "$dir/bin/python" ]; then
+        PYTHON="$dir/bin/python"
+        break
+    fi
+done
+
+# Fallback to system python
+if [ -z "$PYTHON" ] || [ ! -f "$PYTHON" ]; then
+    PYTHON="python"
 fi
 
 # Set PYTHONPATH
-export PYTHONPATH="${SCRIPT_DIR}/src:${PYTHONPATH}"
+export PYTHONPATH="${SCRIPT_DIR}/src"
 
 # Default command
 COMMAND="${1:-tui}"
@@ -27,18 +36,18 @@ COMMAND="${1:-tui}"
 case "$COMMAND" in
     tui)
         echo "Starting BitRAG TUI..."
-        exec python bitrag.py tui "${@:2}"
+        $PYTHON bitrag.py tui "${@:2}"
         ;;
     cli)
         echo "Starting BitRAG CLI..."
-        exec python bitrag.py cli "${@:2}"
+        $PYTHON "${SCRIPT_DIR}/src/bitrag/cli/main.py" "${@:2}"
         ;;
     status)
-        exec python bitrag.py status
+        $PYTHON bitrag.py status
         ;;
     interactive)
         echo "Starting BitRAG Interactive Mode..."
-        exec python bitrag.py interactive "${@:2}"
+        $PYTHON "${SCRIPT_DIR}/src/bitrag/cli/main.py" interactive "${@:2}"
         ;;
     help|--help|-h)
         echo "BitRAG - 1-bit LLM RAG System"
@@ -52,16 +61,11 @@ case "$COMMAND" in
         echo "  status     Show system status"
         echo "  help       Show this help message"
         echo ""
-        echo "Options:"
-        echo "  -s, --session <id>   Session ID (default: default)"
-        echo "  -m, --model <name>   Model name"
-        echo ""
         echo "Examples:"
         echo "  ./run.sh              # Start TUI"
         echo "  ./run.sh tui          # Start TUI"
         echo "  ./run.sh cli          # Start CLI"
         echo "  ./run.sh status      # Show status"
-        echo "  ./run.sh cli -s mysession   # CLI with custom session"
         ;;
     *)
         echo "Unknown command: $COMMAND"

@@ -33,8 +33,7 @@ class Config:
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
 
     # LLM settings
-   # default_model: str = "qwen2.5:0.5b"  # Smallest model, works without high GPU
-    default_model: str = "gemma3:4b"  # Smallest model, works without high GPU
+    default_model: str = "llama3.2:1b"  # Available in Ollama
     llm_type: str = "ollama"  # "bitnet" or "ollama"
     ollama_base_url: str = "http://localhost:11434"
 
@@ -101,7 +100,7 @@ class Config:
             data_dir=os.getenv("DATA_DIR", str(PROJECT_ROOT / "data")),
             chroma_dir=os.getenv("CHROMA_DIR", str(PROJECT_ROOT / "chroma_db")),
             sessions_dir=os.getenv("SESSIONS_DIR", str(PROJECT_ROOT / "sessions")),
-            default_model=os.getenv("DEFAULT_LLM_MODEL", "qwen2.5:0.5b"),
+            default_model=os.getenv("DEFAULT_LLM_MODEL", "llama3.2:1b"),
             llm_type=os.getenv("LLM_TYPE", "ollama"),
             ollama_base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
         )
