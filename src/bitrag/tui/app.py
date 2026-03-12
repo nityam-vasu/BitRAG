@@ -21,6 +21,16 @@ sys.path.insert(0, os.path.join(_PROJECT_ROOT, "src"))
 import pytermgui as ptg
 from typing import Optional
 
+# Import chat display widgets
+from bitrag.tui.chat_display import (
+    ChatMessage,
+    ThinkingWidget,
+    ModelOutputWidget,
+    SourcesWidget,
+    SourcesDialog,
+    LoadingIndicator,
+)
+
 
 # ASCII Art Banner from specification
 BITRAG_BANNER = """
@@ -346,6 +356,7 @@ class BitRAGApp:
 
     def __init__(self):
         self.config = None
+        self.query_engine = None
         self._manager: Optional[ptg.WindowManager] = None
         self._main_window: Optional[ptg.Window] = None
 
@@ -359,9 +370,10 @@ class BitRAGApp:
 
         # State
         self.current_view = "chat"  # chat, documents, settings
+        self.session_id = "default"
 
     def load_config(self) -> None:
-        """Load configuration."""
+        """Load configuration and initialize query engine."""
         try:
             from bitrag.core.config import get_config
 
@@ -369,8 +381,26 @@ class BitRAGApp:
             print(f"[OK] Config loaded")
             print(f"     Data dir: {self.config.data_dir}")
             print(f"     Model: {self.config.default_model}")
+
+            # Try to initialize query engine
+            self._init_query_engine()
+
         except Exception as e:
             print(f"[WARN] Could not load config: {e}")
+
+    def _init_query_engine(self) -> None:
+        """Initialize the query engine."""
+        try:
+            from bitrag.core.query import QueryEngine
+
+            self.query_engine = QueryEngine(
+                session_id=self.session_id, model=self.config.default_model if self.config else None
+            )
+            print(f"[OK] Query engine initialized")
+            print(f"     Model: {self.query_engine.model}")
+        except Exception as e:
+            print(f"[WARN] Could not initialize query engine: {e}")
+            print(f"     Chat functionality will be limited")
 
     def initialize(self) -> None:
         """Initialize the application."""
@@ -464,24 +494,59 @@ class BitRAGApp:
         print()
 
     def handle_query(self, query: str) -> None:
-        """Handle a user query."""
+        """Handle a user query with RAG integration."""
         print(f"\n[Query] {query}")
 
         # Add user message to chat
         self.chat_area.add_user_message(query)
 
+        # Check if query engine is available
+        if self.query_engine is None:
+            print("[BitRAG] Query engine not available")
+            response = "Query engine not initialized. Please check your configuration."
+            sources = []
+            self.chat_area.add_assistant_message(response, sources)
+            return
+
         # Show "thinking" message
-        print("[BitRAG] Processing query...")
+        print("[BitRAG] Searching documents...")
 
-        # Note: Full RAG integration would go here
-        # For now, just show a placeholder response
-        response = "This is a placeholder response. RAG integration will be implemented in subsequent phases."
-        sources = []
+        try:
+            # Check if there are documents indexed
+            if not self.query_engine.has_documents():
+                print("[BitRAG] No documents found")
+                response = "No documents found in the index. Please upload documents first using the Documents panel."
+                sources = []
+                self.chat_area.add_assistant_message(response, sources)
+                return
 
-        # Add assistant response
-        self.chat_area.add_assistant_message(response, sources)
+            # Use streaming for better UX
+            print("[BitRAG] Generating response...")
 
-        print(f"[BitRAG] Response received")
+            # For demo mode, we'll use the non-streaming query
+            # In full mode, would use query_engine.query_streaming()
+            result = self.query_engine.query(query)
+
+            response = result.get("response", "")
+            sources = result.get("sources", [])
+
+            # Add assistant response with sources
+            self.chat_area.add_assistant_message(response, sources)
+
+            print(f"[BitRAG] Response received ({len(sources)} sources)")
+
+            # Print sources for demo
+            if sources:
+                print("\n[Sources]")
+                for i, src in enumerate(sources[:3], 1):
+                    text = src.get("text", "")[:80]
+                    print(f"  [{i}] {text}...")
+
+        except Exception as e:
+            print(f"[ERROR] Query failed: {e}")
+            response = f"Error processing query: {str(e)}"
+            sources = []
+            self.chat_area.add_assistant_message(response, sources)
 
     def show_settings(self) -> None:
         """Show settings dialog."""
