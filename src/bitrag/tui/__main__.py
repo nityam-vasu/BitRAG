@@ -14,35 +14,38 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 def main():
     """Main entry point."""
-    print("""
-[bold cyan]╔════════════════════════════════════════╗
-║                                        ║
-║   [bold white]BitRAG[bold cyan] - 1-bit LLM RAG System[bold cyan]    ║
-║                                        ║
-║        [bold]PyTermGUI Terminal Interface[bold]        ║
-║                                        ║
-╚════════════════════════════════════════╝
-""")
+    print("")
+    print("=" * 50)
+    print("  BitRAG - 1-bit LLM RAG System")
+    print("  PyTermGUI Terminal Interface")
+    print("=" * 50)
+    print("")
 
     # Try to import and run the app
     try:
-        from bitrag.tui.main import BitRAGApplication
+        from bitrag.tui.app import BitRAGApp
 
-        app = BitRAGApplication()
-        app.setup()
+        # Create and run the app
+        app = BitRAGApp()
+        app.run()
 
-        print("[green]Application initialized successfully![/]")
+        print("\n[OK] Application initialized successfully!")
         print("")
-        print("[bold]Usage:[/]")
+        print("Usage:")
         print("  python -m bitrag.tui    - Start the TUI")
         print("")
-        print("[dim]Note: Full TUI requires terminal with mouse support[/]")
+        print("Keyboard shortcuts:")
+        print("  C - Chat")
+        print("  S - Settings")
+        print("  U - Upload/Documents")
+        print("  Q - Quit")
+        print("")
 
     except ImportError as e:
-        print(f"[red]Error: Missing dependencies[/]")
-        print(f"[dim]{e}[/]")
+        print(f"[ERROR] Missing dependencies")
+        print(f"  {e}")
         print("")
-        print("[yellow]Try: pip install -e .[/]")
+        print("Try: pip install -e .")
         return 1
 
     return 0

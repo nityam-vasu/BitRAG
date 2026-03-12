@@ -603,7 +603,14 @@ class BitRAGApp:
 def main():
     """Main entry point."""
     app = BitRAGApp()
+
+    # Run in demo/interactive mode
+    print("\n[Info] Starting BitRAG TUI in demo mode")
+    print("[Info] Keyboard shortcuts available in full TUI mode")
+
+    # Run the app
     app.run()
+
     return 0
 
 
