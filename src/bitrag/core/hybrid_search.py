@@ -74,7 +74,7 @@ class HybridSearch:
         """Initialize ChromaDB client and collection"""
         self.chroma_client = chromadb.PersistentClient(path=self.chroma_dir)
 
-        collection_name = f"bitrag_{self.session_id}"
+        collection_name = f"bitrag_documents_{self.session_id}"
         self.collection = self.chroma_client.get_or_create_collection(
             name=collection_name, metadata={"session_id": self.session_id}
         )
