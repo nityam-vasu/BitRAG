@@ -297,11 +297,6 @@ ollama pull llama3.2:1b
 - `tqdm>=4.65.0` - Progress bars
 - `colorama>=0.4.0` - Terminal colors
 
-### Optional: Development
-- `pytest>=7.0.0` - Testing
-- `ruff>=0.1.0` - Linting
-- `black>=23.0.0` - Code formatting
-
 
 
 ---
