@@ -2,8 +2,8 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/Version-1.0.0-green?style=flat-square" alt="Version">
-  <img src="https://img.shields.io/badge/License-MIT-orange?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/Version-2.1-green?style=flat-square" alt="Version">
+\
 </p>
 
 A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with PDF documents using 1-bit LLMs. Built with ChromaDB for vector storage, Ollama for local LLM inference, and supports hybrid search combining vector similarity with BM25 keyword search.
@@ -25,9 +25,9 @@ A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with 
 
 ### Advanced Features
 - 💭 **Reasoning Model Support** - Special handling for thinking/reasoning models
-- 📊 **Document Knowledge Graph** - Visualize document relationships in web GUI
+- 📊 **Document Knowledge Graph** - Visualize document relationships in web GUI **(WIP)**
 - 🔄 **Streaming Responses** - Real-time streaming output from LLM
-- 📁 **Multi-Format Support** - PDF, TXT, MD, DOC, DOCX files
+- 📁 **Multi-Format Support** - PDF, TXT, MD, DOC, DOCX files **(WIP)**
 - ⚙️ **Configurable Parameters** - Chunk size, overlap, top-k, hybrid alpha
 
 ## Architecture
@@ -42,16 +42,6 @@ BitRAG/
 │   │   └── hybrid_search.py # Vector + BM25 hybrid search
 │   ├── cli/                 # CLI interface (Click-based)
 │   │   └── main.py
-│   └── tui/                 # Terminal User Interface
-│       ├── app.py          # Main TUI application
-│       ├── chat.py         # Chat session management
-│       ├── documents.py    # Document management UI
-│       ├── settings.py     # Settings management
-│       ├── widgets.py      # PyTermGUI widgets
-│       ├── chat_display.py # Chat display components
-│       ├── document_manager.py
-│       ├── terminal.py     # PyTermGUI terminal
-│       └── hybrid_search.py
 ├── frontend/               # React frontend for web GUI
 ├── web/                     # Flask web server
 ├── scripts/                 # Utility scripts
@@ -61,8 +51,7 @@ BitRAG/
 ├── tests/                   # Test suite
 ├── pdfs/                    # Sample PDFs for testing
 ├── web_app.py              # Flask web application
-├── bitrag.py               # Main launcher (TUI/CLI)
-├── run.sh                  # TUI launcher
+├── bitrag.py               # Main launcher (CLI)
 ├── run_web.sh              # Web GUI launcher
 ├── setup.sh                # Setup script
 ├── install.sh              # Installation script
@@ -78,13 +67,13 @@ BitRAG/
 |-------------|---------|-------|
 | Python | 3.10+ | |
 | Ollama | Latest | [Install](https://ollama.com) |
-| RAM | 4GB+ | Works with CPU |
+| RAM | 2GB+ | Works with CPU |
 
 ## Quick Start
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/BitRAG.git
+git clone https://github.com/nityam-vasu/BitRAG.git
 cd BitRAG
 
 # Install dependencies
@@ -141,27 +130,6 @@ Features:
 - Document knowledge graph visualization
 - Real-time streaming responses
 - Reasoning model support with thinking display
-
-### Terminal User Interface (TUI)
-
-The recommended way to use BitRAG:
-
-```bash
-./run.sh
-```
-
-Interactive menu options:
-- **1. Chat** - Ask questions about your documents
-- **2. Documents** - Manage indexed documents (upload, list, delete)
-- **3. Settings** - View configuration
-- **4. Status** - System information
-- **5. Exit** - Exit the application
-
-Keyboard shortcuts:
-- `C` - Chat screen
-- `S` - Settings
-- `U` - Upload/Documents
-- `Q` - Quit
 
 ### Command Line Interface (CLI)
 
@@ -246,42 +214,12 @@ The `alpha` parameter controls the balance:
 - `alpha=0.5` - Balanced (default)
 - `alpha=1.0` - Pure vector search
 
-## Testing
-
-```bash
-# Run all tests
-pytest
-
-# Run specific test file
-pytest tests/test_config.py
-
-# Run with coverage
-pytest --cov=src tests/
-```
-
-## Development
-
-### Code Style
-
-```bash
-# Format code
-ruff format .
-
-# Lint code
-ruff check .
-```
 
 ### Using the scripts
 
 ```bash
 # Download a model
 python scripts/download_model.py --type ollama --model llama3.2:1b
-
-# Create a session
-python scripts/create_session.py --name my_project
-
-# Activate a session and index documents
-python scripts/activate_session.py --session my_session --upload document.pdf --index
 ```
 
 ## Supported Models
@@ -294,12 +232,16 @@ python scripts/activate_session.py --session my_session --upload document.pdf --
 | llama3.2:3b | ~1.8GB | Better quality, larger model |
 | qwen2.5:0.5b | ~350MB | Lightest option - ultra fast |
 | qwen2.5:3b | ~900MB | Small but capable |
-| phi3:3.8b | ~2.3GB | Microsoft Phi-3, good reasoning |
-| phi3:14b | ~7.9GB | Larger Phi-3, best reasoning |
+| gemma3:1b  | ~810MB | Googles Open Weight Model, 
 | tinyllama:1.1b | ~630MB | Very small, fast |
-| mistral:7b | ~4GB | Good all-around model |
+| gemma3:1b | ~815MB | Lightweight Google model, efficient and balanced |
+| deepseek-r1:1.5b | ~1.1GB | Strong reasoning-focused model, good for logic tasks |
+| qwen3:1.7b | ~1.4GB | Improved Qwen model, solid performance and versatility |
+| granite3.1-moe:1b | ~1.4GB | Mixture-of-experts model, optimized for efficiency and scaling |
+| llama3.2:1b | ~1.3GB | Fast, reliable - great general-purpose model |
+| qwen3:0.6b | ~522MB | Very lightweight, ultra-fast with basic capabilities |
 
-### BitNet Models (1-bit)
+### BitNet Models (1-bit) **{WIP}*
 
 | Model | Size | Description |
 |-------|------|-------------|
@@ -328,9 +270,6 @@ bitrag upload /path/to/document.pdf
 ollama pull llama3.2:1b
 ```
 
-### PyTermGUI issues
-
-If the TUI fails to start with PyTermGUI, the application will automatically fall back to text-based menu mode.
 
 ## Dependencies
 
@@ -364,20 +303,10 @@ If the TUI fails to start with PyTermGUI, the application will automatically fal
 - `ruff>=0.1.0` - Linting
 - `black>=23.0.0` - Code formatting
 
-## License
 
-MIT License - See LICENSE file for details.
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ---
 
 <p align="center">
-  Made with ❤️ for educational purposes
+  BTech Final Year Project
 </p>
