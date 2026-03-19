@@ -3,7 +3,6 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/Version-2.1-green?style=flat-square" alt="Version">
-\
 </p>
 
 A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with PDF documents using 1-bit LLMs. Built with ChromaDB for vector storage, Ollama for local LLM inference, and supports hybrid search combining vector similarity with BM25 keyword search.
