@@ -2,28 +2,77 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/Version-0.1.0-orange?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/Version-1.0.0-green?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/License-MIT-orange?style=flat-square" alt="License">
 </p>
 
-A lightweight **Retrieval-Augmented Generation (RAG)** system using 1-bit LLMs for chatting with PDF documents. Built with ChromaDB for vector storage and Ollama for local LLM inference. Features a beautiful **PyTermGUI-based Terminal User Interface (TUI)** for an enhanced user experience.
+A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with PDF documents using 1-bit LLMs. Built with ChromaDB for vector storage, Ollama for local LLM inference, and supports hybrid search combining vector similarity with BM25 keyword search.
 
-## ✨ Features
+## Features
 
+### Core Features
 - 📄 **PDF Indexing** - Upload and index PDF documents with automatic text extraction
 - 💬 **Chat with PDFs** - Ask questions and get AI-powered answers from your documents
-- 🔗 **Session Management** - Organize work into separate sessions
-- ⚡ **Lightweight Models** - Works with 1-bit models (qwen2, llama3.2, phi3)
+- 🔗 **Session Management** - Organize work into separate sessions with isolated storage
+- ⚡ **Lightweight Models** - Works with small models (qwen2, llama3.2, phi3, tinyllama)
 - 🎯 **Vector Search** - ChromaDB for semantic similarity search
-- 🖥️ **Interactive TUI** - Terminal interface with:
-  - Interactive menu system
-  - Chat mode for querying documents
-  - Document management (upload, list, delete)
-  - Settings display
-  - Session management
+- 🔀 **Hybrid Search** - Combines vector + BM25 keyword search using Reciprocal Rank Fusion
 
-## 🚀 Quick Start
+### User Interfaces
+- 🖥️ **Interactive TUI** - Terminal interface with menu system and PyTermGUI
+- 🌐 **Web GUI** - Modern web interface with React frontend
+- ⌨️ **Command Line Interface** - Full CLI for scripting and automation
 
-### Prerequisites
+### Advanced Features
+- 💭 **Reasoning Model Support** - Special handling for thinking/reasoning models
+- 📊 **Document Knowledge Graph** - Visualize document relationships in web GUI
+- 🔄 **Streaming Responses** - Real-time streaming output from LLM
+- 📁 **Multi-Format Support** - PDF, TXT, MD, DOC, DOCX files
+- ⚙️ **Configurable Parameters** - Chunk size, overlap, top-k, hybrid alpha
+
+## Architecture
+
+```
+BitRAG/
+├── src/bitrag/              # Source code
+│   ├── core/                # Core functionality
+│   │   ├── config.py       # Configuration management
+│   │   ├── indexer.py      # PDF indexing with ChromaDB
+│   │   ├── query.py        # Query engine with Ollama integration
+│   │   └── hybrid_search.py # Vector + BM25 hybrid search
+│   ├── cli/                 # CLI interface (Click-based)
+│   │   └── main.py
+│   └── tui/                 # Terminal User Interface
+│       ├── app.py          # Main TUI application
+│       ├── chat.py         # Chat session management
+│       ├── documents.py    # Document management UI
+│       ├── settings.py     # Settings management
+│       ├── widgets.py      # PyTermGUI widgets
+│       ├── chat_display.py # Chat display components
+│       ├── document_manager.py
+│       ├── terminal.py     # PyTermGUI terminal
+│       └── hybrid_search.py
+├── frontend/               # React frontend for web GUI
+├── web/                     # Flask web server
+├── scripts/                 # Utility scripts
+│   ├── download_model.py   # Model downloader
+│   ├── create_session.py   # Session creator
+│   └── activate_session.py # Session activator
+├── tests/                   # Test suite
+├── pdfs/                    # Sample PDFs for testing
+├── web_app.py              # Flask web application
+├── bitrag.py               # Main launcher (TUI/CLI)
+├── run.sh                  # TUI launcher
+├── run_web.sh              # Web GUI launcher
+├── setup.sh                # Setup script
+├── install.sh              # Installation script
+├── requirements.txt       # Python dependencies
+├── web_requirements.txt    # Web-specific dependencies
+├── pyproject.toml          # Package configuration
+└── README.md
+```
+
+## Prerequisites
 
 | Requirement | Version | Notes |
 |-------------|---------|-------|
@@ -31,134 +80,97 @@ A lightweight **Retrieval-Augmented Generation (RAG)** system using 1-bit LLMs f
 | Ollama | Latest | [Install](https://ollama.com) |
 | RAM | 4GB+ | Works with CPU |
 
-### Installation
+## Quick Start
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/nityam-vasu/BitRAG.git
-cd bitrag
+# Clone the repository
+git clone https://github.com/yourusername/BitRAG.git
+cd BitRAG
 
-# 2. Set up environment (uses env_8sem if available)
-# Virtual environment is auto-detected
-
-# 3. Install dependencies (if needed)
+# Install dependencies
 pip install -e .
 
-# 4. Ensure Ollama is running
+# Start Ollama (in another terminal)
 ollama serve
+
+# Run the application
+./run.sh
 ```
 
-### Usage
+## Installation
+
+### Using the setup script
 
 ```bash
-# TUI - Interactive Terminal Interface (Recommended)
-./run.sh              # Start TUI with interactive menu
-./run.sh tui         # Start TUI
-
-# CLI - Command Line Interface
-./run.sh cli          # Start CLI
-./run.sh cli status   # Show status
-./run.sh cli documents  # List documents
-
-# Direct commands via TUI
-./run.sh tui status      # Show status via TUI
-./run.sh tui documents  # List documents via TUI
-./run.sh tui upload <file>  # Upload document
-./run.sh tui query "your question"  # Query
-
-# View logs
-./run.sh logs         # View log file
-./run.sh clear-logs   # Clear logs
+chmod +x setup.sh
+./setup.sh
 ```
 
-## 📖 Usage Guide
+### Manual Installation
 
-### TUI (Terminal User Interface)
+```bash
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
 
-The TUI provides an interactive menu system:
+# Install dependencies
+pip install -r requirements.txt
+
+# Install package
+pip install -e .
+```
+
+## Usage
+
+### Web User Interface (GUI)
+
+The easiest way to use BitRAG:
+
+```bash
+# Start the web server
+./run_web.sh
+
+# Open in browser
+# http://localhost:5000
+```
+
+Features:
+- Modern React-based chat interface
+- Document upload and management
+- Model selection and settings
+- Document knowledge graph visualization
+- Real-time streaming responses
+- Reasoning model support with thinking display
+
+### Terminal User Interface (TUI)
+
+The recommended way to use BitRAG:
 
 ```bash
 ./run.sh
 ```
 
-Menu options:
+Interactive menu options:
 - **1. Chat** - Ask questions about your documents
 - **2. Documents** - Manage indexed documents (upload, list, delete)
 - **3. Settings** - View configuration
 - **4. Status** - System information
 - **5. Exit** - Exit the application
 
-### CLI Commands
+Keyboard shortcuts:
+- `C` - Chat screen
+- `S` - Settings
+- `U` - Upload/Documents
+- `Q` - Quit
+
+### Command Line Interface (CLI)
 
 ```bash
-# Status & Info
-./run.sh cli status           # Show system status
-./run.sh cli documents        # List indexed documents
-
-# Document Management
-./run.sh cli upload <file>   # Upload and index a PDF
-./run.sh cli delete <id>     # Delete a document
-
-# Chat
-./run.sh cli query "What is this about?"  # Query documents
-./run.sh cli chat            # Start interactive chat
-
-# Model Management
-./run.sh cli model list     # List available models
-./run.sh cli model use <model>  # Switch model
-./run.sh cli model download <model>  # Download model
-```
-
-### Examples
-
-```bash
-# First, upload a document
-./run.sh cli upload /path/to/document.pdf
-
-# List documents
-./run.sh cli documents
-
-# Ask a question
-./run.sh cli query "What is this document about?"
-
-# Or use TUI
-./run.sh
-# Then select option 1 for Chat
-```
-./run.sh
-
-# Show system status
-python bitrag.py status
-./run.sh status
-```
-
-### bitrag.py Commands
-
-```bash
-python bitrag.py              # Start TUI (default)
-python bitrag.py tui          # Start Terminal UI
-python bitrag.py cli          # Start CLI
-python bitrag.py status       # Show system status
-python bitrag.py --help       # Help
-```
-
-### CLI Commands
-
-```bash
-# Upload and index a PDF
+# Upload a document
 bitrag upload document.pdf
 
-# List indexed documents
+# List documents
 bitrag documents
-
-# Get document details
-bitrag get-document "document.pdf"
-
-# Update document metadata
-bitrag update-document "document.pdf" --key category=important
-
-# Delete document
-bitrag delete "document.pdf"
 
 # Query documents
 bitrag query "What is this document about?"
@@ -167,178 +179,53 @@ bitrag query "What is this document about?"
 bitrag chat
 
 # Model management
-bitrag model list          # List available models
-bitrag model status        # Show current model
-bitrag model use llama3.2:1b  # Switch model
-bitrag model download phi3:3.8b  # Download model
+bitrag model list
+bitrag model use llama3.2:1b
 
 # Session management
-bitrag session list        # List sessions
+bitrag session list
+bitrag session create my_project
 ```
 
-### Interactive Mode Commands
+### Interactive Commands
 
-```
-/upload <file>      Upload and index a PDF
-/documents          List indexed documents  
-/get <name>         Get document details
-/delete <name>      Delete document
-/browse             Browse for PDF files
-/query <text>       Query indexed documents
-/chat               Start interactive chat
-/model <cmd>        Model management (list|status|use|download)
-/session <cmd>      Session management
-/status             Show system status
-/clear              Clear screen
-/help               Show help
-/exit               Exit
-```
+When in interactive mode:
 
-## 🖥️ TUI Guide
+| Command | Description |
+|---------|-------------|
+| `/upload <file>` | Upload and index a PDF |
+| `/documents` | List indexed documents |
+| `/delete <name>` | Delete a document |
+| `/query <text>` | Query indexed documents |
+| `/chat` | Start interactive chat |
+| `/model <cmd>` | Model management |
+| `/session <cmd>` | Session management |
+| `/status` | Show system status |
+| `/help` | Show help |
+| `/exit` | Exit |
 
-BitRAG features an interactive Terminal User Interface (TUI) for easy document management and chatting.
-
-### Starting the TUI
-
-```bash
-# Activate your virtual environment
-source .venv/bin/activate
-
-# Start the TUI (Recommended)
-python bitrag.py
-# OR
-./run.sh
-
-# Or start with run.sh
-./run.sh tui
-```
-
-### TUI Keyboard Shortcuts
-
-| Key | Action |
-|-----|--------|
-| **C** | Chat screen (main window) |
-| **S** | Settings |
-| **U** | Upload/Documents |
-| **Q** | Quit |
-
-### TUI Modes
-
-| Mode | Description |
-|------|-------------|
-| **Chat** | Ask questions about your indexed documents |
-| **Documents** | Manage indexed PDFs (upload, list, delete) |
-| **Settings** | View current configuration |
-
-### Using the TUI
-
-1. **Start the TUI**
-   - Run `python src/bitrag/tui/main.py` or `./run.sh`
-   - You'll see the main menu
-
-2. **Select a Mode**
-   - Type `1` for Chat mode
-   - Type `2` for Documents mode
-   - Type `3` for Settings
-   - Type `4` to Quit
-
-3. **Chat Mode**
-   - Ask questions about your documents
-   - Type `help` for commands
-   - Type `exit` to return to main menu
-
-4. **Documents Mode**
-   - `list` - Show indexed documents
-   - `upload <path>` - Index a PDF
-   - `delete <id>` - Remove a document
-   - Type `exit` to return to main menu
-
-### Command Line Options
-
-```bash
-# Start in specific mode
-python src/bitrag/tui/main.py chat
-python src/bitrag/tui/main.py documents
-python src/bitrag/tui/main.py settings
-
-# Or use run.sh
-./run.sh --cli chat
-```
-
-### Troubleshooting
-
-**No documents found:**
-```bash
-# First upload a PDF in Documents mode
-upload /path/to/your/document.pdf
-```
-
-**Ollama not running:**
-```bash
-# Start Ollama
-ollama serve
-```
-
-**Import errors:**
-```bash
-# Reinstall dependencies
-pip install -e .
-```
-
-## 🏗️ Project Structure
-
-```
-bitrag/
-├── src/
-│   └── bitrag/
-│       ├── cli/           # Command-line interface
-│       │   └── main.py   # CLI entry point
-│       ├── core/         # Core functionality
-│       │   ├── config.py    # Configuration
-│       │   ├── indexer.py   # PDF indexing
-│       │   └── query.py     # Query engine
-│       ├── tui/          # PyTermGUI TUI
-│       │   ├── __main__.py  # TUI entry point
-│       │   ├── app.py       # Main application
-│       │   ├── chat_display.py  # Chat widgets
-│       │   ├── document_manager.py  # Document management
-│       │   ├── settings.py  # Settings panel
-│       │   ├── documents.py # Document management UI
-│       │   └── ...
-│       ├── models/       # Data models
-│       └── utils/        # Utilities
-├── scripts/              # Utility scripts
-├── bitrag.py            # Main launcher
-├── pyproject.toml       # Package configuration
-├── requirements.txt     # Python dependencies
-├── run.sh              # Quick start script
-└── ...
-```
-
-## 🔧 Configuration
+## Configuration
 
 ### Environment Variables
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `DATA_DIR` | `./data` | Data directory |
-| `CHROMA_DIR` | `./chroma_db` | ChromaDB directory |
-| `SESSIONS_DIR` | `./sessions` | Sessions directory |
-| `DEFAULT_LLM_MODEL` | `qwen2.5:0.5b` | Default LLM model |
-| `LLM_TYPE` | `ollama` | LLM type |
-| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama URL |
+```bash
+export DATA_DIR="./data"
+export CHROMA_DIR="./chroma_db"
+export SESSIONS_DIR="./sessions"
+export DEFAULT_LLM_MODEL="llama3.2:1b"
+export OLLAMA_BASE_URL="http://localhost:11434"
+```
 
 ### Config File
 
-Create `.bitrag_config.json` to customize settings:
+Create `.bitrag_config.json`:
 
 ```json
 {
   "data_dir": "./data",
-  "chroma_dir": "./chroma_db", 
+  "chroma_dir": "./chroma_db",
   "sessions_dir": "./sessions",
-  "default_model": "qwen2.5:0.5b",
-  "llm_type": "ollama",
+  "default_model": "llama3.2:1b",
   "ollama_base_url": "http://localhost:11434",
   "chunk_size": 512,
   "chunk_overlap": 50,
@@ -346,53 +233,142 @@ Create `.bitrag_config.json` to customize settings:
 }
 ```
 
-## 🛠️ Development
+## Hybrid Search
 
-### Running Tests
+BitRAG supports hybrid search combining vector similarity with BM25 keyword search:
+
+- **Vector Search** - Semantic similarity using embeddings
+- **BM25 Search** - Traditional keyword-based retrieval
+- **RRF Fusion** - Reciprocal Rank Fusion for combining results
+
+The `alpha` parameter controls the balance:
+- `alpha=0.0` - Pure keyword search
+- `alpha=0.5` - Balanced (default)
+- `alpha=1.0` - Pure vector search
+
+## Testing
 
 ```bash
-# Install dev dependencies
-pip install -e ".[dev]"
-
-# Run tests
+# Run all tests
 pytest
+
+# Run specific test file
+pytest tests/test_config.py
+
+# Run with coverage
+pytest --cov=src tests/
 ```
+
+## Development
 
 ### Code Style
 
 ```bash
 # Format code
-ruff check --fix .
 ruff format .
+
+# Lint code
+ruff check .
 ```
 
-## 📝 Troubleshooting
+### Using the scripts
+
+```bash
+# Download a model
+python scripts/download_model.py --type ollama --model llama3.2:1b
+
+# Create a session
+python scripts/create_session.py --name my_project
+
+# Activate a session and index documents
+python scripts/activate_session.py --session my_session --upload document.pdf --index
+```
+
+## Supported Models
+
+### Ollama Models (Recommended)
+
+| Model | Size | Description |
+|-------|------|-------------|
+| llama3.2:1b | ~1.3GB | Fast, reliable - recommended for beginners |
+| llama3.2:3b | ~1.8GB | Better quality, larger model |
+| qwen2.5:0.5b | ~350MB | Lightest option - ultra fast |
+| qwen2.5:3b | ~900MB | Small but capable |
+| phi3:3.8b | ~2.3GB | Microsoft Phi-3, good reasoning |
+| phi3:14b | ~7.9GB | Larger Phi-3, best reasoning |
+| tinyllama:1.1b | ~630MB | Very small, fast |
+| mistral:7b | ~4GB | Good all-around model |
+
+### BitNet Models (1-bit)
+
+| Model | Size | Description |
+|-------|------|-------------|
+| microsoft/bitnet-b1.58-2B-4T | ~700MB | True 1.58-bit model |
+
+## Troubleshooting
 
 ### Ollama not found
+
 ```bash
 # Install Ollama
 curl -fsSL https://ollama.com/install.sh | sh
 ```
 
 ### No documents found
+
 ```bash
-# Upload a PDF
-bitrag upload data/your_document.pdf
+# Upload a PDF first
+bitrag upload /path/to/document.pdf
 ```
 
 ### Model not available
+
 ```bash
 # Pull a model
-ollama pull qwen2.5:0.5b
+ollama pull llama3.2:1b
 ```
 
-### Port already in use
-```bash
-# Check what's using port 11434
-lsof -i :11434
-```
+### PyTermGUI issues
 
-## 🤝 Contributing
+If the TUI fails to start with PyTermGUI, the application will automatically fall back to text-based menu mode.
+
+## Dependencies
+
+### Core
+- `llama-index>=0.10.0` - RAG framework
+- `chromadb>=0.4.0` - Vector database
+- `sentence-transformers>=2.2.0` - Embeddings
+- `pypdf>=3.0.0` - PDF processing
+- `rank-bm25>=0.2.0` - BM25 keyword search
+
+### LLM Integration
+- `llama-index-llms-ollama>=0.1.0` - Ollama LLM integration
+- `llama-index-embeddings-huggingface>=0.1.0` - HuggingFace embeddings
+- `llama-index-vector-stores-chroma>=0.1.0` - ChromaDB vector store
+
+### Web GUI
+- `flask>=3.0.0` - Web framework
+- `flask-cors>=4.0.0` - CORS support
+- `psutil>=5.9.0` - System information
+
+### CLI & Utilities
+- `click>=8.1.0` - CLI framework
+- `python-dotenv>=1.0.0` - Environment variables
+- `pyyaml>=6.0.0` - YAML support
+- `requests>=2.31.0` - HTTP requests
+- `tqdm>=4.65.0` - Progress bars
+- `colorama>=0.4.0` - Terminal colors
+
+### Optional: Development
+- `pytest>=7.0.0` - Testing
+- `ruff>=0.1.0` - Linting
+- `black>=23.0.0` - Code formatting
+
+## License
+
+MIT License - See LICENSE file for details.
+
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch (`git checkout -b feature/amazing-feature`)
@@ -400,16 +376,8 @@ lsof -i :11434
 4. Push to the branch (`git push origin feature/amazing-feature`)
 5. Open a Pull Request
 
-
-
-## 🙏 Acknowledgments
-
-- [LlamaIndex](https://www.llamaindex.ai/) - For the indexing infrastructure
-- [ChromaDB](https://www.trychroma.com/) - For vector storage
-- [Ollama](https://ollama.ai/) - For local LLM inference
-- [HuggingFace](https://huggingface.co/) - For embedding models
-
-
 ---
 
-<p align="center">BTech Project</p>
+<p align="center">
+  Made with ❤️ for educational purposes
+</p>

@@ -27,6 +27,7 @@ venv/
 ENV/
 env/
 .env
+venv8sem/
 
 # IDEs
 .vscode/
@@ -41,6 +42,7 @@ env/
 .coverage
 htmlcov/
 .tox/
+cover/
 
 # Ruff
 .ruff_cache/
@@ -48,18 +50,32 @@ htmlcov/
 # Project specific - Generated at runtime
 chroma_db/
 sessions/
-data/*.pdf
-data/uploads/
+data/
+!data/.gitkeep
+!pdfs/.gitkeep
+web/uploads/
+!web/uploads/.gitkeep
 *.sqlite3
-
-# Logs
 *.log
+log.txt
 
 # Environment variables
 .env
 .env.local
+.env.*.local
 
 # Temporary files
 *.tmp
 *.bak
 *.cache
+*.pyc
+
+# Model files
+models/
+*.gguf
+*.bin
+
+# Secrets
+*.pem
+*.key
+credentials.json
