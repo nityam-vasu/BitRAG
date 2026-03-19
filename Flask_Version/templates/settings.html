@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+
+{% block title %}BitRAG - Settings{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Model Settings -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-cpu"></i> LLM Model Settings
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="modelSelect" class="form-label">Select Model</label>
+                    <select class="form-select" id="modelSelect">
+                        <option value="">Loading models...</option>
+                    </select>
+                    <div class="form-text">Select the Ollama model to use for generating responses</div>
+                </div>
+                <button class="btn btn-primary" onclick="applySettings()">
+                    <i class="bi bi-check-circle"></i> Apply Settings
+                </button>
+                <button class="btn btn-outline-primary" onclick="refreshModels()">
+                    <i class="bi bi-arrow-clockwise"></i> Refresh Models
+                </button>
+            </div>
+        </div>
+        
+        <!-- System Information -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="bi bi-info-circle"></i> System Information
+            </div>
+            <div class="card-body">
+                <div id="systemInfo">
+                    <div class="text-center">
+                        <div class="spinner-border" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2 text-muted">Loading system information...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- About -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-question-circle"></i> About BitRAG
+            </div>
+            <div class="card-body">
+                <h5>BitRAG - Chat with your Documents</h5>
+                <p class="text-muted">
+                    A RAG (Retrieval-Augmented Generation) system for chatting with PDF documents using LLMs.
+                </p>
+                <h6>Features:</h6>
+                <ul class="text-muted">
+                    <li>PDF document indexing and retrieval</li>
+                    <li>RAG-powered question answering</li>
+                    <li>Multiple LLM model support via Ollama</li>
+                    <li>Session-based document management</li>
+                </ul>
+                <h6>Keyboard Shortcuts:</h6>
+                <ul class="text-muted">
+                    <li><kbd>Enter</kbd> - Send message</li>
+                    <li><kbd>Ctrl+L</kbd> - Clear chat</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Load models and system info on page load
+document.addEventListener('DOMContentLoaded', function() {
+    refreshModels();
+    loadSystemInfo();
+});
+
+// Refresh available models
+function refreshModels() {
+    fetch('/api/models')
+        .then(r => r.json())
+        .then(data => {
+            const select = document.getElementById('modelSelect');
+            select.innerHTML = data.models.map(model => 
+                `<option value="${model}">${model}</option>`
+            ).join('');
+            
+            // Load current model
+            return fetch('/api/settings');
+        })
+        .then(r => r.json())
+        .then(data => {
+            document.getElementById('modelSelect').value = data.model;
+        })
+        .catch(err => {
+            console.error('Error loading models:', err);
+            document.getElementById('modelSelect').innerHTML = 
+                '<option value="llama3.2:1b">llama3.2:1b</option>';
+        });
+}
+
+// Apply settings
+function applySettings() {
+    const model = document.getElementById('modelSelect').value;
+    
+    fetch('/api/settings', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({model: model})
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.success) {
+            // Update navbar badge
+            document.getElementById('modelBadge').innerHTML = 
+                '<span class="badge badge-model"><i class="bi bi-cpu"></i> ' + data.model + '</span>';
+            
+            alert('Settings applied successfully!');
+        }
+    })
+    .catch(err => {
+        alert('Error: ' + err.message);
+    });
+}
+
+// Load system information
+function loadSystemInfo() {
+    fetch('/api/system/info')
+        .then(r => r.json())
+        .then(data => {
+            const container = document.getElementById('systemInfo');
+            
+            let ollamaStatus = data.ollama_status || 'unknown';
+            let statusClass = ollamaStatus === 'running' ? 'status-online' : 'status-offline';
+            let statusIcon = ollamaStatus === 'running' ? 'check-circle' : 'x-circle';
+            
+            const infoHtml = `
+                <table class="table table-borderless">
+                    <tr>
+                        <td><strong>Session ID:</strong></td>
+                        <td>${escapeHtml(data.session_id)}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Documents Indexed:</strong></td>
+                        <td>${data.document_count}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Current Model:</strong></td>
+                        <td><span class="badge badge-model">${escapeHtml(data.current_model?.model || 'N/A')}</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Embedding Model:</strong></td>
+                        <td>${escapeHtml(data.embedding_model)}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Chunk Size:</strong></td>
+                        <td>${data.chunk_size}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Top K:</strong></td>
+                        <td>${data.top_k}</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Ollama Status:</strong></td>
+                        <td>
+                            <span class="status-indicator ${statusClass}"></span>
+                            <i class="bi bi-${statusIcon}"></i> ${ollamaStatus}
+                        </td>
+                    </tr>
+                    ${data.ollama_models ? `
+                    <tr>
+                        <td><strong>Available Models:</strong></td>
+                        <td>${data.ollama_models.map(m => `<span class="badge bg-secondary me-1">${escapeHtml(m)}</span>`).join('')}</td>
+                    </tr>
+                    ` : ''}
+                    <tr>
+                        <td><strong>Data Directory:</strong></td>
+                        <td><code class="text-muted">${escapeHtml(data.data_dir)}</code></td>
+                    </tr>
+                    <tr>
+                        <td><strong>ChromaDB:</strong></td>
+                        <td><code class="text-muted">${escapeHtml(data.chroma_dir)}</code></td>
+                    </tr>
+                </table>
+            `;
+            
+            container.innerHTML = infoHtml;
+        })
+        .catch(err => {
+            document.getElementById('systemInfo').innerHTML = 
+                '<div class="alert alert-danger">Error loading system information</div>';
+        });
+}
+
+// Escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text || '';
+    return div.innerHTML;
+}
+</script>
+{% endblock %}

@@ -1,0 +1,112 @@
+================================================================================
+UNKNOWN STORY - PHASE BY PHASE TESTING PLAN
+================================================================================
+
+Story Theme: Mystery/Thriller
+Story Title: Unknown
+Total Phases: 10
+
+================================================================================
+FILENAME FORMAT
+================================================================================
+
+Each phase outputs a file named:
+    Phase_<Number>_<total_word>_P<Total_Pages>
+
+Example:
+    Phase_1_750_P3.txt      (Phase 1, 750 words, ~3 pages)
+    Phase_5_1850_P8.txt    (Phase 5, 1850 words, ~8 pages)
+    Phase_10_1200_P5.txt   (Phase 10, 1200 words, ~5 pages)
+
+================================================================================
+PHASE BREAKDOWN
+================================================================================
+
+PHASE 1  | Model: llama3.2:1b
+---------|--------------------------------------------------------------
+Task:    | Create Story Outline & Setting
+Purpose: | Define the mysterious setting, main characters, and plot
+Output:  | Phase_1_~700_P3.txt
+
+PHASE 2  | Model: llama3.2:3b
+---------|--------------------------------------------------------------
+Task:    | Develop Characters & Backstories
+Purpose: | Write detailed character profiles and their hidden secrets
+Output:  | Phase_2_~800_P4.txt
+
+PHASE 3  | Model: llama3.1:1b
+---------|--------------------------------------------------------------
+Task:    | Write Opening Chapter - The Inciting Incident
+Purpose: | Start the story with the event that sets everything in motion
+Output:  | Phase_3_~1000_P4.txt
+
+PHASE 4  | Model: llama3.1:3b
+---------|--------------------------------------------------------------
+Task:    | Rising Action - First Clues
+Purpose: | Protagonist discovers first clues and faces obstacles
+Output:  | Phase_4_~1300_P6.txt
+
+PHASE 5  | Model: phi3:3.8b
+---------|--------------------------------------------------------------
+Task:    | Midpoint Revelation
+Purpose: | Major revelation that changes protagonist's understanding
+Output:  | Phase_5_~1500_P6.txt
+
+PHASE 6  | Model: phi3.5:3.8b
+---------|--------------------------------------------------------------
+Task:    | Complications & Betrayals
+Purpose: | Things get complicated with betrayals and false leads
+Output:  | Phase_6_~1500_P6.txt
+
+PHASE 7  | Model: mistral:7b
+---------|--------------------------------------------------------------
+Task:    | Darkest Point
+Purpose: | Protagonist faces their darkest moment
+Output:  | Phase_7_~1800_P8.txt
+
+PHASE 8  | Model: neural-chat:7b
+---------|--------------------------------------------------------------
+Task:    | Climax Preparation
+Purpose: | Protagonist gathers resources for final confrontation
+Output:  | Phase_8_~1500_P6.txt
+
+PHASE 9  | Model: codellama:7b
+---------|--------------------------------------------------------------
+Task:    | Climax
+Purpose: | Final confrontation with the unknown threat
+Output:  | Phase_9_~2000_P8.txt
+
+PHASE 10 | Model: qwen2:0.5b
+---------|--------------------------------------------------------------
+Task:    | Resolution & Epilogue
+Purpose: | Wrap up all loose ends and provide closure
+Output:  | Phase_10_~1200_P5.txt
+
+================================================================================
+EXPECTED TOTALS
+================================================================================
+
+Estimated Total Words: ~12,800
+Estimated Total Pages: ~52
+
+================================================================================
+USAGE COMMANDS
+================================================================================
+
+# List all phases
+python unknown_story_phases.py --list
+
+# Run all phases
+python unknown_story_phases.py --run-all
+
+# Run specific phase
+python unknown_story_phases.py --phase 1
+python unknown_story_phases.py --phase 5
+
+# Custom output directory
+python unknown_story_phases.py --run-all --output my_story
+
+# With PDF context (optional)
+python unknown_story_phases.py --run-all --index-pdf reference.pdf
+
+================================================================================

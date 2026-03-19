@@ -130,10 +130,22 @@ class DocumentIndexer:
         self._report_progress(f"Loading PDF: {file_path.name}...", 25)
 
         # Load PDF using pypdf
-        reader = PdfReader(str(dest_path))
-        text = ""
-        for page in reader.pages:
-            text += page.extract_text() + "\n"
+        try:
+            reader = PdfReader(str(dest_path))
+            text = ""
+            for page in reader.pages:
+                page_text = page.extract_text()
+                if page_text:  # Handle None return value
+                    text += page_text + "\n"
+
+            # Check if any text was extracted
+            if not text.strip():
+                raise ValueError(f"No text could be extracted from PDF: {file_path.name}")
+        except Exception as e:
+            # Clean up the temp file
+            if dest_path.exists():
+                dest_path.unlink()
+            raise ValueError(f"Failed to read PDF file: {str(e)}") from e
 
         # Create LlamaIndex Document
         doc = Document(text=text, metadata=metadata or {})

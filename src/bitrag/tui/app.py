@@ -764,21 +764,44 @@ class BitRAGApp:
         doc_count = self._count_documents()
         print(f"  Documents:   {doc_count}")
 
-        # Check Ollama
-        import subprocess
-
+        # Check Ollama using the new OllamaService
         try:
-            result = subprocess.run(["ollama", "list"], capture_output=True, text=True, timeout=5)
-            if result.returncode == 0:
-                lines = result.stdout.strip().split("\n")
-                model_count = len(lines) - 1 if len(lines) > 1 else 0
-                print(f"  Ollama:     Running ({model_count} models)")
+            from bitrag.core.query import OllamaService
+
+            ollama = OllamaService(
+                base_url=self.config.ollama_base_url if self.config else "http://localhost:11434"
+            )
+
+            if ollama.is_available():
+                models = ollama.list_models()
+                print(f"  Ollama:      Running ({len(models)} models)")
+                if models:
+                    print(f"              Available: {', '.join(models[:5])}")
+                    if len(models) > 5:
+                        print(f"              ... and {len(models) - 5} more")
             else:
-                print("  Ollama:     Not responding")
-        except FileNotFoundError:
-            print("  Ollama:     Not installed")
-        except:
-            print("  Ollama:     Not running")
+                print("  Ollama:      Not responding")
+                print("  Hint:        Run 'ollama serve' to start Ollama")
+        except ImportError:
+            # Fallback to subprocess
+            import subprocess
+
+            try:
+                result = subprocess.run(
+                    ["ollama", "list"], capture_output=True, text=True, timeout=5
+                )
+                if result.returncode == 0:
+                    lines = result.stdout.strip().split("\n")
+                    model_count = len(lines) - 1 if len(lines) > 1 else 0
+                    print(f"  Ollama:     Running ({model_count} models)")
+                else:
+                    print("  Ollama:     Not responding")
+            except FileNotFoundError:
+                print("  Ollama:     Not installed")
+            except:
+                print("  Ollama:     Not running")
+        except Exception as e:
+            print(f"  Ollama:     Error checking status: {e}")
 
         print()
         print("-" * 50)

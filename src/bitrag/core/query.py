@@ -2,9 +2,11 @@
 BitRAG Query Engine
 
 Handles RAG queries using Ollama LLM with model selection support.
+Includes proper Ollama availability checking and model validation.
 """
 
 import os
+import requests
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Generator
 from datetime import datetime
@@ -17,7 +19,6 @@ from llama_index.core.llms import CompletionResponse, LLMMetadata
 from llama_index.core.llms.callbacks import llm_completion_callback
 from typing import Any, Dict, Optional
 import subprocess
-import os
 import json
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 from llama_index.core.response_synthesizers import get_response_synthesizer
@@ -25,6 +26,96 @@ from llama_index.core import Document
 import chromadb
 
 from .config import get_config
+
+
+class OllamaService:
+    """
+    Ollama service class for managing Ollama connections and model validation.
+    Based on the working implementation from OLLAMA_INTEGRATION.md
+    """
+
+    def __init__(self, base_url: str = "http://localhost:11434"):
+        self.base_url = base_url.rstrip("/")
+        self._available_models: Optional[List[str]] = None
+
+    def is_available(self) -> bool:
+        """
+        Check if Ollama server is available.
+        Uses GET /api/tags endpoint (same as OLLAMA_INTEGRATION.md)
+        """
+        try:
+            response = requests.get(f"{self.base_url}/api/tags", timeout=3)
+            return response.ok
+        except (requests.ConnectionError, requests.Timeout):
+            return False
+
+    def list_models(self) -> List[str]:
+        """
+        Get list of available models from Ollama.
+        Returns cached list if available.
+        """
+        if self._available_models is not None:
+            return self._available_models
+
+        try:
+            response = requests.get(f"{self.base_url}/api/tags", timeout=3)
+            if response.ok:
+                data = response.json()
+                self._available_models = [m.get("name", "") for m in data.get("models", [])]
+                return self._available_models
+        except (requests.ConnectionError, requests.Timeout):
+            pass
+
+        return []
+
+    def model_exists(self, model_name: str) -> bool:
+        """Check if a specific model exists on the Ollama server."""
+        available = self.list_models()
+        return model_name in available
+
+    def get_model_info(self, model_name: str) -> Optional[Dict[str, Any]]:
+        """Get information about a specific model."""
+        try:
+            response = requests.get(f"{self.base_url}/api/tags", timeout=3)
+            if response.ok:
+                data = response.json()
+                for m in data.get("models", []):
+                    if m.get("name") == model_name:
+                        return m
+        except (requests.ConnectionError, requests.Timeout):
+            pass
+        return None
+
+    def pull_model(self, model_name: str, timeout: int = 300) -> bool:
+        """
+        Pull a model from Ollama registry.
+        Note: This is a non-blocking check - actual pulling happens in background.
+        """
+        try:
+            response = requests.post(
+                f"{self.base_url}/api/pull", json={"name": model_name}, timeout=timeout, stream=True
+            )
+            return response.ok
+        except (requests.ConnectionError, requests.Timeout):
+            return False
+
+    def invalidate_cache(self):
+        """Invalidate the cached model list."""
+        self._available_models = None
+
+
+# Global Ollama service instance
+_ollama_service: Optional[OllamaService] = None
+
+
+def get_ollama_service(base_url: str = None) -> OllamaService:
+    """Get or create the global Ollama service instance."""
+    global _ollama_service
+    if _ollama_service is None:
+        config = get_config()
+        url = base_url or config.ollama_base_url
+        _ollama_service = OllamaService(base_url=url)
+    return _ollama_service
 
 
 class BitNetCppLLM(CustomLLM):
@@ -116,13 +207,14 @@ Answer:"""
 
 
 class QueryEngine:
-    """RAG query engine with model selection support"""
+    """RAG query engine with model selection support and Ollama integration"""
 
     def __init__(
         self,
         session_id: str,
         model: Optional[str] = None,
         llm_type: Optional[str] = None,
+        _skip_ollama_check: bool = False,
     ):
         """
         Initialize the query engine.
@@ -131,6 +223,7 @@ class QueryEngine:
             session_id: Session ID for document isolation
             model: Model name (e.g., "bitnet-b1.58-2B-4T", "llama3.2:1b")
             llm_type: "bitnet" or "ollama" (auto-detected from model if not provided)
+            _skip_ollama_check: Skip Ollama availability check (for testing)
         """
         self.config = get_config()
         self.session_id = session_id
@@ -143,12 +236,39 @@ class QueryEngine:
         self.session_dir = self.config.get_session_dir(session_id)
         self.chroma_dir = self.config.get_session_chroma_dir(session_id)
 
+        # Ollama service for availability checking and model validation
+        self._ollama = get_ollama_service(self.config.ollama_base_url)
+
+        # Check Ollama availability and model validity (unless skipped)
+        if not _skip_ollama_check:
+            self._validate_ollama_setup()
+
         # Initialize components
         self._init_chroma()
         self._init_embedding()
         self._init_retriever()
         self._init_llm()
         self._init_synthesizer()
+
+    def _validate_ollama_setup(self):
+        """Validate Ollama is available and the model exists"""
+        if self.llm_type != "ollama":
+            return
+
+        # Check if Ollama is running
+        if not self._ollama.is_available():
+            print(f"[WARN] Ollama not available at {self._ollama.base_url}")
+            print(f"[WARN] Make sure Ollama is running: ollama serve")
+            return
+
+        # Check if the model exists
+        if not self._ollama.model_exists(self.model):
+            print(f"[WARN] Model '{self.model}' not found on Ollama server")
+            available = self._ollama.list_models()
+            if available:
+                print(f"[INFO] Available models: {', '.join(available)}")
+            else:
+                print(f"[INFO] Run 'ollama pull {self.model}' to download the model")
 
     def _detect_llm_type(self, model: str) -> str:
         """Detect LLM type from model name"""
@@ -208,17 +328,35 @@ class QueryEngine:
         # Use default prompt
         return DEFAULT_RAG_PROMPT
 
-    def set_model(self, model_name: str):
+    def set_model(self, model_name: str, validate: bool = True) -> bool:
         """
         Switch to a different model.
 
         Args:
             model_name: Name of the model to use
+            validate: Whether to validate the model exists on Ollama
+
+        Returns:
+            True if model was set successfully, False if validation failed
         """
+        # Validate model exists if using Ollama
+        if validate and self.llm_type == "ollama":
+            self._ollama.invalidate_cache()  # Refresh model list
+            if not self._ollama.is_available():
+                print(f"[WARN] Ollama not available at {self._ollama.base_url}")
+                print(f"[WARN] Cannot validate model. Proceeding anyway...")
+            elif not self._ollama.model_exists(model_name):
+                print(f"[WARN] Model '{model_name}' not found on Ollama server")
+                available = self._ollama.list_models()
+                if available:
+                    print(f"[INFO] Available models: {', '.join(available)}")
+                return False
+
         self.model = model_name
         self.llm_type = self._detect_llm_type(model_name)
         self._init_llm()
         self._init_synthesizer()
+        return True
 
     def get_current_model(self) -> Dict[str, str]:
         """
@@ -232,6 +370,36 @@ class QueryEngine:
             "llm_type": self.llm_type,
             "base_url": self.config.ollama_base_url,
         }
+
+    def get_ollama_status(self) -> Dict[str, Any]:
+        """
+        Get Ollama connection status.
+
+        Returns:
+            Dictionary with status information
+        """
+        if self.llm_type != "ollama":
+            return {
+                "available": False,
+                "reason": "Not using Ollama",
+                "model": self.model,
+            }
+
+        is_available = self._ollama.is_available()
+        model_exists = self._ollama.model_exists(self.model) if is_available else False
+        available_models = self._ollama.list_models() if is_available else []
+
+        return {
+            "available": is_available,
+            "model_exists": model_exists,
+            "model": self.model,
+            "base_url": self._ollama.base_url,
+            "available_models": available_models,
+        }
+
+    def refresh_ollama_models(self):
+        """Refresh the cached list of available Ollama models."""
+        self._ollama.invalidate_cache()
 
     def get_retrieved_context(self, question: str) -> List[Dict[str, Any]]:
         """

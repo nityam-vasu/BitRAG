@@ -1,0 +1,233 @@
+{% extends "base.html" %}
+
+{% block title %}BitRAG - Chat{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-chat-dots"></i> Chat with your Documents</span>
+                <button class="btn btn-sm btn-outline-primary" onclick="clearChat()">
+                    <i class="bi bi-trash"></i> Clear Chat
+                </button>
+            </div>
+            <div class="card-body">
+                <!-- Chat Container -->
+                <div class="chat-container" id="chatContainer">
+                    <div class="chat-message chat-system">
+                        <i class="bi bi-info-circle"></i> Welcome to BitRAG! Upload PDF documents and start chatting.
+                    </div>
+                </div>
+                
+                <!-- Sources Display -->
+                <div class="mt-3" id="sourcesContainer" style="display: none;">
+                    <h6 class="text-muted mb-2"><i class="bi bi-sources"></i> Sources</h6>
+                    <div id="sourcesList"></div>
+                </div>
+                
+                <!-- Input Area -->
+                <div class="mt-3">
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="questionInput" 
+                               placeholder="Ask a question about your documents..."
+                               autocomplete="off">
+                        <button class="btn btn-primary" type="button" onclick="sendQuestion()" id="sendBtn">
+                            <i class="bi bi-send"></i> Send
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Status -->
+                <div class="mt-2">
+                    <small class="text-muted" id="statusText">Ready</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let isProcessing = false;
+let eventSource = null;
+
+// Auto-scroll to bottom
+function scrollToBottom() {
+    const container = document.getElementById('chatContainer');
+    container.scrollTop = container.scrollHeight;
+}
+
+// Add message to chat
+function addMessage(content, type) {
+    const container = document.getElementById('chatContainer');
+    const div = document.createElement('div');
+    div.className = `chat-message chat-${type}`;
+    
+    if (type === 'user') {
+        div.innerHTML = `<strong><i class="bi bi-person"></i> You:</strong><br>${escapeHtml(content)}`;
+    } else if (type === 'bot') {
+        div.innerHTML = `<strong><i class="bi bi-robot"></i> BitRAG:</strong><br>${escapeHtml(content)}`;
+    } else if (type === 'system') {
+        div.innerHTML = `<i class="bi bi-info-circle"></i> ${escapeHtml(content)}`;
+    } else if (type === 'error') {
+        div.innerHTML = `<i class="bi bi-exclamation-triangle"></i> ${escapeHtml(content)}`;
+    }
+    
+    container.appendChild(div);
+    scrollToBottom();
+}
+
+// Escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// Send question
+function sendQuestion() {
+    if (isProcessing) return;
+    
+    const input = document.getElementById('questionInput');
+    const question = input.value.trim();
+    
+    if (!question) return;
+    
+    // Add user message
+    addMessage(question, 'user');
+    input.value = '';
+    
+    // Set processing state
+    isProcessing = true;
+    document.getElementById('sendBtn').disabled = true;
+    document.getElementById('statusText').textContent = 'Processing...';
+    
+    // Clear previous sources
+    document.getElementById('sourcesContainer').style.display = 'none';
+    document.getElementById('sourcesList').innerHTML = '';
+    
+    // Create bot message placeholder
+    let botMessageDiv = null;
+    
+    // Use streaming API
+    fetch('/api/chat/stream', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({question: question})
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        
+        // Create placeholder for bot response
+        botMessageDiv = document.createElement('div');
+        botMessageDiv.className = 'chat-message chat-bot';
+        botMessageDiv.innerHTML = '<strong><i class="bi bi-robot"></i> BitRAG:</strong><br><span id="botResponse"></span><span class="loading-dots"></span>';
+        document.getElementById('chatContainer').appendChild(botMessageDiv);
+        
+        let fullResponse = '';
+        
+        return reader.read().then(function processText({done, value}) {
+            if (done) {
+                // Done processing
+                return;
+            }
+            
+            const chunk = decoder.decode(value);
+            const lines = chunk.split('\n');
+            
+            for (const line of lines) {
+                if (line.startsWith('data: ')) {
+                    try {
+                        const data = JSON.parse(line.substring(6));
+                        
+                        if (data.type === 'sources') {
+                            displaySources(data.sources);
+                        } else if (data.type === 'chunk') {
+                            fullResponse += data.text;
+                            document.getElementById('botResponse').textContent = fullResponse;
+                            scrollToBottom();
+                        } else if (data.type === 'done') {
+                            // Remove loading indicator
+                            const loading = botMessageDiv.querySelector('.loading-dots');
+                            if (loading) loading.remove();
+                        } else if (data.type === 'error') {
+                            addMessage(data.message, 'error');
+                        }
+                    } catch (e) {
+                        console.error('Parse error:', e);
+                    }
+                }
+            }
+            
+            return reader.read().then(processText);
+        });
+    })
+    .catch(error => {
+        addMessage('Error: ' + error.message, 'error');
+    })
+    .finally(() => {
+        isProcessing = false;
+        document.getElementById('sendBtn').disabled = false;
+        document.getElementById('statusText').textContent = 'Ready';
+        scrollToBottom();
+    });
+}
+
+// Display sources
+function displaySources(sources) {
+    if (!sources || sources.length === 0) return;
+    
+    const container = document.getElementById('sourcesContainer');
+    const list = document.getElementById('sourcesList');
+    
+    list.innerHTML = '';
+    
+    sources.forEach((source, index) => {
+        const div = document.createElement('div');
+        div.className = 'source-item';
+        
+        const score = source.score ? (1 - source.score).toFixed(3) : 'N/A';
+        const text = source.text ? source.text.substring(0, 200) + '...' : 'No text';
+        const fileName = source.metadata?.file_name || 'Unknown';
+        
+        div.innerHTML = `
+            <div class="d-flex justify-content-between">
+                <span class="source-rank">#${index + 1}</span>
+                <span class="source-score">Score: ${score}</span>
+            </div>
+            <div class="text-muted small">${fileName}</div>
+            <div>${escapeHtml(text)}</div>
+        `;
+        
+        list.appendChild(div);
+    });
+    
+    container.style.display = 'block';
+}
+
+// Clear chat
+function clearChat() {
+    const container = document.getElementById('chatContainer');
+    container.innerHTML = `
+        <div class="chat-message chat-system">
+            <i class="bi bi-info-circle"></i> Chat cleared. Start a new conversation!
+        </div>
+    `;
+    document.getElementById('sourcesContainer').style.display = 'none';
+}
+
+// Enter key to send
+document.getElementById('questionInput').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+        sendQuestion();
+    }
+});
+</script>
+{% endblock %}
