@@ -92,21 +92,39 @@ BitRAG/
 git clone https://github.com/yourusername/BitRAG.git
 cd BitRAG
 
-# Install dependencies
-pip install -e .
+# Run setup (creates venv, installs deps, checks Ollama)
+./setup.sh
 
-# Install frontend dependencies (if using web GUI)
-cd frontend && npm install && cd ..
+# Activate virtual environment
+source .venv/bin/activate
 
 # Start Ollama (in another terminal)
 ollama serve
 
+# Download models (optional - see Model Downloader section)
+./download_models.sh
+
 # Run the web application
-python web_app.py
+./run_web.sh
 # Open http://localhost:5000
+
+# Or run the terminal interface
+./run.sh
 ```
 
 ## Installation
+
+### Automatic Setup (Recommended)
+
+```bash
+# Run the setup script - handles everything
+./setup.sh
+
+# Or with options
+./setup.sh --venv .venv           # Custom venv directory
+./setup.sh --skip-ollama          # Skip Ollama check
+./setup.sh --check                # Check requirements only
+```
 
 ### Manual Installation
 
@@ -123,12 +141,169 @@ pip install -r web_requirements.txt
 pip install -e .
 ```
 
+### Quick Install (Minimal)
+
+```bash
+./install.sh                    # Full installation
+./install.sh --skip-deps        # Skip pip install (already installed)
+./install.sh --check            # Check system requirements
+```
+
+## Shell Scripts
+
+All shell scripts support `--help` to show available options.
+
+### `./setup.sh` - Environment Setup
+
+```bash
+./setup.sh [OPTIONS]
+
+Options:
+  --help, -h              Show help message
+  --venv, -v <dir>        Virtual environment directory (default: .venv)
+  --skip-venv             Skip virtual environment creation
+  --skip-deps             Skip dependency installation
+  --skip-ollama           Skip Ollama check
+  --check                 Check system requirements only
+
+Examples:
+  ./setup.sh                       # Full setup
+  ./setup.sh --venv myenv          # Use custom venv
+  ./setup.sh --check              # Check requirements
+```
+
+### `./install.sh` - Quick Install
+
+```bash
+./install.sh [OPTIONS]
+
+Options:
+  --help, -h              Show help message
+  --venv, -v <dir>        Virtual environment directory (default: venv)
+  --skip-deps             Skip dependency installation
+  --check                 Check system requirements only
+
+Examples:
+  ./install.sh                     # Full installation
+  ./install.sh --skip-deps         # Skip pip install
+  ./install.sh --check             # Check requirements
+```
+
+### `./run_web.sh` - Web Server
+
+```bash
+./run_web.sh [OPTIONS]
+
+Options:
+  --help, -h              Show help message
+  --port, -p <port>       Port to run server on (default: 5000)
+  --host, -H <host>       Host to bind to (default: 0.0.0.0)
+  --no-install            Skip dependency installation
+  --check                 Check system requirements only
+
+Examples:
+  ./run_web.sh                        # Start on localhost:5000
+  ./run_web.sh --port 8080            # Start on port 8080
+  ./run_web.sh --host 127.0.0.1       # Bind to localhost only
+  ./run_web.sh --check                # Check requirements
+```
+
+### `./download_models.sh` - Model Downloader
+
+```bash
+./download_models.sh [OPTIONS]
+
+Options:
+  --help, -h              Show help message
+  --list, -l              List models in OLLAMA_MODELS.txt
+  --model, -m <name>      Download specific model
+  --check, -c             Check Ollama status only
+
+Examples:
+  ./download_models.sh                 # Download all models
+  ./download_models.sh --list          # List available models
+  ./download_models.sh --model llama3.2:1b  # Download specific model
+  ./download_models.sh --check        # Check Ollama status
+```
+
+### `./run.sh` - Main Runner
+
+```bash
+./run.sh [command] [options]
+
+Commands:
+  (none)           Start TUI (default)
+  tui              Start Terminal User Interface
+  cli              Start Command Line Interface
+  status           Show system status
+  logs             View log file
+  clear-logs       Clear log file
+  web              Start Web UI (alias for run_web.sh)
+  help             Show this help message
+
+Options:
+  --session <id>   Session ID to use
+  --model <name>   Model to use
+
+Examples:
+  ./run.sh                    # Start TUI
+  ./run.sh tui               # Start TUI
+  ./run.sh cli                # Start CLI
+  ./run.sh status             # Show status
+  ./run.sh web                # Start web UI
+  ./run.sh tui --session myproject  # Start with custom session
+```
+
+## Python Scripts
+
+### `web_app.py` - Flask Backend
+
+```bash
+python web_app.py [OPTIONS]
+
+Options:
+  --help, -h              Show help message
+  --port, -p <port>       Port to run on (default: 5000)
+  --host, -H <host>       Host to bind to (default: 0.0.0.0)
+  --debug                 Enable debug mode
+  --check                 Check system requirements only
+
+Examples:
+  python web_app.py                    # Run with defaults
+  python web_app.py --port 8080        # Run on port 8080
+  python web_app.py --host 127.0.0.1   # Bind to localhost
+  python web_app.py --debug            # Enable debug mode
+  python web_app.py --check            # Check requirements
+```
+
+### `bitrag.py` - Main CLI Entry Point
+
+```bash
+bitrag [command] [options]
+
+Commands:
+  (none)           Start TUI (default)
+  tui              Start Terminal User Interface
+  cli              Start Command Line Interface
+  status           Show system status
+  interactive      Start interactive mode
+
+Examples:
+  bitrag                     # Start TUI
+  bitrag tui                 # Start TUI
+  bitrag cli                 # Start CLI
+  bitrag status              # Show status
+  bitrag --help              # Show help
+```
+
 ## Usage
 
 ### Web User Interface (GUI)
 
 ```bash
 # Start the web server
+./run_web.sh
+# or
 python web_app.py
 
 # Open in browser
@@ -180,6 +355,21 @@ bitrag model use llama3.2:1b
 # Session management
 bitrag session list
 bitrag session create my_project
+```
+
+### Session Scripts
+
+```bash
+# Create a new session
+python scripts/create_session.py
+python scripts/create_session.py --name my_project    # Custom name
+python scripts/create_session.py --list                # List sessions
+python scripts/create_session.py --delete <session_id>  # Delete session
+
+# Activate session and upload documents
+python scripts/activate_session.py --session <session_id>
+python scripts/activate_session.py --session <id> --upload doc.pdf --index
+python scripts/activate_session.py --session <id> --list  # List session documents
 ```
 
 ### Interactive Commands
@@ -274,7 +464,11 @@ BitRAG includes an automatic model downloader. Edit `OLLAMA_MODELS.txt` to custo
 ./download_models.sh
 
 # Or use Python directly
-python3 scripts/download_models.py
+python download_model.py
+
+# With options
+python download_model.py --list              # List available models
+python download_model.py --model llama3.2:1b # Download specific model
 ```
 
 **First non-commented model in the list becomes the default.**
