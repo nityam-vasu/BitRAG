@@ -1,4 +1,4 @@
-# BitRAG - 1-bit LLM RAG System
+# BitRAG - Local RAG System
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python&logoColor=white" alt="Python">
@@ -6,7 +6,25 @@
   <img src="https://img.shields.io/badge/License-MIT-orange?style=flat-square" alt="License">
 </p>
 
-A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with PDF documents using 1-bit LLMs. Built with ChromaDB for vector storage, Ollama for local LLM inference, and supports hybrid search combining vector similarity with BM25 keyword search.
+A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with PDF documents. Built with ChromaDB for vector storage, Ollama for local LLM inference, and supports hybrid search combining vector similarity with BM25 keyword search.
+
+## ✨ New Features
+
+### 🚀 AI-Powered Knowledge Graph
+- **Automatic Summarization** - LLM generates summaries for each document
+- **Smart Tagging** - Extracts 5-10 semantic tags per document
+- **Dynamic Visualization** - Interactive force-graph with zoom, pan, and node details
+- **Connection-Based Sizing** - Node size reflects document relationships
+
+### 💬 Enhanced Chat Experience
+- **Persistent Sessions** - Save and load chat history
+- **TXT Export** - Export conversations as text files
+- **Model Selection** - Choose different models for chat, summaries, and tags
+
+### 📊 System Information
+- **Real-time Metrics** - CPU, RAM, GPU usage
+- **Software Versions** - Flask, Ollama, ChromaDB, LlamaIndex status
+- **Model Availability** - See all available Ollama models
 
 ## Features
 
@@ -25,10 +43,11 @@ A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with 
 
 ### Advanced Features
 - 💭 **Reasoning Model Support** - Special handling for thinking/reasoning models
-- 📊 **Document Knowledge Graph** - Visualize document relationships in web GUI
+- 📊 **Knowledge Graph** - Visualize document relationships with AI-generated summaries and tags
 - 🔄 **Streaming Responses** - Real-time streaming output from LLM
 - 📁 **Multi-Format Support** - PDF, TXT, MD, DOC, DOCX files
 - ⚙️ **Configurable Parameters** - Chunk size, overlap, top-k, hybrid alpha
+- 🤖 **Model Selection** - Separate models for chat, summaries, and tags
 
 ## Architecture
 
@@ -39,36 +58,22 @@ BitRAG/
 │   │   ├── config.py       # Configuration management
 │   │   ├── indexer.py      # PDF indexing with ChromaDB
 │   │   ├── query.py        # Query engine with Ollama integration
-│   │   └── hybrid_search.py # Vector + BM25 hybrid search
+│   │   ├── hybrid_search.py # Vector + BM25 hybrid search
+│   │   ├── summary_generator.py  # LLM-based document summarization
+│   │   ├── tag_extractor.py     # LLM-based tag extraction
+│   │   ├── graph_builder.py     # Knowledge graph construction
+│   │   └── session_exporter.py  # Session export utilities
 │   ├── cli/                 # CLI interface (Click-based)
 │   │   └── main.py
 │   └── tui/                 # Terminal User Interface
 │       ├── app.py          # Main TUI application
 │       ├── chat.py         # Chat session management
 │       ├── documents.py    # Document management UI
-│       ├── settings.py     # Settings management
-│       ├── widgets.py      # PyTermGUI widgets
-│       ├── chat_display.py # Chat display components
-│       ├── document_manager.py
-│       ├── terminal.py     # PyTermGUI terminal
-│       └── hybrid_search.py
+│       └── settings.py     # Settings management
 ├── frontend/               # React frontend for web GUI
-├── web/                     # Flask web server
-├── scripts/                 # Utility scripts
-│   ├── download_model.py   # Model downloader
-│   ├── create_session.py   # Session creator
-│   └── activate_session.py # Session activator
-├── tests/                   # Test suite
-├── pdfs/                    # Sample PDFs for testing
-├── web_app.py              # Flask web application
-├── bitrag.py               # Main launcher (TUI/CLI)
-├── run.sh                  # TUI launcher
-├── run_web.sh              # Web GUI launcher
-├── setup.sh                # Setup script
-├── install.sh              # Installation script
+├── web_app.py             # Flask web application
 ├── requirements.txt       # Python dependencies
 ├── web_requirements.txt    # Web-specific dependencies
-├── pyproject.toml          # Package configuration
 └── README.md
 ```
 
@@ -90,21 +95,18 @@ cd BitRAG
 # Install dependencies
 pip install -e .
 
+# Install frontend dependencies (if using web GUI)
+cd frontend && npm install && cd ..
+
 # Start Ollama (in another terminal)
 ollama serve
 
-# Run the application
-./run.sh
+# Run the web application
+python web_app.py
+# Open http://localhost:5000
 ```
 
 ## Installation
-
-### Using the setup script
-
-```bash
-chmod +x setup.sh
-./setup.sh
-```
 
 ### Manual Installation
 
@@ -115,6 +117,7 @@ source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+pip install -r web_requirements.txt
 
 # Install package
 pip install -e .
@@ -124,27 +127,25 @@ pip install -e .
 
 ### Web User Interface (GUI)
 
-The easiest way to use BitRAG:
-
 ```bash
 # Start the web server
-./run_web.sh
+python web_app.py
 
 # Open in browser
 # http://localhost:5000
 ```
 
-Features:
+**Web GUI Features:**
 - Modern React-based chat interface
 - Document upload and management
-- Model selection and settings
-- Document knowledge graph visualization
+- Knowledge graph visualization with AI summaries and tags
+- Model selection for chat, summaries, and tags
+- System information panel
 - Real-time streaming responses
+- Session export to TXT
 - Reasoning model support with thinking display
 
 ### Terminal User Interface (TUI)
-
-The recommended way to use BitRAG:
 
 ```bash
 ./run.sh
@@ -156,12 +157,6 @@ Interactive menu options:
 - **3. Settings** - View configuration
 - **4. Status** - System information
 - **5. Exit** - Exit the application
-
-Keyboard shortcuts:
-- `C` - Chat screen
-- `S` - Settings
-- `U` - Upload/Documents
-- `Q` - Quit
 
 ### Command Line Interface (CLI)
 
@@ -226,12 +221,34 @@ Create `.bitrag_config.json`:
   "chroma_dir": "./chroma_db",
   "sessions_dir": "./sessions",
   "default_model": "llama3.2:1b",
+  "summary_model": "llama3.2:1b",
+  "tag_model": "llama3.2:1b",
   "ollama_base_url": "http://localhost:11434",
   "chunk_size": 512,
   "chunk_overlap": 50,
   "top_k": 3
 }
 ```
+
+## Knowledge Graph
+
+The knowledge graph provides visual document relationships:
+
+### How It Works
+1. **Document Upload** - PDFs are indexed and stored in ChromaDB
+2. **Summary Generation** - LLM creates 2-3 sentence summaries
+3. **Tag Extraction** - LLM extracts 5-10 semantic tags per document
+4. **Edge Creation** - Documents sharing tags are connected
+5. **Visualization** - Interactive force-graph displays the network
+
+### Node Properties
+- **Size** - Reflects number of connections (more connections = larger)
+- **Color** - Category based on file type
+- **Details** - Summary and tags on click
+
+### Edge Properties
+- **Weight** - Number of shared tags
+- **Label** - Top 3 shared tags shown
 
 ## Hybrid Search
 
@@ -245,44 +262,6 @@ The `alpha` parameter controls the balance:
 - `alpha=0.0` - Pure keyword search
 - `alpha=0.5` - Balanced (default)
 - `alpha=1.0` - Pure vector search
-
-## Testing
-
-```bash
-# Run all tests
-pytest
-
-# Run specific test file
-pytest tests/test_config.py
-
-# Run with coverage
-pytest --cov=src tests/
-```
-
-## Development
-
-### Code Style
-
-```bash
-# Format code
-ruff format .
-
-# Lint code
-ruff check .
-```
-
-### Using the scripts
-
-```bash
-# Download a model
-python scripts/download_model.py --type ollama --model llama3.2:1b
-
-# Create a session
-python scripts/create_session.py --name my_project
-
-# Activate a session and index documents
-python scripts/activate_session.py --session my_session --upload document.pdf --index
-```
 
 ## Supported Models
 
@@ -298,12 +277,6 @@ python scripts/activate_session.py --session my_session --upload document.pdf --
 | phi3:14b | ~7.9GB | Larger Phi-3, best reasoning |
 | tinyllama:1.1b | ~630MB | Very small, fast |
 | mistral:7b | ~4GB | Good all-around model |
-
-### BitNet Models (1-bit)
-
-| Model | Size | Description |
-|-------|------|-------------|
-| microsoft/bitnet-b1.58-2B-4T | ~700MB | True 1.58-bit model |
 
 ## Troubleshooting
 
@@ -362,7 +335,6 @@ If the TUI fails to start with PyTermGUI, the application will automatically fal
 ### Optional: Development
 - `pytest>=7.0.0` - Testing
 - `ruff>=0.1.0` - Linting
-- `black>=23.0.0` - Code formatting
 
 ## License
 
