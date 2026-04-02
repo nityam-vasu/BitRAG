@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Send, Download, Loader2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
-import { sendChat, ChatMessage, getDocuments } from '../api'
+import { sendChat, ChatMessage, getDocuments, getCurrentChatExportUrl } from '../api'
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([])
@@ -50,17 +50,9 @@ export default function ChatPage() {
   }
 
   const handleExport = () => {
-    const content = messages
-      .map(m => `[${m.type.toUpperCase()}] ${m.content}${m.sources?.length ? '\nSources: ' + m.sources.join(', ') : ''}`)
-      .join('\n\n')
-
-    const blob = new Blob([content], { type: 'text/plain' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `chat_${new Date().toISOString().split('T')[0]}.txt`
-    a.click()
-    URL.revokeObjectURL(url)
+    // Use the export endpoint to get the formatted export
+    const url = getCurrentChatExportUrl()
+    window.open(url, '_blank')
   }
 
   return (

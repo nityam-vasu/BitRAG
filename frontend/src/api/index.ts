@@ -160,6 +160,69 @@ export async function regenerateDocumentTags(docId: string): Promise<{ success: 
   return res.json();
 }
 
+// Session Management API
+export interface Session {
+  id: string;
+  title: string;
+  message_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SessionData extends Session {
+  messages: Array<{
+    content: string;
+    role: 'user' | 'assistant' | 'system';
+    timestamp: string;
+    sources?: string[];
+  }>;
+}
+
+export async function getSessions(): Promise<Session[]> {
+  const res = await fetch(`${API_BASE}/api/sessions`);
+  const data = await res.json();
+  return data.sessions || [];
+}
+
+export async function getSession(sessionId: string): Promise<SessionData> {
+  const res = await fetch(`${API_BASE}/api/sessions/${encodeURIComponent(sessionId)}`);
+  if (!res.ok) throw new Error('Session not found');
+  return res.json();
+}
+
+export async function createSession(title?: string): Promise<{ success: boolean; session: Session }> {
+  const res = await fetch(`${API_BASE}/api/sessions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title }),
+  });
+  return res.json();
+}
+
+export async function renameSession(sessionId: string, title: string): Promise<{ success: boolean; title: string }> {
+  const res = await fetch(`${API_BASE}/api/sessions/${encodeURIComponent(sessionId)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title }),
+  });
+  return res.json();
+}
+
+export async function deleteSession(sessionId: string): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_BASE}/api/sessions/${encodeURIComponent(sessionId)}`, {
+    method: 'DELETE',
+  });
+  return res.json();
+}
+
+export function getSessionExportUrl(sessionId: string): string {
+  return `${API_BASE}/api/sessions/${encodeURIComponent(sessionId)}/export`;
+}
+
+export function getCurrentChatExportUrl(): string {
+  return `${API_BASE}/api/chat/export`;
+}
+
 // Chat API (non-streaming)
 export async function sendChat(query: string): Promise<ChatMessage> {
   const res = await fetch(`${API_BASE}/api/chat`, {
