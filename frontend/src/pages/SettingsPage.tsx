@@ -2,8 +2,13 @@ import { useState, useEffect } from 'react'
 import { Save, RefreshCw, CheckCircle, XCircle } from 'lucide-react'
 import { getSettings, updateSettings, getModels, Settings } from '../api'
 
+interface ExtendedSettings extends Settings {
+  summary_model?: string;
+  tag_model?: string;
+}
+
 export default function SettingsPage() {
-  const [settings, setSettings] = useState<Settings | null>(null)
+  const [settings, setSettings] = useState<ExtendedSettings | null>(null)
   const [availableModels, setAvailableModels] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -11,6 +16,8 @@ export default function SettingsPage() {
 
   // Form state
   const [model, setModel] = useState('')
+  const [summaryModel, setSummaryModel] = useState('')
+  const [tagModel, setTagModel] = useState('')
   const [ollamaPort, setOllamaPort] = useState(11434)
   const [hybridMode, setHybridMode] = useState(false)
   const [dualMode, setDualMode] = useState(false)
@@ -23,12 +30,15 @@ export default function SettingsPage() {
           getSettings(),
           getModels(),
         ])
-        setSettings(settingsData)
+        const extSettings = settingsData as ExtendedSettings
+        setSettings(extSettings)
         setAvailableModels(modelsData)
-        setModel(settingsData.model)
-        setOllamaPort(settingsData.ollamaPort)
-        setHybridMode(settingsData.hybridMode)
-        setDualMode(settingsData.dualMode)
+        setModel(extSettings.model)
+        setSummaryModel(extSettings.summary_model || extSettings.model)
+        setTagModel(extSettings.tag_model || extSettings.model)
+        setOllamaPort(extSettings.ollamaPort)
+        setHybridMode(extSettings.hybridMode)
+        setDualMode(extSettings.dualMode)
       } catch (err) {
         console.error('Failed to load settings:', err)
       } finally {
@@ -44,6 +54,8 @@ export default function SettingsPage() {
     try {
       await updateSettings({
         model,
+        summary_model: summaryModel,
+        tag_model: tagModel,
         ollamaPort,
         hybridMode,
         dualMode,
@@ -132,6 +144,48 @@ export default function SettingsPage() {
                 ))
               ) : (
                 <option value={model}>{model} (not available)</option>
+              )}
+            </select>
+          </div>
+
+          {/* Summary Model */}
+          <div className="p-4 bg-gray-800 rounded-lg">
+            <h3 className="font-semibold mb-2">Summary Model</h3>
+            <p className="text-sm text-gray-400 mb-3">Model used to generate document summaries for the graph</p>
+            <select
+              value={summaryModel}
+              onChange={e => setSummaryModel(e.target.value)}
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+            >
+              {availableModels.length > 0 ? (
+                availableModels.map(m => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))
+              ) : (
+                <option value={summaryModel}>{summaryModel} (not available)</option>
+              )}
+            </select>
+          </div>
+
+          {/* Tag Model */}
+          <div className="p-4 bg-gray-800 rounded-lg">
+            <h3 className="font-semibold mb-2">Tag Model</h3>
+            <p className="text-sm text-gray-400 mb-3">Model used to extract tags from documents</p>
+            <select
+              value={tagModel}
+              onChange={e => setTagModel(e.target.value)}
+              className="w-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500"
+            >
+              {availableModels.length > 0 ? (
+                availableModels.map(m => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))
+              ) : (
+                <option value={tagModel}>{tagModel} (not available)</option>
               )}
             </select>
           </div>

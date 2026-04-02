@@ -33,7 +33,9 @@ class Config:
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
 
     # LLM settings
-    default_model: str = "llama3.2:1b"  # Available in Ollama
+    default_model: str = "llama3.2:1b"  # Default chat model
+    summary_model: str = "llama3.2:1b"  # Model for summary generation
+    tag_model: str = "llama3.2:1b"  # Model for tag extraction
     llm_type: str = "ollama"  # "bitnet" or "ollama"
     ollama_base_url: str = "http://localhost:11434"
 

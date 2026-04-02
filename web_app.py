@@ -661,10 +661,15 @@ def get_settings():
     except:
         ollama_status = "not responding"
 
+    # Get model settings from config
+    config = get_config()
+
     if not ensure_initialized():
         return jsonify(
             {
                 "model": current_model,
+                "summary_model": getattr(config, "summary_model", "llama3.2:1b"),
+                "tag_model": getattr(config, "tag_model", "llama3.2:1b"),
                 "ollamaPort": ollama_port,
                 "hybridMode": hybrid_mode,
                 "dualMode": dual_mode,
@@ -678,19 +683,8 @@ def get_settings():
     return jsonify(
         {
             "model": current_model,
-            "ollamaPort": ollama_port,
-            "hybridMode": hybrid_mode,
-            "dualMode": dual_mode,
-            "model1": dual_model1,
-            "model2": dual_model2,
-            "documentCount": indexer.get_document_count() if indexer else 0,
-            "ollamaStatus": ollama_status,
-        }
-    )
-
-    return jsonify(
-        {
-            "model": current_model,
+            "summary_model": getattr(config, "summary_model", "llama3.2:1b"),
+            "tag_model": getattr(config, "tag_model", "llama3.2:1b"),
             "ollamaPort": ollama_port,
             "hybridMode": hybrid_mode,
             "dualMode": dual_mode,
@@ -712,7 +706,8 @@ def update_settings():
         dual_mode, \
         dual_model1, \
         dual_model2, \
-        query_engine
+        query_engine, \
+        graph_builder
 
     data = request.get_json()
 
@@ -724,6 +719,24 @@ def update_settings():
                 query_engine.set_model(current_model)
             except Exception:
                 pass
+
+    # Update summary model
+    new_summary_model = data.get("summary_model")
+    if new_summary_model:
+        config = get_config()
+        config.summary_model = new_summary_model
+        # Update graph builder if exists
+        if graph_builder:
+            graph_builder.summary_generator.set_model(new_summary_model)
+
+    # Update tag model
+    new_tag_model = data.get("tag_model")
+    if new_tag_model:
+        config = get_config()
+        config.tag_model = new_tag_model
+        # Update graph builder if exists
+        if graph_builder:
+            graph_builder.tag_extractor.set_model(new_tag_model)
 
     new_port = data.get("ollamaPort")
     if new_port:
@@ -749,6 +762,8 @@ def update_settings():
         {
             "success": True,
             "model": current_model,
+            "summary_model": getattr(get_config(), "summary_model", "llama3.2:1b"),
+            "tag_model": getattr(get_config(), "tag_model", "llama3.2:1b"),
             "ollamaPort": ollama_port,
             "hybridMode": hybrid_mode,
             "dualMode": dual_mode,
@@ -868,8 +883,24 @@ def get_graph_data():
 
         # Create graph builder if not exists
         if graph_builder is None:
-            graph_builder = GraphBuilder(indexer=indexer)
-            print("[Graph] Created new GraphBuilder instance")
+            config = get_config()
+            # Create generators with configured models
+            summary_gen = SummaryGenerator(
+                model=getattr(config, "summary_model", config.default_model),
+                ollama_base_url=config.ollama_base_url,
+            )
+            tag_gen = TagExtractor(
+                model=getattr(config, "tag_model", config.default_model),
+                ollama_base_url=config.ollama_base_url,
+            )
+            graph_builder = GraphBuilder(
+                indexer=indexer,
+                summary_generator=summary_gen,
+                tag_extractor=tag_gen,
+            )
+            print(
+                f"[Graph] Created GraphBuilder with summary_model={summary_gen.model}, tag_model={tag_gen.model}"
+            )
 
         # Build graph data
         graph_data = graph_builder.build_graph(force_refresh=force_refresh)

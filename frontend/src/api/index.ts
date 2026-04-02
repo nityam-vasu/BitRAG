@@ -32,6 +32,8 @@ export interface ChatMessage {
 
 export interface Settings {
   model: string;
+  summary_model?: string;
+  tag_model?: string;
   ollamaPort: number;
   hybridMode: boolean;
   dualMode: boolean;
