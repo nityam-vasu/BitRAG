@@ -265,18 +265,46 @@ The `alpha` parameter controls the balance:
 
 ## Supported Models
 
-### Ollama Models (Recommended)
+### Quick Setup
+
+BitRAG includes an automatic model downloader. Edit `OLLAMA_MODELS.txt` to customize which models to download:
+
+```bash
+# Download all models specified in OLLAMA_MODELS.txt
+./download_models.sh
+
+# Or use Python directly
+python3 scripts/download_models.py
+```
+
+**First non-commented model in the list becomes the default.**
+
+### Ollama Models
 
 | Model | Size | Description |
 |-------|------|-------------|
-| llama3.2:1b | ~1.3GB | Fast, reliable - recommended for beginners |
-| llama3.2:3b | ~1.8GB | Better quality, larger model |
-| qwen2.5:0.5b | ~350MB | Lightest option - ultra fast |
-| qwen2.5:3b | ~900MB | Small but capable |
-| phi3:3.8b | ~2.3GB | Microsoft Phi-3, good reasoning |
-| phi3:14b | ~7.9GB | Larger Phi-3, best reasoning |
-| tinyllama:1.1b | ~630MB | Very small, fast |
-| mistral:7b | ~4GB | Good all-around model |
+| **falcon3:1b** | ~1.2GB | Falcon 3B - Fast, capable, good for general use |
+| **llama3.2:1b** | ~1.3GB | Meta Llama 3.2 1B - Excellent quality, recommended default |
+| **llama3.2:3b** | ~2.0GB | Meta Llama 3.2 3B - Better reasoning, slightly larger |
+| **qwen2.5:0.5b** | ~400MB | Qwen 2.5 0.5B - Ultra light, very fast |
+| **qwen2.5:3b** | ~2.0GB | Qwen 2.5 3B - Great balance of speed and quality |
+| **gemma3:1b** | ~800MB | Google Gemma 3 1B - Good multilingual support |
+| **tinyllama:1.1b** | ~630MB | TinyLlama - Minimal resource usage |
+| **deepseek-r1:1.5b** | ~1.4GB | DeepSeek R1 - Excellent reasoning, chain-of-thought |
+| **qwen3:1.7b** | ~1.2GB | Qwen 3 1.7B - Latest Qwen, strong performance |
+| **qwen3:0.6b** | ~500MB | Qwen 3 0.6B - Lightweight with latest improvements |
+| **granite3.1-moe:1b** | ~700MB | IBM Granite 3.1 MoE - Mixture of experts, efficient |
+
+### Model Selection for Different Tasks
+
+| Task | Recommended Models |
+|------|-------------------|
+| **Fast responses** | falcon3:1b, qwen3:0.6b, qwen2.5:0.5b |
+| **General Q&A** | llama3.2:1b, qwen3:1.7b, falcon3:1b |
+| **Reasoning tasks** | deepseek-r1:1.5b, llama3.2:3b |
+| **Low memory** | tinyllama:1.1b, qwen2.5:0.5b, qwen3:0.6b |
+| **Document summarization** | llama3.2:1b, qwen2.5:3b |
+| **Tag extraction** | falcon3:1b, llama3.2:1b |
 
 ## Troubleshooting
 
@@ -299,6 +327,23 @@ bitrag upload /path/to/document.pdf
 ```bash
 # Pull a model
 ollama pull llama3.2:1b
+
+# Or use the automatic downloader
+./download_models.sh
+```
+
+### Model Download Issues
+
+If automatic download fails:
+```bash
+# Manually download specific model
+ollama pull llama3.2:1b
+
+# Check which models are installed
+ollama list
+
+# Remove problematic model
+ollama rm model_name
 ```
 
 ### PyTermGUI issues
