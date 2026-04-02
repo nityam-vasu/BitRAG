@@ -1,18 +1,41 @@
 import { useState, useEffect } from 'react'
-import { Save, RefreshCw, CheckCircle, XCircle } from 'lucide-react'
-import { getSettings, updateSettings, getModels, Settings } from '../api'
+import { Save, RefreshCw, CheckCircle, XCircle, ChevronDown, ChevronUp, Cpu, Monitor, HardDrive, CircuitBoard } from 'lucide-react'
+import { getSettings, updateSettings, getModels, getSystemInfo, Settings } from '../api'
 
 interface ExtendedSettings extends Settings {
   summary_model?: string;
   tag_model?: string;
 }
 
+interface SystemInfo {
+  sessionId: string;
+  documentCount: number;
+  embeddingModel: string;
+  chunkSize: number;
+  topK: number;
+  cpu: number;
+  memory: {
+    used: number;
+    total: number;
+    percent: number;
+  };
+  gpu?: {
+    utilization: number;
+    memory_used: number;
+    memory_total: number;
+  };
+  ollamaStatus: string;
+  ollamaModels?: string[];
+}
+
 export default function SettingsPage() {
   const [settings, setSettings] = useState<ExtendedSettings | null>(null)
+  const [systemInfo, setSystemInfo] = useState<SystemInfo | null>(null)
   const [availableModels, setAvailableModels] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [systemInfoExpanded, setSystemInfoExpanded] = useState(false)
 
   // Form state
   const [model, setModel] = useState('')
@@ -26,12 +49,14 @@ export default function SettingsPage() {
     const load = async () => {
       setLoading(true)
       try {
-        const [settingsData, modelsData] = await Promise.all([
+        const [settingsData, modelsData, sysInfo] = await Promise.all([
           getSettings(),
           getModels(),
+          getSystemInfo(),
         ])
         const extSettings = settingsData as ExtendedSettings
         setSettings(extSettings)
+        setSystemInfo(sysInfo as SystemInfo)
         setAvailableModels(modelsData)
         setModel(extSettings.model)
         setSummaryModel(extSettings.summary_model || extSettings.model)
@@ -86,6 +111,17 @@ export default function SettingsPage() {
     )
   }
 
+  // Get OS info from browser
+  const getOS = () => {
+    const ua = navigator.userAgent;
+    if (ua.includes('Windows')) return 'Windows';
+    if (ua.includes('Mac OS')) return 'macOS';
+    if (ua.includes('Linux')) return 'Linux';
+    if (ua.includes('Android')) return 'Android';
+    if (ua.includes('iOS')) return 'iOS';
+    return 'Unknown';
+  };
+
   return (
     <div className="h-full overflow-y-auto">
       <div className="max-w-2xl mx-auto p-8">
@@ -103,6 +139,167 @@ export default function SettingsPage() {
         )}
 
         <div className="space-y-6">
+          {/* System Information Box - Collapsible */}
+          <div className="bg-gray-800 rounded-lg overflow-hidden border border-gray-700">
+            <button
+              onClick={() => setSystemInfoExpanded(!systemInfoExpanded)}
+              className="w-full p-4 flex items-center justify-between hover:bg-gray-700/50 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <CircuitBoard className="text-blue-400" size={20} />
+                <span className="font-semibold">System Information</span>
+                <span className="text-xs text-gray-500">(Click to {systemInfoExpanded ? 'collapse' : 'expand'})</span>
+              </div>
+              {systemInfoExpanded ? (
+                <ChevronUp size={20} className="text-gray-400" />
+              ) : (
+                <ChevronDown size={20} className="text-gray-400" />
+              )}
+            </button>
+
+            {systemInfoExpanded && (
+              <div className="px-4 pb-4 border-t border-gray-700">
+                <div className="grid grid-cols-2 gap-4 mt-4">
+                  {/* CPU */}
+                  <div className="bg-gray-700/50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-gray-400 mb-1">
+                      <Cpu size={16} />
+                      <span className="text-xs uppercase">CPU</span>
+                    </div>
+                    <p className="font-medium">{systemInfo?.cpu?.toFixed(1) || 'N/A'}%</p>
+                    <p className="text-xs text-gray-500">
+                      {navigator.hardwareConcurrency || 'N/A'} cores available
+                    </p>
+                  </div>
+
+                  {/* Operating System */}
+                  <div className="bg-gray-700/50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-gray-400 mb-1">
+                      <Monitor size={16} />
+                      <span className="text-xs uppercase">Operating System</span>
+                    </div>
+                    <p className="font-medium">{getOS()}</p>
+                    <p className="text-xs text-gray-500">
+                      {window.innerWidth}x{window.innerHeight} viewport
+                    </p>
+                  </div>
+
+                  {/* RAM */}
+                  <div className="bg-gray-700/50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-gray-400 mb-1">
+                      <HardDrive size={16} />
+                      <span className="text-xs uppercase">RAM</span>
+                    </div>
+                    <p className="font-medium">
+                      {systemInfo?.memory 
+                        ? `${systemInfo.memory.used.toFixed(1)} / ${systemInfo.memory.total.toFixed(1)} GB`
+                        : 'N/A'}
+                    </p>
+                    <p className="text-xs text-gray-500">
+                      {systemInfo?.memory?.percent?.toFixed(1) || 'N/A'}% used
+                    </p>
+                  </div>
+
+                  {/* GPU */}
+                  <div className="bg-gray-700/50 rounded-lg p-3">
+                    <div className="flex items-center gap-2 text-gray-400 mb-1">
+                      <CircuitBoard size={16} />
+                      <span className="text-xs uppercase">GPU</span>
+                    </div>
+                    {systemInfo?.gpu && systemInfo.gpu.memory_total > 0 ? (
+                      <>
+                        <p className="font-medium text-green-400">Available</p>
+                        <p className="text-xs text-gray-500">
+                          {systemInfo.gpu.memory_used.toFixed(1)} / {systemInfo.gpu.memory_total.toFixed(1)} GB VRAM
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          Utilization: {systemInfo.gpu.utilization.toFixed(1)}%
+                        </p>
+                      </>
+                    ) : (
+                      <>
+                        <p className="font-medium text-yellow-400">Not Available</p>
+                        <p className="text-xs text-gray-500">No GPU detected</p>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Software Versions */}
+                <div className="mt-4 bg-gray-700/50 rounded-lg p-3">
+                  <h4 className="text-xs uppercase text-gray-400 mb-3">Software & Configuration</h4>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Flask</span>
+                      <span className="font-mono text-blue-400">Latest</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Ollama</span>
+                      <span className={`font-mono ${settings?.ollamaStatus === 'running' ? 'text-green-400' : 'text-red-400'}`}>
+                        {settings?.ollamaStatus === 'running' ? 'Connected' : 'Disconnected'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">ChromaDB</span>
+                      <span className="font-mono text-blue-400">Active</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">LlamaIndex</span>
+                      <span className="font-mono text-blue-400">Integrated</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Embedding Model</span>
+                      <span className="font-mono text-xs text-blue-400 truncate max-w-[120px]" title={systemInfo?.embeddingModel || ''}>
+                        {systemInfo?.embeddingModel?.split('/').pop() || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Current Chat Model</span>
+                      <span className="font-mono text-xs text-blue-400 truncate max-w-[120px]" title={settings?.model || ''}>
+                        {settings?.model || 'N/A'}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Documents Indexed</span>
+                      <span className="font-mono text-green-400">{systemInfo?.documentCount || 0}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Chunk Size</span>
+                      <span className="font-mono text-gray-300">{systemInfo?.chunkSize || 512}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Top-K Retrieval</span>
+                      <span className="font-mono text-gray-300">{systemInfo?.topK || 3}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-400">Ollama Models</span>
+                      <span className="font-mono text-gray-300">
+                        {systemInfo?.ollamaModels?.length || 0} available
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {/* Available Ollama Models List */}
+                  {systemInfo?.ollamaModels && systemInfo.ollamaModels.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-gray-600">
+                      <p className="text-xs text-gray-400 mb-2">Available Models:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {systemInfo.ollamaModels.map((modelName, idx) => (
+                          <span 
+                            key={idx} 
+                            className="px-2 py-1 bg-blue-600/30 text-blue-300 rounded text-xs font-mono"
+                          >
+                            {modelName}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
           {/* Ollama Status */}
           <div className="p-4 bg-gray-800 rounded-lg">
             <h3 className="font-semibold mb-2">Ollama Status</h3>
