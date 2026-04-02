@@ -45,6 +45,9 @@ import requests
 from bitrag.core.config import get_config
 from bitrag.core.indexer import DocumentIndexer
 from bitrag.core.query import QueryEngine
+from bitrag.core.graph_builder import GraphBuilder, get_graph_builder
+from bitrag.core.summary_generator import SummaryGenerator, get_summary_generator
+from bitrag.core.tag_extractor import TagExtractor, get_tag_extractor
 
 # Initialize Flask app
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
@@ -68,6 +71,7 @@ dual_model2 = "deepseek-r1:1.5b"
 
 indexer = None
 query_engine = None
+graph_builder = None  # GraphBuilder instance
 initializing = False
 initialized = False
 init_lock = threading.Lock()
@@ -495,6 +499,8 @@ def upload_document():
 @app.route("/api/documents/<doc_id>", methods=["DELETE"])
 def delete_document(doc_id):
     """Delete a document"""
+    global graph_builder
+
     if not ensure_initialized():
         return jsonify(
             {"error": "Server starting up", "message": "Please wait a moment and try again"}
@@ -502,6 +508,11 @@ def delete_document(doc_id):
 
     try:
         indexer.delete_document_by_filename(doc_id)
+
+        # Clear from graph builder cache if exists
+        if graph_builder is not None and doc_id in graph_builder._cache:
+            del graph_builder._cache[doc_id]
+
         return jsonify({"success": True})
     except Exception as e:
         try:
@@ -509,6 +520,61 @@ def delete_document(doc_id):
             return jsonify({"success": True})
         except:
             return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/documents/<doc_id>/regenerate-tags", methods=["POST"])
+def regenerate_document_tags(doc_id):
+    """Regenerate summary and tags for a specific document."""
+    global graph_builder
+
+    if not ensure_initialized():
+        return jsonify(
+            {"error": "Server not initialized", "message": "Please wait and try again"}
+        ), 503
+
+    try:
+        # Get document info
+        docs = indexer.list_documents()
+        doc_info = None
+        for doc in docs:
+            if doc.get("id") == doc_id or doc.get("file_name") == doc_id:
+                doc_info = doc
+                break
+
+        if not doc_info:
+            return jsonify(
+                {"error": "Document not found", "message": f"No document found with id '{doc_id}'"}
+            ), 404
+
+        # Get or create graph builder
+        if graph_builder is None:
+            graph_builder = GraphBuilder(indexer=indexer)
+
+        # Regenerate metadata
+        metadata = graph_builder.regenerate_document(
+            doc_id=doc_id, file_name=doc_info.get("file_name", doc_id)
+        )
+
+        return jsonify(
+            {
+                "success": True,
+                "document_id": doc_id,
+                "metadata": {
+                    "summary": metadata.summary,
+                    "tags": metadata.tags,
+                    "keywords": metadata.keywords,
+                    "category": metadata.category,
+                    "generated_at": metadata.generated_at,
+                },
+            }
+        )
+
+    except Exception as e:
+        print(f"Error regenerating tags for {doc_id}: {e}")
+        import traceback
+
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/models", methods=["GET"])
@@ -783,7 +849,13 @@ def get_system_info():
 
 @app.route("/api/graph", methods=["GET"])
 def get_graph_data():
-    """Get graph data for document visualization with summary and keywords"""
+    """Get graph data for document visualization with AI-generated summaries and tags.
+
+    Query params:
+        - refresh: If 'true', force regeneration of all metadata
+    """
+    global graph_builder
+
     if not ensure_initialized():
         return jsonify({"nodes": [], "links": []})
 
@@ -791,194 +863,19 @@ def get_graph_data():
         return jsonify({"nodes": [], "links": []})
 
     try:
-        # Get all documents
-        docs = indexer.list_documents()
+        # Check for refresh parameter
+        force_refresh = request.args.get("refresh", "false").lower() == "true"
 
-        # Extract keywords and summary from each document
-        doc_keywords = {}
-        doc_summaries = {}
-        doc_categories = {}
+        # Create graph builder if not exists
+        if graph_builder is None:
+            graph_builder = GraphBuilder(indexer=indexer)
+            print("[Graph] Created new GraphBuilder instance")
 
-        # Get query engine for LLM-based summary
-        use_llm_summary = False
-        llm = None
-        if query_engine and hasattr(query_engine, "llm") and query_engine.llm:
-            use_llm_summary = True
-            try:
-                from llama_index.core import PromptTemplate
+        # Build graph data
+        graph_data = graph_builder.build_graph(force_refresh=force_refresh)
 
-                summary_template = PromptTemplate(
-                    "Please provide a brief summary (2-3 sentences) of the following document content. "
-                    "Focus on the main topic and key points:\n\n{context}"
-                )
-            except ImportError:
-                pass
-
-        for doc in docs:
-            doc_id = doc.get("id", "")
-            file_name = doc.get("file_name", "")
-
-            # Determine document category based on file extension
-            file_ext = file_name.split(".")[-1].lower() if "." in file_name else "unknown"
-            if file_ext in ["pdf", "doc", "docx"]:
-                category = 1  # Documents
-            elif file_ext in ["md", "txt"]:
-                category = 2  # Text files
-            elif file_ext in ["py", "js", "java", "cpp"]:
-                category = 3  # Code
-            elif file_ext in ["jpg", "png", "gif", "svg"]:
-                category = 4  # Images
-            else:
-                category = 5  # Other
-
-            doc_categories[doc_id] = category
-
-            # Get document content to extract keywords and summary
-            try:
-                doc_details = indexer.get_document(file_name)
-                all_text = ""
-                for chunk in doc_details.get("chunks", []):
-                    all_text += chunk.get("text", "") + " "
-
-                # Truncate text for summary if too long
-                text_for_summary = all_text[:5000] if len(all_text) > 5000 else all_text
-
-                # Generate summary using LLM if available
-                if use_llm_summary and query_engine:
-                    try:
-                        # Use query engine to generate summary
-                        summary_prompt = f"Please provide a brief 2-3 sentence summary of this document. Focus on the main topic:\n\n{text_for_summary[:2000]}"
-                        summary_response = ""
-                        for chunk in query_engine.query_streaming(summary_prompt):
-                            if chunk.get("type") == "chunk":
-                                summary_response += chunk.get("delta") or chunk.get("text", "")
-                            elif chunk.get("type") == "done":
-                                summary_response = chunk.get("response", "")
-
-                        # Take first 200 characters of summary
-                        doc_summaries[doc_id] = summary_response[:200] if summary_response else ""
-                    except Exception as e:
-                        print(f"Summary generation failed for {file_name}: {e}")
-                        doc_summaries[doc_id] = ""
-                else:
-                    # Fallback: use first 200 chars as pseudo-summary
-                    doc_summaries[doc_id] = all_text[:200].replace("\n", " ") + "..."
-
-                # Simple keyword extraction - get most frequent words
-                # Filter out common words and extract meaningful keywords
-                common_words = {
-                    "the",
-                    "and",
-                    "or",
-                    "of",
-                    "to",
-                    "in",
-                    "a",
-                    "is",
-                    "for",
-                    "with",
-                    "on",
-                    "at",
-                    "by",
-                    "from",
-                    "this",
-                    "that",
-                    "it",
-                    "as",
-                    "be",
-                    "are",
-                    "was",
-                    "were",
-                    "been",
-                    "have",
-                    "has",
-                    "had",
-                    "do",
-                    "does",
-                    "did",
-                    "will",
-                    "would",
-                    "could",
-                    "should",
-                    "may",
-                    "might",
-                    "must",
-                    "can",
-                    "shall",
-                }
-
-                # Split text into words and count frequencies
-                words = all_text.lower().split()
-                word_freq = {}
-                for word in words:
-                    # Clean word - remove punctuation and check if it's a meaningful word
-                    clean_word = word.strip(".,!?;:\"'()[]{}")
-                    if (
-                        len(clean_word) > 2
-                        and clean_word not in common_words
-                        and clean_word.isalpha()
-                    ):
-                        word_freq[clean_word] = word_freq.get(clean_word, 0) + 1
-
-                # Get top 10 keywords
-                top_keywords = sorted(word_freq.items(), key=lambda x: x[1], reverse=True)[:10]
-                doc_keywords[doc_id] = [kw[0] for kw in top_keywords]
-
-            except Exception as e:
-                # If we can't get document content, use filename as keyword
-                print(f"Error processing document {file_name}: {e}")
-                doc_keywords[doc_id] = [
-                    file_name.split(".")[0].lower().replace("_", " ").replace("-", " ").split()
-                ]
-                doc_summaries[doc_id] = f"Document: {file_name}"
-
-        # Create nodes
-        nodes = []
-        for doc in docs:
-            doc_id = doc.get("id", "")
-            file_name = doc.get("file_name", "")
-
-            nodes.append(
-                {
-                    "id": doc_id,
-                    "name": file_name,
-                    "val": 3,  # Node size
-                    "group": doc_categories.get(doc_id, 1),
-                    "keywords": doc_keywords.get(doc_id, []),
-                    "summary": doc_summaries.get(doc_id, ""),
-                }
-            )
-
-        # Create links based on shared keywords
-        links = []
-        link_map = {}
-
-        for i, doc1 in enumerate(docs):
-            doc1_id = doc1.get("id", "")
-            keywords1 = doc_keywords.get(doc1_id, [])
-
-            for j in range(i + 1, len(docs)):
-                doc2 = docs[j]
-                doc2_id = doc2.get("id", "")
-                keywords2 = doc_keywords.get(doc2_id, [])
-
-                # Find shared keywords
-                shared_keywords = list(set(keywords1) & set(keywords2))
-
-                if len(shared_keywords) >= 1:  # At least 1 shared keyword
-                    link_key = f"{doc1_id}-{doc2_id}"
-                    link_map[link_key] = {
-                        "source": doc1_id,
-                        "target": doc2_id,
-                        "value": len(shared_keywords),
-                        "label": ", ".join(shared_keywords[:3]),  # Show top 3 keywords
-                    }
-
-        # Convert link map to list
-        for link in link_map.values():
-            links.append(link)
-
-        return jsonify({"nodes": nodes, "links": links})
+        # Convert to dict for JSON response
+        return jsonify(graph_data.to_dict())
 
     except Exception as e:
         print(f"Error generating graph data: {e}")
@@ -986,6 +883,71 @@ def get_graph_data():
 
         traceback.print_exc()
         return jsonify({"nodes": [], "links": []})
+
+
+@app.route("/api/graph/regenerate", methods=["GET"])
+def regenerate_graph():
+    """Regenerate entire graph with fresh metadata."""
+    global graph_builder
+
+    if not ensure_initialized():
+        return jsonify({"error": "Server not initialized"}), 503
+
+    try:
+        # Clear existing builder to force regeneration
+        if graph_builder is not None:
+            graph_builder.clear_cache()
+
+        # Create fresh builder
+        graph_builder = GraphBuilder(indexer=indexer)
+
+        # Build with fresh data
+        graph_data = graph_builder.build_graph(force_refresh=True)
+
+        return jsonify(
+            {
+                "success": True,
+                "message": "Graph regenerated successfully",
+                "stats": {
+                    "nodes": len(graph_data.nodes),
+                    "links": len(graph_data.links),
+                },
+            }
+        )
+
+    except Exception as e:
+        print(f"Error regenerating graph: {e}")
+        import traceback
+
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/graph/info", methods=["GET"])
+def graph_info():
+    """Get information about the graph builder and cache status."""
+    global graph_builder
+
+    if not ensure_initialized():
+        return jsonify({"error": "Server not initialized"}), 503
+
+    if graph_builder is None:
+        return jsonify(
+            {
+                "initialized": False,
+                "cache_size": 0,
+            }
+        )
+
+    return jsonify(
+        {
+            "initialized": True,
+            "cache_size": len(graph_builder._cache),
+            "use_llm": graph_builder.use_llm,
+            "summary_model": graph_builder.summary_generator.model,
+            "tag_model": graph_builder.tag_extractor.model,
+        }
+    )
 
 
 def main():
