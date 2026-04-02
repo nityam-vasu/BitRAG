@@ -26,6 +26,14 @@ A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with 
 - **Software Versions** - Flask, Ollama, ChromaDB, LlamaIndex status
 - **Model Availability** - See all available Ollama models
 
+### ⚡ Custom Ollama Parameters
+- **Pre-made Presets** - Office Laptop, Home Server, Headless Server configurations
+- **CPU Optimization** - Thread count, batch size, context window tuning
+- **Memory Management** - Memory mapping (mmap) control
+- **GPU Layers** - Configure how many layers run on GPU
+- **NUMA Support** - Multi-socket server optimization
+- **Save Custom Configs** - Save and load your own configurations
+
 ## Features
 
 ### Core Features
@@ -319,6 +327,7 @@ python web_app.py
 - Real-time streaming responses
 - Session export to TXT
 - Reasoning model support with thinking display
+- Custom Ollama parameters for CPU/memory optimization
 
 ### Terminal User Interface (TUI)
 
@@ -416,7 +425,15 @@ Create `.bitrag_config.json`:
   "ollama_base_url": "http://localhost:11434",
   "chunk_size": 512,
   "chunk_overlap": 50,
-  "top_k": 3
+  "top_k": 3,
+  "ollama_params": {
+    "threads": 4,
+    "batch": 512,
+    "ctx": 4096,
+    "mmap": 1,
+    "numa": false,
+    "gpu": 0
+  }
 }
 ```
 
@@ -452,6 +469,76 @@ The `alpha` parameter controls the balance:
 - `alpha=0.0` - Pure keyword search
 - `alpha=0.5` - Balanced (default)
 - `alpha=1.0` - Pure vector search
+
+## Custom Ollama Parameters
+
+BitRAG allows fine-tuning Ollama's runtime parameters for optimal performance on your hardware.
+
+### Web UI Configuration
+
+Navigate to **Ollama Params** in the sidebar to access:
+- Pre-made presets for common hardware configurations
+- Custom configuration editor
+- Save and load your own configurations
+
+### Available Parameters
+
+| Parameter | Description | Example |
+|-----------|-------------|---------|
+| `--threads` | CPU thread count | `4`, `8`, `16` |
+| `--batch` | Batch size for prompt processing | `64`, `256`, `512` |
+| `--ctx` | Context window size (tokens) | `4096`, `8192`, `32768` |
+| `--mmap` | Memory mapping (0=disable, 1=enable) | `0`, `1` |
+| `--numa` | NUMA awareness for multi-socket | `true`, `false` |
+| `--gpu` | GPU layers (0=CPU only) | `0`, `1`, `99` |
+
+### Preset Configurations
+
+| Preset | Hardware | Threads | Batch | Context |
+|--------|----------|---------|-------|---------|
+| **Office Laptop** | 4 cores, 16GB RAM | 2 | 64 | 4096 |
+| **Home Server** | 16 cores, 64GB RAM | 12 | 256 | 8192 |
+| **Headless Server** | 48 cores, 256GB RAM | 40 | 512 | 32768 |
+
+### Configuration Guidelines
+
+#### Thread Management (`--threads`)
+
+| CPU Category | Recommended Threads | Command Example |
+|--------------|-------------------|-----------------|
+| Budget (≤4 cores) | cores - 2 | `ollama run phi:2.7b --threads 2` |
+| Mid-Range (6-8 cores) | cores - 2 to cores - 4 | `ollama run mistral:7b --threads 4` |
+| High-Performance (12+ cores) | cores - 2 | `ollama run llama3:8b --threads 10` |
+| Server (24+ cores) | cores - 4 | `ollama run mixtral:8x7b --threads 24` |
+
+#### Memory Mapping (`--mmap`)
+
+| RAM to Model Size Ratio | `--mmap` Setting | Performance Impact |
+|------------------------|------------------|-------------------|
+| RAM > 2× Model Size | `--mmap 0` (disabled) | Maximum performance |
+| RAM = 1.5× Model Size | `--mmap 1` (enabled) | Balanced approach |
+| RAM < Model Size | `--mmap 1` (enabled) | Memory conservation |
+
+#### NUMA Configuration (`--numa`)
+
+Enable NUMA optimization for multi-socket server systems to improve memory locality and reduce latency.
+
+### Real-World Examples
+
+**Office Laptop (Core i5, 4 cores, 16GB RAM):**
+```bash
+ollama run phi:2.7b --threads 2 --batch 64 --ctx 4096
+```
+
+**Home Server (Ryzen 9, 16 cores, 64GB RAM):**
+```bash
+ollama run llama3:13b --threads 12 --batch 256 --ctx 8192 --mmap 0
+```
+
+**Headless Server (Dual Xeon, 48 cores, 256GB RAM):**
+```bash
+ollama run mixtral:8x7b --threads 40 --batch 512 --ctx 32768 --numa
+```
 
 ## Supported Models
 
