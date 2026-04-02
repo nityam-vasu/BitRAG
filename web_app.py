@@ -10,6 +10,8 @@ import sys
 import warnings
 import logging
 import threading
+from pathlib import Path
+from datetime import datetime
 
 # Add src to path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -48,6 +50,14 @@ from bitrag.core.query import QueryEngine
 from bitrag.core.graph_builder import GraphBuilder, get_graph_builder
 from bitrag.core.summary_generator import SummaryGenerator, get_summary_generator
 from bitrag.core.tag_extractor import TagExtractor, get_tag_extractor
+from bitrag.core.session_exporter import (
+    list_sessions,
+    load_session,
+    export_session_as_text,
+    delete_session_files,
+    rename_session,
+    create_session,
+)
 
 # Initialize Flask app
 app = Flask(__name__, static_folder=FRONTEND_DIR, static_url_path="")
@@ -410,6 +420,40 @@ def chat_stream():
     return Response(generate(), mimetype="text/event-stream")
 
 
+@app.route("/api/chat/export", methods=["GET"])
+def export_current_chat():
+    """Export the current (default) session as TXT file."""
+    try:
+        config = get_config()
+        session_dir = Path(config.sessions_dir) / "default"
+        session_data = load_session(session_dir)
+
+        if not session_data:
+            # Create empty session data if none exists
+            session_data = {
+                "session_id": "default",
+                "title": "Current Chat",
+                "created_at": datetime.now().isoformat(),
+                "updated_at": datetime.now().isoformat(),
+                "messages": [],
+            }
+
+        # Generate text export
+        text = export_session_as_text(session_data, "default")
+
+        # Return as downloadable file
+        response = make_response(text)
+        response.headers["Content-Type"] = "text/plain"
+        response.headers["Content-Disposition"] = (
+            f"attachment; filename=chat_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+        )
+
+        return response
+    except Exception as e:
+        print(f"Error exporting chat: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/documents", methods=["GET"])
 def get_documents():
     """Get list of indexed documents"""
@@ -645,6 +689,147 @@ def delete_model():
         else:
             return jsonify({"error": result.stderr}), 500
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# ==================== Session Endpoints ====================
+
+
+@app.route("/api/sessions", methods=["GET"])
+def get_sessions():
+    """List all chat sessions."""
+    try:
+        config = get_config()
+        sessions_dir = Path(config.sessions_dir)
+        sessions = list_sessions(sessions_dir)
+        return jsonify({"sessions": sessions})
+    except Exception as e:
+        print(f"Error listing sessions: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/sessions/<session_id>", methods=["GET"])
+def get_session(session_id):
+    """Get a specific session with messages."""
+    try:
+        config = get_config()
+        session_dir = Path(config.sessions_dir) / session_id
+        session_data = load_session(session_dir)
+
+        if not session_data:
+            return jsonify({"error": "Session not found"}), 404
+
+        return jsonify(session_data)
+    except Exception as e:
+        print(f"Error getting session: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/sessions/<session_id>", methods=["PATCH"])
+def update_session(session_id):
+    """Update session (e.g., rename)."""
+    try:
+        config = get_config()
+        session_dir = Path(config.sessions_dir) / session_id
+
+        if not session_dir.exists():
+            return jsonify({"error": "Session not found"}), 404
+
+        data = request.get_json()
+
+        # Handle rename
+        if "title" in data:
+            success = rename_session(session_dir, data["title"])
+            if success:
+                return jsonify({"success": True, "title": data["title"]})
+            else:
+                return jsonify({"error": "Failed to rename session"}), 500
+
+        return jsonify({"error": "No valid update fields provided"}), 400
+    except Exception as e:
+        print(f"Error updating session: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/sessions/<session_id>", methods=["DELETE"])
+def delete_session(session_id):
+    """Delete a session."""
+    # Don't allow deleting the default session
+    if session_id == "default":
+        return jsonify({"error": "Cannot delete default session"}), 400
+
+    try:
+        config = get_config()
+        session_dir = Path(config.sessions_dir) / session_id
+
+        if not session_dir.exists():
+            return jsonify({"error": "Session not found"}), 404
+
+        success = delete_session_files(session_dir)
+
+        if success:
+            return jsonify({"success": True})
+        else:
+            return jsonify({"error": "Failed to delete session"}), 500
+    except Exception as e:
+        print(f"Error deleting session: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/sessions/<session_id>/export", methods=["GET"])
+def export_session(session_id):
+    """Export a session as TXT file."""
+    try:
+        config = get_config()
+        session_dir = Path(config.sessions_dir) / session_id
+        session_data = load_session(session_dir)
+
+        if not session_data:
+            return jsonify({"error": "Session not found"}), 404
+
+        # Generate text export
+        text = export_session_as_text(session_data, session_id)
+
+        # Return as downloadable file
+        from flask import make_response
+
+        response = make_response(text)
+        response.headers["Content-Type"] = "text/plain"
+        response.headers["Content-Disposition"] = (
+            f"attachment; filename=chat_{session_id}_{datetime.now().strftime('%Y%m%d')}.txt"
+        )
+
+        return response
+    except Exception as e:
+        print(f"Error exporting session: {e}")
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/sessions", methods=["POST"])
+def create_new_session():
+    """Create a new session."""
+    try:
+        config = get_config()
+        sessions_dir = Path(config.sessions_dir)
+
+        data = request.get_json() or {}
+        title = data.get("title")
+
+        # Generate session ID
+        existing = list_sessions(sessions_dir)
+        session_id = f"session_{len(existing) + 1}"
+
+        # Create session
+        session_data = create_session(sessions_dir, session_id, title)
+
+        return jsonify(
+            {
+                "success": True,
+                "session": session_data,
+            }
+        )
+    except Exception as e:
+        print(f"Error creating session: {e}")
         return jsonify({"error": str(e)}), 500
 
 
