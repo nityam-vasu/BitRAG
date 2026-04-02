@@ -1166,21 +1166,118 @@ def graph_info():
     )
 
 
+def parse_args():
+    """Parse command line arguments."""
+    import argparse
+
+    parser = argparse.ArgumentParser(
+        description="BitRAG Flask Backend - Powered by Ollama & ChromaDB",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  python web_app.py                      # Run with defaults (0.0.0.0:5000)
+  python web_app.py --port 8080          # Run on port 8080
+  python web_app.py --host 127.0.0.1     # Bind to localhost only
+  python web_app.py --debug               # Enable debug mode
+  python web_app.py --check               # Check system requirements
+        """,
+    )
+
+    parser.add_argument(
+        "--host", "-H", default="0.0.0.0", help="Host to bind to (default: 0.0.0.0)"
+    )
+    parser.add_argument(
+        "--port", "-p", type=int, default=5000, help="Port to run on (default: 5000)"
+    )
+    parser.add_argument("--debug", action="store_true", help="Enable debug mode")
+    parser.add_argument("--check", action="store_true", help="Check system requirements and exit")
+
+    return parser.parse_args()
+
+
+def check_system():
+    """Check system requirements."""
+    import psutil
+
+    print("\n" + "=" * 50)
+    print("  BitRAG - System Requirements Check")
+    print("=" * 50)
+
+    # Check Python version
+    import sys
+
+    print(f"\n✓ Python: {sys.version.split()[0]}")
+
+    # Check Ollama
+    import subprocess
+
+    try:
+        result = subprocess.run(["ollama", "--version"], capture_output=True, text=True, timeout=5)
+        if result.returncode == 0:
+            print(f"✓ Ollama: {result.stdout.strip()}")
+        else:
+            print("⚠ Ollama: Not responding")
+    except FileNotFoundError:
+        print("⚠ Ollama: Not installed")
+    except Exception:
+        print("⚠ Ollama: Not running (run 'ollama serve')")
+
+    # Check CPU
+    print(f"✓ CPU: {psutil.cpu_count()} cores")
+
+    # Check Memory
+    mem = psutil.virtual_memory()
+    print(f"✓ Memory: {round(mem.total / (1024**3), 1)} GB total")
+
+    # Check GPU (optional)
+    try:
+        result = subprocess.run(["nvidia-smi", "--version"], capture_output=True, timeout=5)
+        if result.returncode == 0:
+            print("✓ GPU: NVIDIA GPU detected")
+    except FileNotFoundError:
+        print("⚠ GPU: No NVIDIA GPU (optional)")
+    except Exception:
+        print("⚠ GPU: GPU check failed")
+
+    # Check ports
+    import socket
+
+    port_free = True
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.bind(("127.0.0.1", 5000))
+        sock.close()
+        print(f"✓ Port 5000: Available")
+    except OSError:
+        print(f"⚠ Port 5000: In use")
+
+    print("\n" + "=" * 50)
+    print("  Check complete!")
+    print("=" * 50 + "\n")
+
+
 def main():
     """Main entry point"""
+    import json
+
+    args = parse_args()
+
+    # Check mode
+    if args.check:
+        check_system()
+        return
+
     print("\n" + "=" * 60)
     print("  BitRAG Flask Backend")
     print("  Powered by Ollama & ChromaDB")
     print("=" * 60)
     print("\n✓ Server ready - initialization will happen on first request")
-    print("\n🌐 Web server: http://localhost:5000")
+    print(f"\n🌐 Web server: http://{args.host}:{args.port}")
     print("Press CTRL+C to stop\n")
 
     # Run Flask app - initialization happens on first API request
-    app.run(host="0.0.0.0", port=5000, debug=False, threaded=True, use_reloader=False)
+    app.run(host=args.host, port=args.port, debug=args.debug, threaded=True, use_reloader=False)
 
 
 if __name__ == "__main__":
-    import json
-
     main()
