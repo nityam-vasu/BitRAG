@@ -223,6 +223,39 @@ export function getCurrentChatExportUrl(): string {
   return `${API_BASE}/api/chat/export`;
 }
 
+// Ollama Parameters API
+export interface OllamaParams {
+  threads: number;
+  batch: number;
+  ctx: number;
+  mmap: number;
+  numa: boolean;
+  gpu: number;
+}
+
+export interface OllamaParamsConfig {
+  active: OllamaParams;
+  presets: {
+    id: string;
+    name: string;
+    params: OllamaParams;
+  }[];
+}
+
+export async function getOllamaParams(): Promise<OllamaParamsConfig> {
+  const res = await fetch(`${API_BASE}/api/ollama/params`);
+  return res.json();
+}
+
+export async function updateOllamaParams(params: OllamaParams): Promise<{ success: boolean }> {
+  const res = await fetch(`${API_BASE}/api/ollama/params`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params),
+  });
+  return res.json();
+}
+
 // Chat API (non-streaming)
 export async function sendChat(query: string): Promise<ChatMessage> {
   const res = await fetch(`${API_BASE}/api/chat`, {

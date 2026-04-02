@@ -3,6 +3,7 @@ import ChatPage from './pages/ChatPage'
 import DocumentsPage from './pages/DocumentsPage'
 import GraphPage from './pages/GraphPage'
 import SettingsPage from './pages/SettingsPage'
+import OllamaParamsPage from './pages/OllamaParamsPage'
 import Sidebar from './components/Sidebar'
 
 function App() {
@@ -16,6 +17,7 @@ function App() {
             <Route path="/chat" element={<ChatPage />} />
             <Route path="/documents" element={<DocumentsPage />} />
             <Route path="/graph" element={<GraphPage />} />
+            <Route path="/ollama-params" element={<OllamaParamsPage />} />
             <Route path="/settings" element={<SettingsPage />} />
           </Routes>
         </main>

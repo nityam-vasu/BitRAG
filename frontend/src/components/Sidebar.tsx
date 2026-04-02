@@ -1,10 +1,11 @@
 import { NavLink } from 'react-router-dom'
-import { MessageSquare, FileText, Network, Settings } from 'lucide-react'
+import { MessageSquare, FileText, Network, Settings, Activity } from 'lucide-react'
 
 const navItems = [
   { to: '/chat', icon: MessageSquare, label: 'Chat' },
   { to: '/documents', icon: FileText, label: 'Documents' },
   { to: '/graph', icon: Network, label: 'Graph' },
+  { to: '/ollama-params', icon: Activity, label: 'Ollama Params' },
   { to: '/settings', icon: Settings, label: 'Settings' },
 ]
 

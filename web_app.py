@@ -44,7 +44,7 @@ import json
 import requests
 
 # Import BitRAG core modules
-from bitrag.core.config import get_config
+from bitrag.core.config import get_config, OllamaParams
 from bitrag.core.indexer import DocumentIndexer
 from bitrag.core.query import QueryEngine
 from bitrag.core.graph_builder import GraphBuilder, get_graph_builder
@@ -78,6 +78,7 @@ hybrid_mode = 0
 dual_mode = False
 dual_model1 = "llama3.2:1b"
 dual_model2 = "deepseek-r1:1.5b"
+ollama_params = OllamaParams()
 
 indexer = None
 query_engine = None
@@ -1164,6 +1165,134 @@ def graph_info():
             "tag_model": graph_builder.tag_extractor.model,
         }
     )
+
+
+# ==================== Ollama Parameters API ====================
+
+
+@app.route("/api/ollama/params", methods=["GET"])
+def get_ollama_params():
+    """Get current Ollama runtime parameters."""
+    try:
+        config = get_config()
+
+        # Pre-defined presets
+        presets = [
+            {
+                "id": "office-laptop",
+                "name": "Office Laptop",
+                "description": "Optimized for light workloads, leaves resources for other tasks",
+                "hardware": "Core i5 (4 cores), 16GB RAM",
+                "params": {
+                    "threads": 2,
+                    "batch": 64,
+                    "ctx": 4096,
+                    "mmap": 1,
+                    "numa": False,
+                    "gpu": 0,
+                },
+            },
+            {
+                "id": "home-server",
+                "name": "Home Server",
+                "description": "Balanced performance for multi-user household",
+                "hardware": "Ryzen 9 (16 cores), 64GB RAM",
+                "params": {
+                    "threads": 12,
+                    "batch": 256,
+                    "ctx": 8192,
+                    "mmap": 0,
+                    "numa": False,
+                    "gpu": 0,
+                },
+            },
+            {
+                "id": "headless-server",
+                "name": "Headless Server",
+                "description": "Maximum performance for production workloads",
+                "hardware": "Dual Xeon (48 cores), 256GB RAM",
+                "params": {
+                    "threads": 40,
+                    "batch": 512,
+                    "ctx": 32768,
+                    "mmap": 0,
+                    "numa": True,
+                    "gpu": 0,
+                },
+            },
+        ]
+
+        # Get current params from config
+        current_params = (
+            config.ollama_params.to_dict()
+            if hasattr(config, "ollama_params")
+            else {
+                "threads": 4,
+                "batch": 512,
+                "ctx": 4096,
+                "mmap": 1,
+                "numa": False,
+                "gpu": 0,
+            }
+        )
+
+        return jsonify(
+            {
+                "active": current_params,
+                "presets": presets,
+            }
+        )
+    except Exception as e:
+        print(f"Error getting Ollama params: {e}")
+        return jsonify(
+            {
+                "active": {
+                    "threads": 4,
+                    "batch": 512,
+                    "ctx": 4096,
+                    "mmap": 1,
+                    "numa": False,
+                    "gpu": 0,
+                },
+                "presets": [],
+                "error": str(e),
+            }
+        ), 500
+
+
+@app.route("/api/ollama/params", methods=["POST"])
+def update_ollama_params():
+    """Update Ollama runtime parameters."""
+    global ollama_params
+
+    try:
+        data = request.get_json()
+
+        if not data:
+            return jsonify({"error": "No data provided"}), 400
+
+        # Update global params
+        from src.bitrag.core.config import OllamaParams
+
+        ollama_params = OllamaParams.from_dict(data)
+
+        # Also update in config and save
+        config = get_config()
+        config.ollama_params = ollama_params
+        config.save()
+
+        return jsonify(
+            {
+                "success": True,
+                "params": ollama_params.to_dict(),
+            }
+        )
+    except Exception as e:
+        print(f"Error updating Ollama params: {e}")
+        import traceback
+
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 
 def parse_args():
