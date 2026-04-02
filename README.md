@@ -27,7 +27,7 @@ A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with 
 - **Model Availability** - See all available Ollama models
 
 ### ⚡ Custom Ollama Parameters
-- **Pre-made Presets** - Office Laptop, Home Server, Headless Server configurations
+- **Pre-made Presets** - Office Laptop and Home Server
 - **CPU Optimization** - Thread count, batch size, context window tuning
 - **Memory Management** - Memory mapping (mmap) control
 - **GPU Layers** - Configure how many layers run on GPU
@@ -91,22 +91,22 @@ BitRAG/
 |-------------|---------|-------|
 | Python | 3.10+ | |
 | Ollama | Latest | [Install](https://ollama.com) |
-| RAM | 4GB+ | Works with CPU |
+| RAM | 3GB+ | Works with CPU |
 
 ## Quick Start
 
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/BitRAG.git
+git clone https://github.com/nityam-vasu/BitRAG.git
 cd BitRAG
 
 # Run setup (creates venv, installs deps, checks Ollama)
 ./setup.sh
 
-# Activate virtual environment
+# or else Activate virtual environment
 source .venv/bin/activate
 
-# Start Ollama (in another terminal)
+# and Start Ollama (in another terminal)
 ollama serve
 
 # Download models (optional - see Model Downloader section)
@@ -627,9 +627,6 @@ ollama list
 ollama rm model_name
 ```
 
-### PyTermGUI issues
-
-If the TUI fails to start with PyTermGUI, the application will automatically fall back to text-based menu mode.
 
 ## Dependencies
 
@@ -658,24 +655,14 @@ If the TUI fails to start with PyTermGUI, the application will automatically fal
 - `tqdm>=4.65.0` - Progress bars
 - `colorama>=0.4.0` - Terminal colors
 
-### Optional: Development
-- `pytest>=7.0.0` - Testing
-- `ruff>=0.1.0` - Linting
 
 ## License
 
 MIT License - See LICENSE file for details.
 
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
 
 ---
 
 <p align="center">
-  Made with ❤️ for educational purposes
+  BTECH FINAL YEAR PROJECT
 </p>
