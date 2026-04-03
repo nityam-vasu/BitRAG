@@ -44,6 +44,10 @@ export default function OllamaParamsPage() {
   const [savedConfigs, setSavedConfigs] = useState<SavedConfig[]>([]);
   const [loading, setLoading] = useState(true);
   const [applying, setApplying] = useState(false);
+  
+  // Get CPU cores from browser API or default
+  const cpuCores = navigator.hardwareConcurrency || 8;
+  const recommendedThreads = Math.max(1, Math.floor(cpuCores / 2));
 
   // Fetch existing params on mount
   useEffect(() => {

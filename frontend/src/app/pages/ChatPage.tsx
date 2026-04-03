@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Upload, Send, ChevronRight, FileText, Download, AlertCircle } from "lucide-react";
+import { Upload, Send, ChevronRight, FileText, Download, AlertCircle, Loader2, Wifi, WifiOff } from "lucide-react";
 import ProcessingCard from "../components/ProcessingCard";
 
 interface Message {
@@ -9,6 +9,12 @@ interface Message {
   thinking?: string;
 }
 
+interface ServerStatus {
+  initialized: boolean;
+  initializing: boolean;
+  documentCount?: number;
+}
+
 export default function ChatPage() {
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
@@ -16,7 +22,35 @@ export default function ChatPage() {
   const [processingExpanded, setProcessingExpanded] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [serverStatus, setServerStatus] = useState<ServerStatus>({ initialized: false, initializing: true });
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Check server initialization status
+  useEffect(() => {
+    checkServerStatus();
+    
+    // Poll every 2 seconds while initializing
+    const interval = setInterval(() => {
+      checkServerStatus();
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  const checkServerStatus = async () => {
+    try {
+      const response = await fetch('/api/debug');
+      if (response.ok) {
+        const data = await response.json();
+        setServerStatus({
+          initialized: data.initialized || false,
+          initializing: data.initializing || false,
+        });
+      }
+    } catch (err) {
+      setServerStatus({ initialized: false, initializing: false });
+    }
+  };
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -26,6 +60,7 @@ export default function ChatPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
+    if (!serverStatus.initialized) return;
     
     const userMessage = input.trim();
     setInput("");
@@ -200,6 +235,17 @@ export default function ChatPage() {
 
       {/* Input Area */}
       <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+        {/* Initialization Warning */}
+        {(!serverStatus.initialized || serverStatus.initializing) && (
+          <div className="max-w-4xl mx-auto mb-3">
+            <div className="flex items-center gap-2 px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg text-yellow-800 dark:text-yellow-200">
+              <Loader2 className="animate-spin" size={16} />
+              <span className="text-sm">
+                {serverStatus.initializing ? "Initializing server..." : "Server not ready. Please wait."}
+              </span>
+            </div>
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
           <div className="flex items-center gap-2">
             <button
@@ -214,14 +260,15 @@ export default function ChatPage() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ask a question about your documents..."
-              className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400"
+              placeholder={serverStatus.initialized ? "Ask a question about your documents..." : "Waiting for server..."}
+              disabled={!serverStatus.initialized}
+              className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50"
             />
             
             <button
               type="submit"
               className="p-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled={!input.trim()}
+              disabled={!input.trim() || !serverStatus.initialized}
               title="Send message"
             >
               <Send size={20} />

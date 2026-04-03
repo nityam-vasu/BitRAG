@@ -1,6 +1,17 @@
 import { useState, useEffect } from "react";
 import { RefreshCw, Download, Trash2, FileText, Save, CircuitBoard, ChevronDown, Cpu, Monitor, HardDrive, Check, X as XIcon, Loader2 } from "lucide-react";
 
+interface SystemInfoData {
+  cpu: number;
+  memory: { used: number; total: number; percent: number };
+  gpu?: { utilization: number; memory_used: number; memory_total: number };
+  documentCount: number;
+  embeddingModel: string;
+  chunkSize: number;
+  topK: number;
+  sessionId: string;
+}
+
 export default function SettingsPage() {
   const [ollamaPort, setOllamaPort] = useState("11434");
   const [connected, setConnected] = useState(false);
@@ -16,12 +27,30 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [systemInfo, setSystemInfo] = useState<SystemInfoData | null>(null);
 
   // Fetch settings and models on mount
   useEffect(() => {
     fetchSettings();
     fetchModels();
+    fetchSystemInfo();
+    
+    // Poll system info every 5 seconds
+    const interval = setInterval(fetchSystemInfo, 5000);
+    return () => clearInterval(interval);
   }, []);
+
+  const fetchSystemInfo = async () => {
+    try {
+      const response = await fetch('/api/system/info');
+      if (response.ok) {
+        const data = await response.json();
+        setSystemInfo(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch system info:', err);
+    }
+  };
 
   const fetchSettings = async () => {
     try {
@@ -152,7 +181,7 @@ export default function SettingsPage() {
               <ChevronDown className={`text-gray-400 transition-transform ${systemInfoExpanded ? 'rotate-180' : ''}`} size={20} />
             </button>
 
-            {systemInfoExpanded && (
+            {systemInfoExpanded && systemInfo && (
               <div className="px-6 pb-6 space-y-6">
                 {/* Hardware Info Grid */}
                 <div className="grid grid-cols-2 gap-4">
@@ -163,7 +192,7 @@ export default function SettingsPage() {
                       <span className="text-xs uppercase text-gray-500 dark:text-gray-400">CPU</span>
                     </div>
                     <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {systemInfo.cpu.usage} ({systemInfo.cpu.cores} cores)
+                      {systemInfo.cpu}%
                     </p>
                   </div>
 
@@ -171,12 +200,12 @@ export default function SettingsPage() {
                   <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
                     <div className="flex items-center gap-2 mb-2">
                       <Monitor className="text-blue-500" size={20} />
-                      <span className="text-xs uppercase text-gray-500 dark:text-gray-400">OS</span>
+                      <span className="text-xs uppercase text-gray-500 dark:text-gray-400">Documents</span>
                     </div>
                     <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {systemInfo.os.name}
+                      {systemInfo.documentCount}
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{systemInfo.os.resolution}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">indexed</p>
                   </div>
 
                   {/* RAM */}
@@ -186,9 +215,9 @@ export default function SettingsPage() {
                       <span className="text-xs uppercase text-gray-500 dark:text-gray-400">RAM</span>
                     </div>
                     <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {systemInfo.ram.used}GB / {systemInfo.ram.total}GB
+                      {systemInfo.memory.used}GB / {systemInfo.memory.total}GB
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{systemInfo.ram.percentage}% used</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{systemInfo.memory.percent}% used</p>
                   </div>
 
                   {/* GPU */}
@@ -197,11 +226,11 @@ export default function SettingsPage() {
                       <CircuitBoard className="text-blue-500" size={20} />
                       <span className="text-xs uppercase text-gray-500 dark:text-gray-400">GPU</span>
                     </div>
-                    {systemInfo.gpu.available ? (
+                    {systemInfo.gpu ? (
                       <>
                         <p className="text-lg font-semibold text-green-600 dark:text-green-400">Available</p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          VRAM: {systemInfo.gpu.vram.used}GB / {systemInfo.gpu.vram.total}GB ({systemInfo.gpu.utilization}%)
+                          VRAM: {systemInfo.gpu.memory_used}GB / {systemInfo.gpu.memory_total}GB ({systemInfo.gpu.utilization}%)
                         </p>
                       </>
                     ) : (
@@ -220,7 +249,9 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Ollama:</span>
-                      <span className="text-green-600 dark:text-green-400">Running</span>
+                      <span className={connected ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}>
+                        {connected ? "Running" : "Not Connected"}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">ChromaDB:</span>
@@ -232,7 +263,7 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Embedding Model:</span>
-                      <span className="text-gray-900 dark:text-white truncate ml-2">BAAI/bge-small...</span>
+                      <span className="text-gray-900 dark:text-white truncate ml-2">{systemInfo?.embeddingModel || 'N/A'}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Chat Model:</span>
@@ -240,15 +271,15 @@ export default function SettingsPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Documents:</span>
-                      <span className="text-gray-900 dark:text-white">5 indexed</span>
+                      <span className="text-gray-900 dark:text-white">{systemInfo?.documentCount || 0} indexed</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Chunk Size:</span>
-                      <span className="text-gray-900 dark:text-white">512</span>
+                      <span className="text-gray-900 dark:text-white">{systemInfo?.chunkSize || 512}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Top-K:</span>
-                      <span className="text-gray-900 dark:text-white">3</span>
+                      <span className="text-gray-900 dark:text-white">{systemInfo?.topK || 3}</span>
                     </div>
                   </div>
                   
