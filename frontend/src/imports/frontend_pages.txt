@@ -1,0 +1,349 @@
+================================================================================
+                         BITRAG FRONTEND PAGES DESCRIPTION
+                              (Visual Information Only)
+================================================================================
+
+================================================================================
+                              PAGE 1: CHAT
+================================================================================
+
+PURPOSE: Main chat interface to ask questions about uploaded documents
+
+HEADER SECTION:
+- Title: "Chat" (left-aligned)
+- Right side: "Export Chat" button with download icon
+
+MESSAGE AREA:
+- User messages: Aligned to right side
+  - Background: Blue colored bubble (blue-600)
+  - Text: White
+  - Max width: 70% of container
+  - Rounded corners (rounded-lg)
+
+- Assistant messages: Aligned to left side
+  - Background: Dark gray bubble (gray-700)
+  - Text: Light gray/white
+  - Max width: 70% of container
+  - Contains:
+    * "Thinking..." expandable section (click to see model reasoning)
+    * Markdown rendered response
+    * "Sources:" section at bottom showing document names used
+
+LOADING STATE:
+- Shows spinning loader icon in gray bubble
+- Positioned on left side
+
+EMPTY STATE:
+- Centered text when no documents indexed
+- Message: "No documents indexed yet."
+- Sub-message: "Go to Documents page to upload PDFs."
+
+INPUT AREA:
+- Located at bottom (fixed position)
+- Full-width text input field
+  - Placeholder: "Ask a question..." or "Upload documents first..."
+  - Dark background (gray-700)
+  - Blue border on focus
+  
+- "Send" button on right side
+  - Blue background (blue-600)
+  - White text with send icon
+  - Disabled when input empty or no documents
+
+================================================================================
+                            PAGE 2: DOCUMENTS
+================================================================================
+
+PURPOSE: Upload, view, and manage document files
+
+HEADER SECTION:
+- Title: "Documents" (left-aligned)
+- Right side: "Upload Documents" button
+  - Blue background (blue-600)
+  - Upload icon + text
+
+CONTENT AREA:
+- If loading: Spinning loader centered vertically
+
+- If empty:
+  - Large file icon (gray, semi-transparent)
+  - Text: "No documents uploaded yet"
+  - Sub-text: "Click Upload Documents to get started"
+
+- If documents exist:
+  - List of document cards
+  - Each card contains:
+    * File icon (blue color)
+    * Document name (white text)
+    * Delete button (trash icon, right side)
+      - Gray by default
+      - Turns red on hover with slight red background
+
+FOOTER SECTION:
+- Bottom status bar
+- Text showing: "X documents indexed"
+
+================================================================================
+                              PAGE 3: GRAPH
+================================================================================
+
+PURPOSE: Visual knowledge graph of documents and their relationships
+
+HEADER SECTION:
+- Title: "Knowledge Graph" (left-aligned)
+- Right side: "Refresh" button
+  - Blue background
+  - Refresh icon
+  - Spins when loading
+
+SEARCH & CONTROLS ROW (below title):
+- Search input (left side)
+  - Search icon inside (left side)
+  - Placeholder: "Search nodes by name or tag..."
+  - Dark background with border
+  
+- Zoom controls (center-right)
+  - Three icon buttons in a row: Zoom In, Zoom Out, Fit to Screen
+  - Gray background buttons
+  
+- Stats display (right side)
+  - Text: "X nodes, Y links"
+
+MAIN GRAPH AREA:
+- Interactive canvas showing nodes and connections
+- Nodes colored by category:
+  * Blue: Documents
+  * Green: Text files
+  * Amber/Orange: Code
+  * Pink: Images
+  * Gray: Other
+- Nodes display labels underneath
+- Click on node to see details in side panel
+- Hover shows pointer cursor
+
+NODE DETAILS PANEL (right sidebar, appears on click):
+- Width: 320px (fixed)
+- Sections:
+  * "Name" label + document name
+  * "Category" label + colored dot + category name
+  * "Summary" label + summary text
+  * "Tags" label + tag pills (blue colored)
+  * "Connections" label + count
+- Close button (X) at top right
+
+LEGEND BAR (bottom):
+- Horizontal list showing all category colors
+- Labels: Documents, Text Files, Code, Images, Other
+- Fixed at bottom of page
+
+EMPTY STATE:
+- Centered text: "No documents to display. Upload some documents first!"
+
+LOADING STATE:
+- Semi-transparent dark overlay over graph
+- Spinning loader in center
+
+================================================================================
+                         PAGE 4: OLLAMA PARAMS
+================================================================================
+
+PURPOSE: Configure Ollama model performance parameters for different hardware
+
+PAGE HEADER:
+- Icon: Activity/lightning icon (blue)
+- Title: "Custom Ollama Parameters"
+- Subtitle: "Optimize model performance for your hardware"
+
+SYSTEM INFO BANNER (blue tinted):
+- "Your System" title with info icon
+- Two columns:
+  * Left: "CPU Cores:" + number
+  * Right: "Recommended Threads:" + number (green colored)
+
+MESSAGE AREA:
+- Success: Green background, checkmark icon, message text
+- Error: Red background, X icon, message text
+- Auto-hides after 3 seconds
+
+PRESET CONFIGURATIONS SECTION:
+- Title: "Quick Presets" with lightning icon
+- 3 horizontal cards (responsive - stacks on mobile):
+  1. "Office Laptop" card
+     - Icon: Laptop
+     - Hardware: "Core i5 (4 cores), 16GB RAM"
+     - Description: "Optimized for light workloads..."
+     - Params shown: threads, batch, ctx values
+     
+  2. "Home Server" card
+     - Icon: Server/Zap
+     - Hardware: "Ryzen 9 (16 cores), 64GB RAM"
+     - Description: "Balanced performance..."
+     
+  3. "Headless Server" card
+     - Icon: Zap/Lightning
+     - Hardware: "Dual Xeon (48 cores), 256GB RAM"
+     - Description: "Maximum performance..."
+     
+- Active preset shows:
+  * Blue tint background
+  * Blue border
+  * Green checkmark icon on right
+
+CUSTOM CONFIGURATION SECTION:
+- Title: "Custom Configuration" with CPU icon
+- Two buttons (right side):
+  * "Save Config" - Green button
+  * "Apply" - Blue button
+
+PARAMETER INPUTS (in a card):
+- 2-column grid layout (stacks on mobile)
+
+Each parameter field:
+- Label: "--parameterName" in white + "(description)" in gray
+- Input: Number field with dark background
+- Help text below in gray
+
+Parameters:
+  1. --threads (CPU Threads)
+     - Input: Number (0-64)
+     - Help: "Recommended: X for your system"
+     
+  2. --batch (Batch Size)
+     - Input: Number (0-8192)
+     - Help: "Higher = faster but more memory"
+     
+  3. --ctx (Context Size)
+     - Input: Number (512-131072, step 512)
+     - Help: "Max tokens in context window"
+     
+  4. --gpu (GPU Layers)
+     - Input: Number (0-100)
+     - Help: "0 = CPU only, higher = use GPU"
+     
+  5. --mmap (Memory Mapping)
+     - Two radio buttons: "Enabled (1)" / "Disabled (0)"
+     - Help: "0 = Load in RAM (fast), 1 = Stream from disk"
+     
+  6. --numa (NUMA Awareness)
+     - Checkbox: "Enable NUMA optimization"
+     - Help: "For multi-socket servers only"
+
+COMMAND PREVIEW SECTION:
+- Title: "Command Preview"
+- Box showing generated command in green monospace font
+- Format: "ollama run <model> --threads X --batch Y --ctx Z ..."
+
+SAVED CONFIGURATIONS SECTION (if any exist):
+- Title: "Saved Configurations"
+- List of saved config cards
+
+Each saved config card:
+- Name (bold)
+- Params displayed in gray
+- "Active" badge if currently active
+- Two buttons:
+  * "Load" - Blue button
+  * Trash icon - Red on hover
+
+SAVE CONFIG MODAL (popup):
+- Dark overlay on screen
+- Centered modal box
+- Title: "Save Configuration"
+- Text input for name
+- Two buttons: "Cancel" (gray) / "Save" (green)
+
+================================================================================
+                             PAGE 5: SETTINGS
+================================================================POSE
+================================================================================
+
+PURPOSE: Configure Ollama connection, models, and system settings
+
+LAYOUT: Scrollable page, max width centered container (2xl)
+
+MESSAGE TOASTS:
+- Success: Green background with checkmark
+- Error: Red background with X icon
+- Shows briefly then auto-hides
+
+SYSTEM INFORMATION SECTION (collapsible):
+- Click to expand/collapse
+- Header shows: "System Information" with circuit board icon
+- Chevron icon rotates on expand/collapse
+
+When expanded shows:
+- 2x2 grid of info cards:
+  1. CPU
+     - Icon: CPU
+     - Label: "CPU" (uppercase, gray)
+     - Value: percentage + cores available
+     
+  2. Operating System
+     - Icon: Monitor
+     - Label: "OS" (uppercase, gray)
+     - Value: Detected OS + screen resolution
+     
+  3. RAM
+     - Icon: Hard Drive
+     - Label: "RAM" (uppercase, gray)
+     - Value: Used/Total GB + percentage used
+     
+  4. GPU
+     - Icon: Circuit Board
+     - Label: "GPU" (uppercase, gray)
+     - Value: "Available" (green) or "Not Available" (yellow)
+     - If available: VRAM used/total + utilization %
+
+- Software & Configuration section:
+  - Grid showing: Flask, Ollama, ChromaDB, LlamaIndex
+  - Shows connection status
+  - Embedding model name (truncated)
+  - Current chat model name
+  - Documents indexed count
+  - Chunk size
+  - Top-K retrieval value
+  - Available Ollama models count
+  - List of available models as blue pills/tags
+
+OLLAMA STATUS SECTION:
+- Simple card showing:
+  - Colored dot (green/red) indicating status
+  - Status text ("running" / "stopped")
+  - Document count below
+
+MODEL SELECTION SECTION:
+- Label: "Chat Model"
+- Right side: "Refresh" link button with refresh icon
+- Dropdown select showing all available Ollama models
+
+SUMMARY MODEL SECTION:
+- Label: "Summary Model"
+- Subtext: "Model used to generate document summaries"
+- Dropdown select
+
+TAG MODEL SECTION:
+- Label: "Tag Model"
+- Subtext: "Model used to extract tags from documents"
+- Dropdown select
+
+OLLAMA PORT SECTION:
+- Label: "Ollama Port"
+- Number input field (default: 11434)
+
+HYBRID MODE TOGGLE:
+- Label: "Hybrid Search"
+- Subtext: "Combine vector and keyword search"
+- Checkbox toggle on right
+
+DUAL MODE TOGGLE:
+- Label: "Dual Model Mode"
+- Subtext: "Use two models for different tasks"
+- Checkbox toggle on right
+
+SAVE BUTTON:
+- Full width at bottom
+- Blue background
+- "Save Settings" text with save icon
+- Shows spinner when saving
+- Disabled while saving
+

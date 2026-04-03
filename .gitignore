@@ -80,7 +80,7 @@ models/
 *.key
 credentials.json
 
-# Planning & Research (generated locally)
+# Planning & Research by opecode
 .planning/
 
 # Frontend (generated during build)
