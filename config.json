@@ -1,0 +1,78 @@
+{
+  // ============ Model Configuration ============
+  // Default model for chat queries (e.g., llama3.2:1b, mistral, phi)
+  "default_model": "llama3.2:1b",
+  
+  // Model used for generating document summaries
+  "summary_model": "llama3.2:1b",
+  
+  // Model used for extracting tags from documents
+  "tag_model": "llama3.2:1b",
+  
+  // ============ Ollama Configuration ============
+  // Port where Ollama server is running
+  "ollama_port": "11434",
+  
+  // Base URL for Ollama API (usually http://localhost:11434)
+  "ollama_base_url": "http://localhost:11434",
+  
+  // ============ Embedding Model Configuration ============
+  // Model used for text embeddings (e.g., BAAI/bge-small-en-v1.5)
+  "embedding_model": "BAAI/bge-small-en-v1.5",
+  
+  // ============ Search Configuration ============
+  // Number of top results to retrieve (1-20)
+  "top_k": 5,
+  
+  // Hybrid search ratio (0-100): 0 = keyword only, 100 = semantic only, 50 = balanced
+  "hybrid_search_ratio": 50,
+  
+  // ============ Document Processing ============
+  // Chunk size for document splitting (256-4096)
+  "chunk_size": 512,
+  
+  // Overlap between chunks (0-512)
+  "chunk_overlap": 128,
+  
+  // ============ Dual Model Mode ============
+  // Enable dual model mode (uses two models for reasoning)
+  "dual_mode": false,
+  
+  // First model in dual mode
+  "dual_model1": "llama3.2:1b",
+  
+  // Second model in dual mode
+  "dual_model2": "llama3.2:3b",
+  
+  // ============ Ollama Runtime Parameters ============
+  // Number of CPU threads to use (0 = auto)
+  "threads": 0,
+  
+  // Batch size for processing (1-8192)
+  "batch": 512,
+  
+  // Context window size (512-131072)
+  "ctx": 4096,
+  
+  // GPU layers to use (0 = CPU only)
+  "gpu": 0,
+  
+  // Memory mapping mode (0 = load in RAM, 1 = stream from disk)
+  "mmap": 1,
+  
+  // Enable NUMA awareness (for multi-socket servers)
+  "numa": false,
+  
+  // ============ UI Preferences ============
+  // Enable dark mode
+  "dark_mode": true,
+  
+  // Show system information panel
+  "show_system_info": true,
+  
+  // Auto-save chat sessions
+  "auto_save_sessions": true,
+  
+  // Number of messages to keep in memory
+  "max_messages_memory": 100
+}

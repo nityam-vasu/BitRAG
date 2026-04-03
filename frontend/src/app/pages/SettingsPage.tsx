@@ -28,6 +28,16 @@ export default function SettingsPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [systemInfo, setSystemInfo] = useState<SystemInfoData | null>(null);
+  
+  // New UI settings from config.json
+  const [darkMode, setDarkMode] = useState(true);
+  const [showSystemInfo, setShowSystemInfo] = useState(true);
+  const [autoSaveSessions, setAutoSaveSessions] = useState(true);
+  const [maxMessagesMemory, setMaxMessagesMemory] = useState(100);
+  const [embeddingModel, setEmbeddingModel] = useState("BAAI/bge-small-en-v1.5");
+  const [chunkSize, setChunkSize] = useState(512);
+  const [topK, setTopK] = useState(5);
+  const [ollamaBaseUrl, setOllamaBaseUrl] = useState("http://localhost:11434");
 
   // Fetch settings and models on mount
   useEffect(() => {
@@ -61,10 +71,20 @@ export default function SettingsPage() {
         setSummaryModel(data.summary_model || 'llama3.2:1b');
         setTagModel(data.tag_model || 'llama3.2:1b');
         setOllamaPort(data.ollama_port || '11434');
+        setOllamaBaseUrl(data.ollama_base_url || 'http://localhost:11434');
         setHybridSearch(data.hybrid_search_ratio || 50);
         setDualModelMode(data.dual_mode || false);
         setDualModel1(data.dual_model1 || 'llama3.2:1b');
         setDualModel2(data.dual_model2 || 'llama3.2:3b');
+        
+        // Load new UI settings
+        setDarkMode(data.dark_mode ?? true);
+        setShowSystemInfo(data.show_system_info ?? true);
+        setAutoSaveSessions(data.auto_save_sessions ?? true);
+        setMaxMessagesMemory(data.max_messages_memory || 100);
+        setEmbeddingModel(data.embedding_model || 'BAAI/bge-small-en-v1.5');
+        setChunkSize(data.chunk_size || 512);
+        setTopK(data.top_k || 5);
       }
     } catch (err) {
       console.error('Failed to fetch settings:', err);
@@ -106,10 +126,18 @@ export default function SettingsPage() {
           summary_model: summaryModel,
           tag_model: tagModel,
           ollama_port: ollamaPort,
+          ollama_base_url: ollamaBaseUrl,
+          embedding_model: embeddingModel,
+          top_k: topK,
           hybrid_search_ratio: hybridSearch,
+          chunk_size: chunkSize,
           dual_mode: dualModelMode,
           dual_model1: dualModel1,
           dual_model2: dualModel2,
+          dark_mode: darkMode,
+          show_system_info: showSystemInfo,
+          auto_save_sessions: autoSaveSessions,
+          max_messages_memory: maxMessagesMemory,
         })
       });
       

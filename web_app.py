@@ -42,6 +42,59 @@ import uuid
 import time
 import json
 import requests
+import threading
+
+# ============ CONFIG FILE MANAGEMENT ============
+CONFIG_FILE = os.path.join(PROJECT_ROOT, "config.json")
+_config_cache = {}
+_config_lock = threading.Lock()
+
+
+def load_config_json():
+    """Load config from JSON file"""
+    global _config_cache
+    with _config_lock:
+        if os.path.exists(CONFIG_FILE):
+            try:
+                with open(CONFIG_FILE, "r") as f:
+                    _config_cache = json.load(f)
+                print(f"[Config] Loaded from {CONFIG_FILE}")
+            except Exception as e:
+                print(f"[Config] Error loading config: {e}")
+                _config_cache = {}
+        return _config_cache.copy()
+
+
+def save_config_json(data):
+    """Save config to JSON file"""
+    global _config_cache
+    with _config_lock:
+        try:
+            with open(CONFIG_FILE, "w") as f:
+                json.dump(data, f, indent=2)
+            _config_cache = data
+            print(f"[Config] Saved to {CONFIG_FILE}")
+            return True
+        except Exception as e:
+            print(f"[Config] Error saving config: {e}")
+            return False
+
+
+def get_config_value(key, default=None):
+    """Get a config value"""
+    config = load_config_json()
+    return config.get(key, default)
+
+
+def set_config_value(key, value):
+    """Set a config value and save"""
+    config = load_config_json()
+    config[key] = value
+    return save_config_json(config)
+
+
+# Load config on startup
+load_config_json()
 
 # Import BitRAG core modules
 from bitrag.core.config import get_config, OllamaParams
@@ -847,20 +900,35 @@ def get_settings():
     except:
         ollama_status = "not responding"
 
-    # Get model settings from config
-    config = get_config()
+    # Load config from JSON file
+    config = load_config_json()
 
     if not ensure_initialized():
         return jsonify(
             {
-                "model": current_model,
-                "summary_model": getattr(config, "summary_model", "llama3.2:1b"),
-                "tag_model": getattr(config, "tag_model", "llama3.2:1b"),
-                "ollamaPort": ollama_port,
-                "hybridMode": hybrid_mode,
-                "dualMode": dual_mode,
-                "model1": dual_model1,
-                "model2": dual_model2,
+                "default_model": config.get("default_model", "llama3.2:1b"),
+                "summary_model": config.get("summary_model", "llama3.2:1b"),
+                "tag_model": config.get("tag_model", "llama3.2:1b"),
+                "ollama_port": config.get("ollama_port", "11434"),
+                "ollama_base_url": config.get("ollama_base_url", "http://localhost:11434"),
+                "embedding_model": config.get("embedding_model", "BAAI/bge-small-en-v1.5"),
+                "top_k": config.get("top_k", 5),
+                "hybrid_search_ratio": config.get("hybrid_search_ratio", 50),
+                "chunk_size": config.get("chunk_size", 512),
+                "chunk_overlap": config.get("chunk_overlap", 128),
+                "dual_mode": config.get("dual_mode", False),
+                "dual_model1": config.get("dual_model1", "llama3.2:1b"),
+                "dual_model2": config.get("dual_model2", "llama3.2:3b"),
+                "threads": config.get("threads", 0),
+                "batch": config.get("batch", 512),
+                "ctx": config.get("ctx", 4096),
+                "gpu": config.get("gpu", 0),
+                "mmap": config.get("mmap", 1),
+                "numa": config.get("numa", False),
+                "dark_mode": config.get("dark_mode", True),
+                "show_system_info": config.get("show_system_info", True),
+                "auto_save_sessions": config.get("auto_save_sessions", True),
+                "max_messages_memory": config.get("max_messages_memory", 100),
                 "documentCount": 0,
                 "ollamaStatus": ollama_status,
             }
@@ -868,14 +936,29 @@ def get_settings():
 
     return jsonify(
         {
-            "model": current_model,
-            "summary_model": getattr(config, "summary_model", "llama3.2:1b"),
-            "tag_model": getattr(config, "tag_model", "llama3.2:1b"),
-            "ollamaPort": ollama_port,
-            "hybridMode": hybrid_mode,
-            "dualMode": dual_mode,
-            "model1": dual_model1,
-            "model2": dual_model2,
+            "default_model": config.get("default_model", "llama3.2:1b"),
+            "summary_model": config.get("summary_model", "llama3.2:1b"),
+            "tag_model": config.get("tag_model", "llama3.2:1b"),
+            "ollama_port": config.get("ollama_port", "11434"),
+            "ollama_base_url": config.get("ollama_base_url", "http://localhost:11434"),
+            "embedding_model": config.get("embedding_model", "BAAI/bge-small-en-v1.5"),
+            "top_k": config.get("top_k", 5),
+            "hybrid_search_ratio": config.get("hybrid_search_ratio", 50),
+            "chunk_size": config.get("chunk_size", 512),
+            "chunk_overlap": config.get("chunk_overlap", 128),
+            "dual_mode": config.get("dual_mode", False),
+            "dual_model1": config.get("dual_model1", "llama3.2:1b"),
+            "dual_model2": config.get("dual_model2", "llama3.2:3b"),
+            "threads": config.get("threads", 0),
+            "batch": config.get("batch", 512),
+            "ctx": config.get("ctx", 4096),
+            "gpu": config.get("gpu", 0),
+            "mmap": config.get("mmap", 1),
+            "numa": config.get("numa", False),
+            "dark_mode": config.get("dark_mode", True),
+            "show_system_info": config.get("show_system_info", True),
+            "auto_save_sessions": config.get("auto_save_sessions", True),
+            "max_messages_memory": config.get("max_messages_memory", 100),
             "documentCount": indexer.get_document_count() if indexer else 0,
             "ollamaStatus": ollama_status,
         }
@@ -897,7 +980,59 @@ def update_settings():
 
     data = request.get_json()
 
-    new_model = data.get("model")
+    # Load existing config
+    config = load_config_json()
+
+    # Update all fields from the request
+    field_mappings = {
+        "default_model": "default_model",
+        "summary_model": "summary_model",
+        "tag_model": "tag_model",
+        "ollama_port": "ollama_port",
+        "ollama_base_url": "ollama_base_url",
+        "embedding_model": "embedding_model",
+        "top_k": "top_k",
+        "hybrid_search_ratio": "hybrid_search_ratio",
+        "chunk_size": "chunk_size",
+        "chunk_overlap": "chunk_overlap",
+        "dual_mode": "dual_mode",
+        "dual_model1": "dual_model1",
+        "dual_model2": "dual_model2",
+        "threads": "threads",
+        "batch": "batch",
+        "ctx": "ctx",
+        "gpu": "gpu",
+        "mmap": "mmap",
+        "numa": "numa",
+        "dark_mode": "dark_mode",
+        "show_system_info": "show_system_info",
+        "auto_save_sessions": "auto_save_sessions",
+        "max_messages_memory": "max_messages_memory",
+    }
+
+    for json_key, config_key in field_mappings.items():
+        if json_key in data and data[json_key] is not None:
+            config[config_key] = data[json_key]
+
+    # Handle legacy field names for backward compatibility
+    if "model" in data and data["model"]:
+        config["default_model"] = data["model"]
+    if "ollamaPort" in data and data["ollamaPort"]:
+        config["ollama_port"] = data["ollamaPort"]
+    if "hybridMode" in data and data["hybridMode"] is not None:
+        config["hybrid_search_ratio"] = data["hybridMode"]
+    if "dualMode" in data and data["dualMode"] is not None:
+        config["dual_mode"] = data["dualMode"]
+    if "model1" in data and data["model1"]:
+        config["dual_model1"] = data["model1"]
+    if "model2" in data and data["model2"]:
+        config["dual_model2"] = data["model2"]
+
+    # Save to config.json
+    save_config_json(config)
+
+    # Apply runtime changes
+    new_model = config.get("default_model")
     if new_model and new_model != current_model:
         current_model = new_model
         if query_engine:
@@ -907,54 +1042,56 @@ def update_settings():
                 pass
 
     # Update summary model
-    new_summary_model = data.get("summary_model")
+    new_summary_model = config.get("summary_model")
     if new_summary_model:
-        config = get_config()
-        config.summary_model = new_summary_model
-        # Update graph builder if exists
+        from bitrag.core.config import get_config
+
+        cfg = get_config()
+        cfg.summary_model = new_summary_model
         if graph_builder:
             graph_builder.summary_generator.set_model(new_summary_model)
 
     # Update tag model
-    new_tag_model = data.get("tag_model")
+    new_tag_model = config.get("tag_model")
     if new_tag_model:
-        config = get_config()
-        config.tag_model = new_tag_model
-        # Update graph builder if exists
+        from bitrag.core.config import get_config
+
+        cfg = get_config()
+        cfg.tag_model = new_tag_model
         if graph_builder:
             graph_builder.tag_extractor.set_model(new_tag_model)
 
-    new_port = data.get("ollamaPort")
+    new_port = config.get("ollama_port")
     if new_port:
         ollama_port = new_port
 
-    new_hybrid = data.get("hybridMode")
+    new_hybrid = config.get("hybrid_search_ratio")
     if new_hybrid is not None:
         hybrid_mode = new_hybrid
 
-    new_dual = data.get("dualMode")
+    new_dual = config.get("dual_mode")
     if new_dual is not None:
         dual_mode = new_dual
 
-    new_model1 = data.get("model1")
+    new_model1 = config.get("dual_model1")
     if new_model1:
         dual_model1 = new_model1
 
-    new_model2 = data.get("model2")
+    new_model2 = config.get("dual_model2")
     if new_model2:
         dual_model2 = new_model2
 
     return jsonify(
         {
             "success": True,
-            "model": current_model,
-            "summary_model": getattr(get_config(), "summary_model", "llama3.2:1b"),
-            "tag_model": getattr(get_config(), "tag_model", "llama3.2:1b"),
-            "ollamaPort": ollama_port,
-            "hybridMode": hybrid_mode,
-            "dualMode": dual_mode,
-            "model1": dual_model1,
-            "model2": dual_model2,
+            "default_model": config.get("default_model"),
+            "summary_model": config.get("summary_model"),
+            "tag_model": config.get("tag_model"),
+            "ollama_port": config.get("ollama_port"),
+            "hybrid_search_ratio": config.get("hybrid_search_ratio"),
+            "dual_mode": config.get("dual_mode"),
+            "dual_model1": config.get("dual_model1"),
+            "dual_model2": config.get("dual_model2"),
         }
     )
 
