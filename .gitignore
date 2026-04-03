@@ -79,3 +79,11 @@ models/
 *.pem
 *.key
 credentials.json
+
+# Planning & Research (generated locally)
+.planning/
+
+# Logs
+/tmp/
+*.log
+
