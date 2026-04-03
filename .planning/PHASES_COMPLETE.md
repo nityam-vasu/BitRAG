@@ -117,6 +117,36 @@
 
 ---
 
+# Phase 6: Frontend Polish & Integration - COMPLETED
+
+**Completed:** 2026-04-03
+
+## Changes Made
+
+### Frontend Configuration
+- [x] Updated `vite.config.ts` with server configuration
+- [x] Added port and proxy configuration
+- [x] API proxy to backend server
+
+### Backend Integration Script
+- [x] Updated `run_web.sh` to start both backend and frontend
+- [x] Added `--frontend-port` / `-f` option for frontend port
+- [x] Added automatic dependency checking (Python + Node.js)
+- [x] Added signal handling for clean shutdown
+- [x] Logs frontend output to `/tmp/frontend.log`
+
+## Usage
+
+```bash
+# Start both servers (backend on 5000, frontend on 5173)
+./run_web.sh
+
+# Custom ports
+./run_web.sh --port 8080 --frontend-port 3000
+```
+
+---
+
 # Summary Statistics
 
 ## Files Created/Modified
@@ -129,6 +159,7 @@
 | Frontend components created | 2 |
 | API endpoints added | 15+ |
 | Documentation files | 12 |
+| Shell scripts modified | 1 |
 
 ## Commits
 
@@ -139,6 +170,7 @@ feat(phase-2): Add new React frontend with force-graph visualization
 feat(phase-3): Add model selection for summary and tag generation
 feat(phases-4-5): Add session management and chat export
 feat(phases-4-5): Add session API to frontend and export button
+feat(phase-6): Add full-stack startup script with frontend dev server
 ```
 
 ## Total Changes
@@ -151,20 +183,23 @@ feat(phases-4-5): Add session API to frontend and export button
 
 ## Next Steps for User
 
-1. **Install frontend dependencies:**
+1. **Start both servers (new way):**
    ```bash
-   cd frontend && npm install
+   ./run_web.sh
    ```
 
-2. **Run frontend dev server:**
+2. **Or run separately:**
    ```bash
+   # Terminal 1: Backend
+   python web_app.py
+   
+   # Terminal 2: Frontend
    cd frontend && npm run dev
    ```
 
-3. **Run backend:**
-   ```bash
-   python web_app.py
-   ```
+3. **Access the app:**
+   - Backend API: http://localhost:5000
+   - Frontend: http://localhost:5173
 
 4. **Test the new features:**
    - Upload documents
