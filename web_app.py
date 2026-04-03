@@ -893,10 +893,14 @@ def get_settings():
     # Check Ollama status using HTTP (same as system/info)
     # Use 127.0.0.1 to avoid IPv6 issues
     ollama_status = "not responding"
+    available_models = []
     try:
         response = requests.get(f"http://127.0.0.1:{ollama_port}/api/tags", timeout=2)
         if response.status_code == 200:
             ollama_status = "running"
+            # Get available models from Ollama
+            data = response.json()
+            available_models = [m.get("name", "") for m in data.get("models", []) if m.get("name")]
     except:
         ollama_status = "not responding"
 
@@ -931,6 +935,7 @@ def get_settings():
                 "max_messages_memory": config.get("max_messages_memory", 100),
                 "documentCount": 0,
                 "ollamaStatus": ollama_status,
+                "available_models": available_models,
             }
         )
 
@@ -961,6 +966,7 @@ def get_settings():
             "max_messages_memory": config.get("max_messages_memory", 100),
             "documentCount": indexer.get_document_count() if indexer else 0,
             "ollamaStatus": ollama_status,
+            "available_models": available_models,
         }
     )
 

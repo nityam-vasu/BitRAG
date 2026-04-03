@@ -46,9 +46,13 @@ export default function ChatPage() {
           initialized: data.initialized || false,
           initializing: data.initializing || false,
         });
+      } else {
+        // If response not ok, server might be initializing
+        setServerStatus(prev => ({ ...prev, initializing: true }));
       }
     } catch (err) {
-      setServerStatus({ initialized: false, initializing: false });
+      // Network error - server not ready
+      setServerStatus({ initialized: false, initializing: true });
     }
   };
 

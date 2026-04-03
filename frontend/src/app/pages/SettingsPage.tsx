@@ -38,11 +38,11 @@ export default function SettingsPage() {
   const [chunkSize, setChunkSize] = useState(512);
   const [topK, setTopK] = useState(5);
   const [ollamaBaseUrl, setOllamaBaseUrl] = useState("http://localhost:11434");
+  const [ollamaStatus, setOllamaStatus] = useState("not responding");
 
   // Fetch settings and models on mount
   useEffect(() => {
     fetchSettings();
-    fetchModels();
     fetchSystemInfo();
     
     // Poll system info every 5 seconds
@@ -76,6 +76,13 @@ export default function SettingsPage() {
         setDualModelMode(data.dual_mode || false);
         setDualModel1(data.dual_model1 || 'llama3.2:1b');
         setDualModel2(data.dual_model2 || 'llama3.2:3b');
+        setOllamaStatus(data.ollamaStatus || 'not responding');
+        
+        // Load available models from Ollama API
+        if (data.available_models && data.available_models.length > 0) {
+          setAvailableModels(data.available_models);
+          setConnected(true);
+        }
         
         // Load new UI settings
         setDarkMode(data.dark_mode ?? true);

@@ -222,14 +222,14 @@ export default function DocumentsPage() {
                 <div className="mt-6">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-sm text-gray-600 dark:text-gray-400">Indexing...</span>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">0%</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Processing</span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                    <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '0%' }}></div>
+                    <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '100%' }}></div>
                   </div>
                   <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-4 flex items-center justify-center gap-2">
                     <span className="animate-spin">⟳</span>
-                    Processing documents...
+                    Processing and indexing documents...
                   </p>
                 </div>
               )}
