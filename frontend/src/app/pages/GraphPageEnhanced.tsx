@@ -210,21 +210,21 @@ export default function GraphPageEnhanced() {
                 ))}
 
                 {/* Draw nodes */}
-                {filteredNodes.map((node) => (
+                {filteredNodes.map((node, idx) => (
                   <g
                     key={node.id}
                     onClick={() => setSelectedNode(node)}
                     className="cursor-pointer"
                   >
                     <circle
-                      cx={100 + (index * 100) % 500}
-                      cy={100 + Math.floor(index / 5) * 100}
+                      cx={100 + (idx * 100) % 500}
+                      cy={100 + Math.floor(idx / 5) * 100}
                       r={node.val * 5}
                       className={`${getCategoryColor(node.group)} transition-all hover:opacity-80`}
                     />
                     <text
-                      x={100 + (index * 100) % 500}
-                      y={100 + Math.floor(index / 5) * 100 + (node.val * 5) + 20}
+                      x={100 + (idx * 100) % 500}
+                      y={100 + Math.floor(idx / 5) * 100 + (node.val * 5) + 20}
                       textAnchor="middle"
                       className="text-xs fill-gray-700 dark:fill-gray-300 pointer-events-none"
                     >
@@ -285,9 +285,9 @@ export default function GraphPageEnhanced() {
                   Tags
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {selectedNode.tags.map((tag, index) => (
+                  {selectedNode.tags?.map((tag, idx) => (
                     <span
-                      key={index}
+                      key={idx}
                       className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm rounded-full"
                     >
                       {tag}
@@ -311,8 +311,8 @@ export default function GraphPageEnhanced() {
       {/* Legend Bar */}
       <div className="px-6 py-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-center gap-6">
-          {categories.map((category, index) => (
-            <div key={index} className="flex items-center gap-2">
+          {categories.map((category, idx) => (
+            <div key={idx} className="flex items-center gap-2">
               <span className={`w-3 h-3 rounded-full ${category.color}`}></span>
               <span className="text-sm text-gray-600 dark:text-gray-400">{category.name}</span>
             </div>

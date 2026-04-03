@@ -41,7 +41,8 @@ export default function ChatPage() {
 
   const checkServerStatus = async () => {
     try {
-      const response = await fetch('/api/debug');
+      // Try /debug endpoint directly (bypassing proxy for debug)
+      const response = await fetch('/debug');
       if (response.ok) {
         const data = await response.json();
         setServerStatus({
