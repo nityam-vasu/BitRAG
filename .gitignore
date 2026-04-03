@@ -88,10 +88,6 @@ frontend/dist/
 frontend/.vite/
 frontend/node_modules/
 
-# Test data (local test files)
-test_PDF/
-for_metrics/
-
 # Logs
 /tmp/
 *.log
