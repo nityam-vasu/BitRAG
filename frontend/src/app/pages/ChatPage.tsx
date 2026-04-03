@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
 import { Upload, Send, ChevronRight, FileText, Download, AlertCircle, Loader2, Wifi, WifiOff } from "lucide-react";
 import ProcessingCard from "../components/ProcessingCard";
 
@@ -16,6 +17,7 @@ interface ServerStatus {
 }
 
 export default function ChatPage() {
+  const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [showProcessing, setShowProcessing] = useState(false);
@@ -60,6 +62,38 @@ export default function ChatPage() {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, showProcessing]);
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Ignore if typing in input
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      
+      const key = e.key.toLowerCase();
+      switch (key) {
+        case 'c':
+          navigate('/');
+          break;
+        case 'd':
+          navigate('/documents');
+          break;
+        case 'g':
+          navigate('/graph');
+          break;
+        case 's':
+          navigate('/settings');
+          break;
+        case 'o':
+          navigate('/ollama-params');
+          break;
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -255,17 +289,6 @@ export default function ChatPage() {
 
       {/* Input Area */}
       <div className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-        {/* Initialization Warning */}
-        {(!serverStatus.initialized || serverStatus.initializing) && (
-          <div className="max-w-4xl mx-auto mb-3">
-            <div className="flex items-center gap-2 px-4 py-2 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg text-yellow-800 dark:text-yellow-200">
-              <Loader2 className="animate-spin" size={16} />
-              <span className="text-sm">
-                {serverStatus.initializing ? "Initializing server..." : "Server not ready. Please wait."}
-              </span>
-            </div>
-          </div>
-        )}
         <form onSubmit={handleSubmit} className="max-w-4xl mx-auto">
           <div className="flex items-center gap-2">
             <button
@@ -280,7 +303,7 @@ export default function ChatPage() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder={serverStatus.initialized ? "Ask a question about your documents..." : "Waiting for server..."}
+              placeholder="Ask a question about your documents..."
               disabled={!serverStatus.initialized}
               className="flex-1 px-4 py-3 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 disabled:opacity-50"
             />
@@ -297,10 +320,12 @@ export default function ChatPage() {
         </form>
         
         {/* Keyboard shortcuts */}
-        <div className="max-w-4xl mx-auto mt-2 flex items-center justify-center gap-6 text-xs text-gray-500 dark:text-gray-500">
-          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">C</kbd> → Chat</span>
-          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">S</kbd> → Settings</span>
-          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">U</kbd> → Upload</span>
+        <div className="max-w-4xl mx-auto mt-2 flex items-center justify-center gap-4 text-xs text-gray-500 dark:text-gray-500">
+          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">C</kbd> Chat</span>
+          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">D</kbd> Documents</span>
+          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">G</kbd> Graph</span>
+          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">S</kbd> Settings</span>
+          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">O</kbd> Ollama</span>
         </div>
       </div>
     </div>
