@@ -57,7 +57,9 @@ def load_config_json():
         if os.path.exists(CONFIG_FILE):
             try:
                 with open(CONFIG_FILE, "r") as f:
-                    _config_cache = json.load(f)
+                    raw_config = json.load(f)
+                    # Remove _fields (descriptions) for runtime config
+                    _config_cache = {k: v for k, v in raw_config.items() if k != "_fields"}
                 print(f"[Config] Loaded from {CONFIG_FILE}")
             except Exception as e:
                 print(f"[Config] Error loading config: {e}")
@@ -70,9 +72,20 @@ def save_config_json(data):
     global _config_cache
     with _config_lock:
         try:
+            # Load existing config to preserve _fields
+            with open(CONFIG_FILE, "r") as f:
+                raw_config = json.load(f)
+
+            # Update values while preserving _fields
+            fields = raw_config.get("_fields", {})
+            config_to_save = {
+                "_fields": fields,
+                **{k: v for k, v in data.items() if k != "_fields"},
+            }
+
             with open(CONFIG_FILE, "w") as f:
-                json.dump(data, f, indent=2)
-            _config_cache = data
+                json.dump(config_to_save, f, indent=2)
+            _config_cache = {k: v for k, v in data.items() if k != "_fields"}
             print(f"[Config] Saved to {CONFIG_FILE}")
             return True
         except Exception as e:
