@@ -77,7 +77,7 @@ while [[ $# -gt 0 ]]; do
             fi
             
             # Check venv
-            if [ -d "$SCRIPT_DIR/venv" ]; then
+            if [ -d "$SCRIPT_DIR/.venv" ]; then
                 echo -e "${GREEN}✓ Virtual environment found${NC}"
             else
                 echo -e "${YELLOW}⚠ No virtual environment (will create one)${NC}"
