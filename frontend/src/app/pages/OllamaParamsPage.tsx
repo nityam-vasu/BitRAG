@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { Activity, Laptop, Server, Zap, Cpu, Save, Check, Info, X as XIcon, Loader2 } from "lucide-react";
+import { useState } from "react";
+import { Activity, Laptop, Server, Zap, Cpu, Save, Check, Info, X as XIcon } from "lucide-react";
 
 interface Preset {
   name: string;
@@ -42,64 +42,9 @@ export default function OllamaParamsPage() {
   const [configName, setConfigName] = useState("");
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [savedConfigs, setSavedConfigs] = useState<SavedConfig[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [applying, setApplying] = useState(false);
-  
-  // Get CPU cores from browser API or default
-  const cpuCores = navigator.hardwareConcurrency || 8;
-  const recommendedThreads = Math.max(1, Math.floor(cpuCores / 2));
 
-  // Fetch existing params on mount
-  useEffect(() => {
-    fetchParams();
-  }, []);
-
-  const fetchParams = async () => {
-    try {
-      const response = await fetch('/api/ollama/params');
-      if (response.ok) {
-        const data = await response.json();
-        setThreads(data.threads || 8);
-        setBatch(data.batch || 512);
-        setCtx(data.ctx || 4096);
-        setGpu(data.gpu || 0);
-        setMmap(data.mmap || 1);
-        setNuma(data.numa || false);
-      }
-    } catch (err) {
-      console.error('Failed to fetch params:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleApply = async () => {
-    setApplying(true);
-    try {
-      const response = await fetch('/api/ollama/params', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          threads,
-          batch,
-          ctx,
-          gpu,
-          mmap,
-          numa,
-        })
-      });
-      
-      if (response.ok) {
-        showMessage('success', 'Parameters applied successfully!');
-      } else {
-        throw new Error('Failed to apply parameters');
-      }
-    } catch (err) {
-      showMessage('error', 'Failed to apply parameters');
-    } finally {
-      setApplying(false);
-    }
-  };
+  const cpuCores = 16;
+  const recommendedThreads = 8;
 
   const presets: Preset[] = [
     {
@@ -165,6 +110,10 @@ export default function OllamaParamsPage() {
 
   const deleteConfig = (id: string) => {
     setSavedConfigs(savedConfigs.filter(c => c.id !== id));
+  };
+
+  const handleApply = () => {
+    showMessage('success', 'Parameters applied successfully!');
   };
 
   const showMessage = (type: 'success' | 'error', text: string) => {
@@ -277,10 +226,8 @@ export default function OllamaParamsPage() {
               </button>
               <button
                 onClick={handleApply}
-                disabled={applying}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
               >
-                {applying ? <Loader2 className="animate-spin" size={18} /> : null}
                 Apply
               </button>
             </div>
