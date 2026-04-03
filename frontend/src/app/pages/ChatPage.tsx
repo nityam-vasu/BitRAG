@@ -163,12 +163,28 @@ export default function ChatPage() {
       <div className="flex-1 overflow-y-auto">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
-              Welcome to BitRAG
-            </h2>
-            <p className="text-gray-600 dark:text-gray-400">
-              Upload documents in the Documents tab and start asking questions
-            </p>
+            {(!serverStatus.initialized || serverStatus.initializing) ? (
+              // Show loading when initializing
+              <>
+                <Loader2 className="animate-spin text-blue-500 mb-4" size={48} />
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                  Initializing BitRAG
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Please wait while the server is starting...
+                </p>
+              </>
+            ) : (
+              // Show welcome when ready
+              <>
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
+                  Welcome to BitRAG
+                </h2>
+                <p className="text-gray-600 dark:text-gray-400">
+                  Upload documents in the Documents tab and start asking questions
+                </p>
+              </>
+            )}
           </div>
         ) : (
           <div className="max-w-4xl mx-auto px-4 py-6 space-y-6">
