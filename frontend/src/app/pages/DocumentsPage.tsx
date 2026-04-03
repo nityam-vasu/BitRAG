@@ -1,12 +1,7 @@
 import { useState, useEffect } from "react";
-import { Upload, FileText, X, Trash2, Loader2 } from "lucide-react";
+import { Upload, FileText, X, Trash2 } from "lucide-react";
 import Toast, { ToastType } from "../components/Toast";
-
-interface Document {
-  id: string;
-  name: string;
-  size?: string;
-}
+import { getDocuments, uploadDocument, deleteDocument, Document } from "../../api/index";
 
 export default function DocumentsPage() {
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -16,18 +11,16 @@ export default function DocumentsPage() {
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Load documents on mount
+  // Fetch documents on mount
   useEffect(() => {
     fetchDocuments();
   }, []);
 
   const fetchDocuments = async () => {
     try {
-      const response = await fetch('/api/documents');
-      if (response.ok) {
-        const data = await response.json();
-        setDocuments(data);
-      }
+      setLoading(true);
+      const docs = await getDocuments();
+      setDocuments(docs);
     } catch (err) {
       console.error('Failed to fetch documents:', err);
     } finally {
@@ -49,18 +42,7 @@ export default function DocumentsPage() {
     
     try {
       for (const file of selectedFiles) {
-        const formData = new FormData();
-        formData.append('file', file);
-        
-        const response = await fetch('/api/documents', {
-          method: 'POST',
-          body: formData
-        });
-        
-        if (!response.ok) {
-          const error = await response.json();
-          throw new Error(error.error || error.message || 'Upload failed');
-        }
+        await uploadDocument(file);
       }
       
       await fetchDocuments();
@@ -79,16 +61,9 @@ export default function DocumentsPage() {
     if (!doc) return;
     
     try {
-      const response = await fetch(`/api/documents/${id}`, {
-        method: 'DELETE'
-      });
-      
-      if (response.ok) {
-        setDocuments(documents.filter(d => d.id !== id));
-        setToast({ message: `"${doc.name}" deleted successfully`, type: 'success' });
-      } else {
-        throw new Error('Delete failed');
-      }
+      await deleteDocument(id);
+      setDocuments(documents.filter(d => d.id !== id));
+      setToast({ message: `"${doc.name}" deleted successfully`, type: 'success' });
     } catch (err) {
       setToast({ message: 'Failed to delete document', type: 'error' });
     }
@@ -115,7 +90,7 @@ export default function DocumentsPage() {
         <div className="max-w-6xl mx-auto">
           {loading ? (
             <div className="flex items-center justify-center h-64">
-              <Loader2 className="animate-spin text-blue-500" size={32} />
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
             </div>
           ) : documents.length === 0 ? (
             <div className="text-center py-20 text-gray-500 dark:text-gray-400">
@@ -221,16 +196,11 @@ export default function DocumentsPage() {
               {uploading && (
                 <div className="mt-6">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Indexing...</span>
-                    <span className="text-sm text-gray-600 dark:text-gray-400">Processing</span>
+                    <span className="text-sm text-gray-600 dark:text-gray-400">Uploading...</span>
                   </div>
                   <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
                     <div className="bg-blue-600 h-2 rounded-full animate-pulse" style={{ width: '100%' }}></div>
                   </div>
-                  <p className="text-center text-sm text-gray-600 dark:text-gray-400 mt-4 flex items-center justify-center gap-2">
-                    <span className="animate-spin">⟳</span>
-                    Processing and indexing documents...
-                  </p>
                 </div>
               )}
             </div>
@@ -240,7 +210,7 @@ export default function DocumentsPage() {
               <button
                 onClick={handleUpload}
                 disabled={selectedFiles.length === 0 || uploading}
-                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg text-gray-900 dark:text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Upload size={18} />
                 Upload & Index {selectedFiles.length} Document{selectedFiles.length !== 1 ? 's' : ''}

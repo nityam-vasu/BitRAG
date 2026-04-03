@@ -1,137 +1,72 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router";
-import { Upload, Send, ChevronRight, FileText, Download, AlertCircle, Loader2, Wifi, WifiOff } from "lucide-react";
+import { Upload, Send, ChevronRight, FileText, Download } from "lucide-react";
 import ProcessingCard from "../components/ProcessingCard";
+import { sendChat, getStatus } from "../../api/index";
 
 interface Message {
-  role: 'user' | 'assistant' | 'error';
+  id: string;
+  role: 'user' | 'assistant';
   content: string;
   sources?: string[];
-  thinking?: string;
-}
-
-interface ServerStatus {
-  initialized: boolean;
-  initializing: boolean;
-  documentCount?: number;
 }
 
 export default function ChatPage() {
-  const navigate = useNavigate();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [showProcessing, setShowProcessing] = useState(false);
   const [processingExpanded, setProcessingExpanded] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [serverStatus, setServerStatus] = useState<ServerStatus>({ initialized: false, initializing: true });
+  const [serverStatus, setServerStatus] = useState<{ initialized: boolean }>({ initialized: false });
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Check server initialization status
+  // Check server status on mount
   useEffect(() => {
     checkServerStatus();
-    
-    // Poll every 2 seconds while initializing
-    const interval = setInterval(() => {
-      checkServerStatus();
-    }, 2000);
-    
+    const interval = setInterval(checkServerStatus, 5000);
     return () => clearInterval(interval);
   }, []);
 
-  const checkServerStatus = async () => {
-    try {
-      // Try /debug endpoint directly (bypassing proxy for debug)
-      const response = await fetch('/debug');
-      if (response.ok) {
-        const data = await response.json();
-        setServerStatus({
-          initialized: data.initialized || false,
-          initializing: data.initializing || false,
-        });
-      } else {
-        // If response not ok, server might be initializing
-        setServerStatus(prev => ({ ...prev, initializing: true }));
-      }
-    } catch (err) {
-      // Network error - server not ready
-      setServerStatus({ initialized: false, initializing: true });
-    }
-  };
-
-  // Scroll to bottom when messages change
+  // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, showProcessing]);
 
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      // Ignore if typing in input
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-      
-      const key = e.key.toLowerCase();
-      switch (key) {
-        case 'c':
-          navigate('/');
-          break;
-        case 'd':
-          navigate('/documents');
-          break;
-        case 'g':
-          navigate('/graph');
-          break;
-        case 's':
-          navigate('/settings');
-          break;
-        case 'o':
-          navigate('/ollama-params');
-          break;
-      }
-    };
-    
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [navigate]);
+  const checkServerStatus = async () => {
+    try {
+      const status = await getStatus();
+      setServerStatus(status);
+    } catch (err) {
+      setServerStatus({ initialized: false });
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!input.trim()) return;
-    if (!serverStatus.initialized) return;
+    if (!input.trim() || !serverStatus.initialized) return;
     
-    const userMessage = input.trim();
+    const userMessage: Message = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: input
+    };
+    
+    setMessages(prev => [...prev, userMessage]);
     setInput("");
-    setError(null);
-    setMessages(prev => [...prev, { role: 'user', content: userMessage }]);
     setShowProcessing(true);
-    setProcessingExpanded(true);
     
     try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: userMessage })
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || data.message || 'Failed to get response');
-      }
-
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
-        content: data.output || data.response || 'No response',
-        sources: data.sources || [],
-        thinking: data.thinking
+      const response = await sendChat(input);
+      setMessages(prev => [...prev, {
+        id: response.id,
+        role: 'assistant',
+        content: response.content,
+        sources: response.sources
       }]);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
-      setMessages(prev => [...prev, { 
-        role: 'error', 
-        content: err instanceof Error ? err.message : 'An error occurred'
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        role: 'assistant',
+        content: err instanceof Error ? err.message : 'Failed to get response'
       }]);
     } finally {
       setShowProcessing(false);
@@ -198,19 +133,17 @@ export default function ChatPage() {
       <div className="flex-1 overflow-y-auto">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
-            {(!serverStatus.initialized || serverStatus.initializing) ? (
-              // Show loading when initializing
+            {!serverStatus.initialized ? (
               <>
-                <Loader2 className="animate-spin text-blue-500 mb-4" size={48} />
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
-                  Initializing BitRAG
+                  Initializing BitRAG...
                 </h2>
                 <p className="text-gray-600 dark:text-gray-400">
-                  Please wait while the server is starting...
+                  Please wait while the server is starting
                 </p>
               </>
             ) : (
-              // Show welcome when ready
               <>
                 <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">
                   Welcome to BitRAG
@@ -237,13 +170,12 @@ export default function ChatPage() {
                   <FileText className="text-blue-500" size={20} />
                   <div className="flex-1">
                     <span className="text-gray-900 dark:text-white font-medium">Processing...</span>
-                    <span className="text-gray-500 dark:text-gray-400 text-sm ml-2">(llama3.2:1b)</span>
                   </div>
                 </button>
 
                 {processingExpanded && (
                   <div className="px-4 pb-4">
-                    <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
+                    <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg text-sm text-gray-700 dark:text-gray-300">
                       Waiting for response...
                     </div>
                   </div>
@@ -252,32 +184,22 @@ export default function ChatPage() {
             )}
             
             {/* Messages */}
-            {messages.map((message, index) => (
+            {messages.map((message) => (
               <div
-                key={index}
+                key={message.id}
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
                   className={`max-w-[70%] rounded-lg p-4 ${
                     message.role === 'user'
                       ? 'bg-blue-600 text-white'
-                      : message.role === 'error'
-                      ? 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                       : 'bg-gray-200 dark:bg-gray-700 text-gray-900 dark:text-gray-100'
                   }`}
                 >
-                  {message.role === 'error' && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <AlertCircle size={16} />
-                      <span className="font-medium">Error</span>
-                    </div>
-                  )}
                   <div>{message.content}</div>
-                  {message.role === 'assistant' && message.sources && message.sources.length > 0 && (
-                    <div className="mt-3 pt-3 border-t border-gray-300 dark:border-gray-600">
-                      <button className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300">
-                        Sources ({message.sources.length}): {message.sources.join(', ')}
-                      </button>
+                  {message.sources && message.sources.length > 0 && (
+                    <div className="mt-2 pt-2 border-t border-gray-300 dark:border-gray-600 text-sm opacity-75">
+                      Sources: {message.sources.join(', ')}
                     </div>
                   )}
                 </div>
@@ -321,12 +243,11 @@ export default function ChatPage() {
         </form>
         
         {/* Keyboard shortcuts */}
-        <div className="max-w-4xl mx-auto mt-2 flex items-center justify-center gap-4 text-xs text-gray-500 dark:text-gray-500">
-          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">C</kbd> Chat</span>
-          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">D</kbd> Documents</span>
-          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">G</kbd> Graph</span>
-          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">S</kbd> Settings</span>
-          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">O</kbd> Ollama</span>
+        <div className="max-w-4xl mx-auto mt-2 flex items-center justify-center gap-6 text-xs text-gray-500 dark:text-gray-500">
+          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">C</kbd> → Chat</span>
+          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">S</kbd> → Settings</span>
+          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">D</kbd> → Documents</span>
+          <span><kbd className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded">G</kbd> → Graph</span>
         </div>
       </div>
     </div>
