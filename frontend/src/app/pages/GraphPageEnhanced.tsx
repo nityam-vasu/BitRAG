@@ -1,44 +1,24 @@
 import { useState, useEffect } from "react";
-import { Search, ZoomIn, ZoomOut, Maximize2, RefreshCw, X, Loader2 } from "lucide-react";
+import { Search, ZoomIn, ZoomOut, Maximize2, RefreshCw, X } from "lucide-react";
+import { getGraph } from "../../api/index";
 
 interface Node {
   id: string;
   name: string;
-  group: number;
+  category: 'document' | 'text' | 'code' | 'image' | 'other';
   summary: string;
   tags: string[];
-  val: number;
-  x?: number;
-  y?: number;
-}
-
-interface Link {
-  source: string;
-  target: string;
-  weight?: number;
-}
-
-interface GraphData {
-  nodes: Node[];
-  links: Link[];
+  connections: number;
+  x: number;
+  y: number;
 }
 
 export default function GraphPageEnhanced() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedNode, setSelectedNode] = useState<Node | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [graphData, setGraphData] = useState<GraphData>({ nodes: [], links: [] });
+  const [loading, setLoading] = useState(false);
+  const [nodes, setNodes] = useState<Node[]>([]);
   const [zoom, setZoom] = useState(1);
-
-  const getCategoryFromGroup = (group: number): string => {
-    switch (group) {
-      case 1: return 'document';
-      case 2: return 'text';
-      case 3: return 'code';
-      case 4: return 'image';
-      default: return 'other';
-    }
-  };
 
   const categories = [
     { name: 'Documents', color: 'bg-blue-500', textColor: 'text-blue-500' },
@@ -48,61 +28,83 @@ export default function GraphPageEnhanced() {
     { name: 'Other', color: 'bg-gray-500', textColor: 'text-gray-500' },
   ];
 
-  // Fetch graph data on mount
+  // Fetch graph data from API
   useEffect(() => {
-    fetchGraphData();
+    const fetchGraph = async () => {
+      setLoading(true);
+      try {
+        const data = await getGraph();
+        
+        // Transform API response to Node format
+        const transformedNodes: Node[] = data.nodes.map(node => ({
+          id: node.id,
+          name: node.name,
+          category: 'document' as const,
+          summary: node.summary || '',
+          tags: node.tags || [],
+          connections: node.val || 1,
+          x: Math.random() * 600 + 100,
+          y: Math.random() * 400 + 100,
+        }));
+        
+        setNodes(transformedNodes);
+      } catch (err) {
+        console.error('Failed to fetch graph:', err);
+        // Fall back to empty
+        setNodes([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchGraph();
   }, []);
 
-  const fetchGraphData = async (refresh = false) => {
-    setLoading(true);
-    try {
-      const url = refresh ? '/api/graph?refresh=true' : '/api/graph';
-      const response = await fetch(url);
-      if (response.ok) {
-        const data = await response.json();
-        setGraphData({
-          nodes: data.nodes || [],
-          links: data.links || data.edges || []
-        });
-      }
-    } catch (err) {
-      console.error('Failed to fetch graph:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleRefresh = () => {
-    fetchGraphData(true);
+    setLoading(true);
+    // Refresh graph from API
+    getGraph().then(data => {
+      const transformedNodes: Node[] = data.nodes.map(node => ({
+        id: node.id,
+        name: node.name,
+        category: 'document' as const,
+        summary: node.summary || '',
+        tags: node.tags || [],
+        connections: node.val || 1,
+        x: Math.random() * 600 + 100,
+        y: Math.random() * 400 + 100,
+      }));
+      setNodes(transformedNodes);
+    }).finally(() => setLoading(false));
   };
 
   const handleZoomIn = () => setZoom(Math.min(zoom + 0.2, 2));
   const handleZoomOut = () => setZoom(Math.max(zoom - 0.2, 0.5));
   const handleFitScreen = () => setZoom(1);
 
-  const getCategoryColor = (group: number) => {
-    switch (group) {
-      case 1: return 'fill-blue-500';
-      case 2: return 'fill-green-500';
-      case 3: return 'fill-amber-500';
-      case 4: return 'fill-pink-500';
+  const getCategoryColor = (category: string) => {
+    switch (category) {
+      case 'document': return 'fill-blue-500';
+      case 'text': return 'fill-green-500';
+      case 'code': return 'fill-amber-500';
+      case 'image': return 'fill-pink-500';
       default: return 'fill-gray-500';
     }
   };
 
-  const getCategoryLabel = (group: number) => {
-    switch (group) {
-      case 1: return 'Documents';
-      case 2: return 'Text Files';
-      case 3: return 'Code';
-      case 4: return 'Images';
+  const getCategoryLabel = (category: string) => {
+    switch (category) {
+      case 'document': return 'Documents';
+      case 'text': return 'Text Files';
+      case 'code': return 'Code';
+      case 'image': return 'Images';
       default: return 'Other';
     }
   };
 
-  const filteredNodes = graphData.nodes.filter(node =>
+  const filteredNodes = nodes.filter(node =>
     node.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    node.tags?.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+    node.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
   );
 
   return (
@@ -161,7 +163,7 @@ export default function GraphPageEnhanced() {
 
           {/* Stats */}
           <div className="text-sm text-gray-600 dark:text-gray-400">
-            {filteredNodes.length} nodes, {graphData.links.length} links
+            {filteredNodes.length} nodes, {filteredNodes.reduce((sum, n) => sum + n.connections, 0)} links
           </div>
         </div>
       </div>
@@ -172,20 +174,19 @@ export default function GraphPageEnhanced() {
         <div className="flex-1 relative bg-gray-50 dark:bg-gray-900 overflow-hidden">
           {loading && (
             <div className="absolute inset-0 bg-black/30 flex items-center justify-center z-10">
-              <div className="flex flex-col items-center gap-3">
-                <Loader2 className="animate-spin text-white" size={48} />
-                <span className="text-white">Loading graph...</span>
+              <div className="animate-spin text-white">
+                <RefreshCw size={48} />
               </div>
             </div>
           )}
 
-          {filteredNodes.length === 0 && !loading ? (
+          {filteredNodes.length === 0 ? (
             <div className="flex items-center justify-center h-full">
               <div className="text-center text-gray-500 dark:text-gray-400">
                 <p className="text-lg">No documents to display. Upload some documents first!</p>
               </div>
             </div>
-          ) : filteredNodes.length > 0 && (
+          ) : (
             <div className="w-full h-full relative p-8">
               <svg
                 className="w-full h-full"
@@ -210,21 +211,21 @@ export default function GraphPageEnhanced() {
                 ))}
 
                 {/* Draw nodes */}
-                {filteredNodes.map((node, idx) => (
+                {filteredNodes.map((node) => (
                   <g
                     key={node.id}
                     onClick={() => setSelectedNode(node)}
                     className="cursor-pointer"
                   >
                     <circle
-                      cx={100 + (idx * 100) % 500}
-                      cy={100 + Math.floor(idx / 5) * 100}
-                      r={node.val * 5}
-                      className={`${getCategoryColor(node.group)} transition-all hover:opacity-80`}
+                      cx={node.x}
+                      cy={node.y}
+                      r="20"
+                      className={`${getCategoryColor(node.category)} transition-all hover:opacity-80`}
                     />
                     <text
-                      x={100 + (idx * 100) % 500}
-                      y={100 + Math.floor(idx / 5) * 100 + (node.val * 5) + 20}
+                      x={node.x}
+                      y={node.y + 35}
                       textAnchor="middle"
                       className="text-xs fill-gray-700 dark:fill-gray-300 pointer-events-none"
                     >
@@ -266,8 +267,8 @@ export default function GraphPageEnhanced() {
                   Category
                 </label>
                 <div className="flex items-center gap-2">
-                  <span className={`w-3 h-3 rounded-full ${getCategoryColor(selectedNode.group).replace('fill-', 'bg-')}`}></span>
-                  <span className="text-gray-900 dark:text-white">{getCategoryLabel(selectedNode.group)}</span>
+                  <span className={`w-3 h-3 rounded-full ${getCategoryColor(selectedNode.category).replace('fill-', 'bg-')}`}></span>
+                  <span className="text-gray-900 dark:text-white">{getCategoryLabel(selectedNode.category)}</span>
                 </div>
               </div>
 
@@ -285,9 +286,9 @@ export default function GraphPageEnhanced() {
                   Tags
                 </label>
                 <div className="flex flex-wrap gap-2">
-                  {selectedNode.tags?.map((tag, idx) => (
+                  {selectedNode.tags.map((tag, index) => (
                     <span
-                      key={idx}
+                      key={index}
                       className="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 text-sm rounded-full"
                     >
                       {tag}
@@ -299,9 +300,9 @@ export default function GraphPageEnhanced() {
               {/* Connections */}
               <div>
                 <label className="block text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">
-                  Node Size
+                  Connections
                 </label>
-                <p className="text-gray-900 dark:text-white">{selectedNode.val}</p>
+                <p className="text-gray-900 dark:text-white">{selectedNode.connections}</p>
               </div>
             </div>
           </div>
@@ -311,8 +312,8 @@ export default function GraphPageEnhanced() {
       {/* Legend Bar */}
       <div className="px-6 py-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
         <div className="flex items-center justify-center gap-6">
-          {categories.map((category, idx) => (
-            <div key={idx} className="flex items-center gap-2">
+          {categories.map((category, index) => (
+            <div key={index} className="flex items-center gap-2">
               <span className={`w-3 h-3 rounded-full ${category.color}`}></span>
               <span className="text-sm text-gray-600 dark:text-gray-400">{category.name}</span>
             </div>
