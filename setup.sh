@@ -29,6 +29,7 @@ SKIP_VENV=false
 SKIP_DEPS=false
 SKIP_OLLAMA=false
 CHECK_ONLY=false
+QUIET=false
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
@@ -40,6 +41,7 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Options:"
             echo "  --help, -h              Show this help message"
+            echo "  --quiet, -q             Run in quiet mode (minimal output)"
             echo "  --venv, -v <dir>        Virtual environment directory (default: .venv)"
             echo "  --skip-venv             Skip virtual environment creation"
             echo "  --skip-deps             Skip dependency installation"
@@ -48,9 +50,14 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Examples:"
             echo "  $0                      # Full setup"
+            echo "  $0 -q                   # Full setup with minimal output"
             echo "  $0 --venv myenv        # Use myenv as venv directory"
             echo "  $0 --skip-ollama       # Skip Ollama check"
             exit 0
+            ;;
+        --quiet|-q)
+            QUIET=true
+            shift
             ;;
         --venv|-v)
             VENV_DIR="$2"
@@ -81,99 +88,117 @@ while [[ $# -gt 0 ]]; do
 done
 
 show_banner() {
+    if [ "$QUIET" = true ]; then
+        return
+    fi
     echo -e "${CYAN}╔════════════════════════════════════════════════════╗${NC}"
     echo -e "${CYAN}║              BitRAG Setup                        ║${NC}"
     echo -e "${CYAN}╚════════════════════════════════════════════════════╝${NC}"
     echo ""
 }
 
+log() {
+    if [ "$QUIET" = true ]; then
+        return
+    fi
+    echo -e "$1"
+}
+
 check_python() {
-    echo -e "${BLUE}Checking Python...${NC}"
+    log "${BLUE}Checking Python...${NC}"
     
     if ! command -v python3 &> /dev/null; then
-        echo -e "${RED}✗ Python 3 not found!${NC}"
+        log "${RED}✗ Python 3 not found!${NC}"
         echo "  Please install Python 3.8 or higher."
         return 1
     fi
     
     python_version=$(python3 --version 2>&1 | awk '{print $2}')
-    echo -e "${GREEN}✓ Python version: $python_version${NC}"
+    log "${GREEN}✓ Python version: $python_version${NC}"
     return 0
 }
 
 setup_venv() {
-    echo -e "${BLUE}Setting up virtual environment...${NC}"
+    log "${BLUE}Setting up virtual environment...${NC}"
     
     if [ -d "$VENV_DIR" ]; then
-        echo -e "${YELLOW}⚠ Virtual environment already exists at $VENV_DIR${NC}"
+        log "${YELLOW}⚠ Virtual environment already exists at $VENV_DIR${NC}"
         read -p "Recreate it? (y/N): " -n 1 -r
         echo ""
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             rm -rf "$VENV_DIR"
         else
-            echo -e "${GREEN}✓ Using existing virtual environment${NC}"
+            log "${GREEN}✓ Using existing virtual environment${NC}"
             return 0
         fi
     fi
     
-    echo -e "${CYAN}Creating virtual environment at $VENV_DIR...${NC}"
+    log "${CYAN}Creating virtual environment at $VENV_DIR...${NC}"
     python3 -m venv "$VENV_DIR"
-    echo -e "${GREEN}✓ Virtual environment created${NC}"
+    log "${GREEN}✓ Virtual environment created${NC}"
 }
 
 activate_venv() {
     if [ ! -f "$VENV_DIR/bin/activate" ]; then
-        echo -e "${RED}✗ Virtual environment not found at $VENV_DIR${NC}"
+        log "${RED}✗ Virtual environment not found at $VENV_DIR${NC}"
         return 1
     fi
     
     source "$VENV_DIR/bin/activate"
-    echo -e "${GREEN}✓ Virtual environment activated${NC}"
+    log "${GREEN}✓ Virtual environment activated${NC}"
 }
 
 install_deps() {
-    echo -e "${BLUE}Installing dependencies...${NC}"
+    log "${BLUE}Installing dependencies...${NC}"
     
-    # Upgrade pip
-    pip install --upgrade pip --quiet
-    echo -e "${GREEN}✓ pip upgraded${NC}"
+    # Upgrade pip (show progress unless quiet mode)
+    if [ "$QUIET" = true ]; then
+        pip install --upgrade pip -q
+    else
+        pip install --upgrade pip
+    fi
+    log "${GREEN}✓ pip upgraded${NC}"
     
     # Install package in editable mode
-    pip install -e . --quiet
-    echo -e "${GREEN}✓ BitRAG installed${NC}"
+    if [ "$QUIET" = true ]; then
+        pip install -e . -q
+    else
+        pip install -e .
+    fi
+    log "${GREEN}✓ BitRAG installed${NC}"
 }
 
 create_dirs() {
-    echo -e "${BLUE}Creating directories...${NC}"
+    log "${BLUE}Creating directories...${NC}"
     mkdir -p data chroma_db sessions
-    echo -e "${GREEN}✓ Directories created${NC}"
+    log "${GREEN}✓ Directories created${NC}"
 }
 
 check_ollama() {
     echo ""
-    echo -e "${BLUE}Checking Ollama...${NC}"
+    log "${BLUE}Checking Ollama...${NC}"
     
     if command -v ollama &> /dev/null; then
         ollama_version=$(ollama --version 2>&1)
-        echo -e "${GREEN}✓ Ollama installed: $ollama_version${NC}"
+        log "${GREEN}✓ Ollama installed: $ollama_version${NC}"
         
         if pgrep -x "ollama" > /dev/null; then
-            echo -e "${GREEN}✓ Ollama is running${NC}"
+            log "${GREEN}✓ Ollama is running${NC}"
         else
-            echo -e "${YELLOW}⚠ Ollama not running${NC}"
+            log "${YELLOW}⚠ Ollama not running${NC}"
             echo "  Start with: ${CYAN}ollama serve${NC}"
         fi
     else
-        echo -e "${YELLOW}⚠ Ollama not found${NC}"
+        log "${YELLOW}⚠ Ollama not found${NC}"
         echo "  Install from: https://ollama.com"
     fi
 }
 
 show_next_steps() {
     echo ""
-    echo -e "${CYAN}╔════════════════════════════════════════════════════╗${NC}"
-    echo -e "${CYAN}║              Setup Complete!                     ║${NC}"
-    echo -e "${CYAN}╚════════════════════════════════════════════════════╝${NC}"
+    log "${CYAN}╔════════════════════════════════════════════════════╗${NC}"
+    log "${CYAN}║              Setup Complete!                     ║${NC}"
+    log "${CYAN}╚════════════════════════════════════════════════════╝${NC}"
     echo ""
     echo "Next steps:"
     echo "  ${GREEN}1.${NC} Activate virtual environment:"
