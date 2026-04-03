@@ -12,6 +12,7 @@ Usage:
 """
 
 import os
+import re
 import sys
 import subprocess
 import time
@@ -171,6 +172,12 @@ def download_model(model_name, show_progress=True):
     print(f"📥 Downloading: {model_name}")
     print("-" * 60)
 
+    # Progress bar setup
+    spin_chars = "|/-\\"
+    spin_idx = 0
+    last_spin_time = time.time()
+    spin_interval = 0.2  # Update spinner every 0.2 seconds
+
     try:
         # Start the download process
         process = subprocess.Popen(
@@ -183,6 +190,7 @@ def download_model(model_name, show_progress=True):
         # Track progress
         last_update = time.time()
         status_shown = False
+        progress_data = {}
 
         while True:
             # Check if process has finished
@@ -217,16 +225,26 @@ def download_model(model_name, show_progress=True):
                             # Clean progress output
                             line = line.strip()
                             if line:
-                                # Filter useful progress info
-                                if (
-                                    "%" in line
-                                    or "pulling" in line.lower()
-                                    or "verifying" in line.lower()
-                                ):
-                                    print(f"   {line}")
-                                    status_shown = True
-                                elif len(line) < 100:  # Don't show very long lines
+                                # Check for percentage progress
+                                if "%" in line:
+                                    # Extract percentage
+                                    match = re.search(r"(\d+)%", line)
+                                    if match:
+                                        percent = int(match.group(1))
+                                        # Print progress bar
+                                        bar_width = 40
+                                        filled = int(bar_width * percent / 100)
+                                        bar = "█" * filled + "░" * (bar_width - filled)
+                                        print(f"\r   [{bar}] {percent}%", end="", flush=True)
+                                        status_shown = True
+                                    else:
+                                        print(f"   {line}")
+                                        status_shown = True
+                                elif "downloading" in line.lower() or "pulling" in line.lower():
                                     print(f"\r   {line[:60]}...", end="", flush=True)
+                                    status_shown = True
+                                elif "verifying" in line.lower():
+                                    print(f"\r   {line}", end="", flush=True)
                                     status_shown = True
 
                         last_update = time.time()
@@ -234,11 +252,14 @@ def download_model(model_name, show_progress=True):
                 # On Windows or if select not available, just wait
                 time.sleep(0.5)
 
-            # Timeout after 30 seconds of no output
-            if time.time() - last_update > 30 and not status_shown:
-                print()
-                print("   (Still downloading...)")
-                last_update = time.time()
+            # Show spinner when no progress updates
+            current_time = time.time()
+            if current_time - last_update > 2:
+                spin_idx = (spin_idx + 1) % len(spin_chars)
+                # Clear previous line and show spinner
+                print(f"\r   {spin_chars[spin_idx]} Downloading...", end="", flush=True)
+                last_update = current_time
+                status_shown = True
 
     except KeyboardInterrupt:
         print()
