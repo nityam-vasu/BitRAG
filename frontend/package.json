@@ -67,9 +67,7 @@
     "vaul": "1.1.2"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "4.1.12",
     "@vitejs/plugin-react": "4.3.4",
-    "tailwindcss": "4.1.12",
-    "vite": "5.4.14"
+    "vite": "4.5.5"
   }
 }
