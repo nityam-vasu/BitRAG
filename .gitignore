@@ -83,6 +83,15 @@ credentials.json
 # Planning & Research (generated locally)
 .planning/
 
+# Frontend (generated during build)
+frontend/dist/
+frontend/.vite/
+frontend/node_modules/
+
+# Test data (local test files)
+test_PDF/
+for_metrics/
+
 # Logs
 /tmp/
 *.log
