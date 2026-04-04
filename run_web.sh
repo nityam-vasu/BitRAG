@@ -140,13 +140,13 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 # Check if virtual environment exists
-if [ ! -d "$SCRIPT_DIR/venv" ]; then
+if [ ! -d "$SCRIPT_DIR/.venv" ]; then
     echo -e "${YELLOW}⚠ Virtual environment not found. Creating...${NC}"
-    python3 -m venv venv
+    python3 -m venv .venv
 fi
 
 # Activate virtual environment
-source "$SCRIPT_DIR/venv/bin/activate"
+source "$SCRIPT_DIR/.venv/bin/activate"
 
 # Check if Flask is installed
 if ! pip show flask > /dev/null 2>&1; then

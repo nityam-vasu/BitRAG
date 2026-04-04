@@ -11,6 +11,11 @@ echo "=========================================="
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
+# Activate virtual environment if it exists
+if [ -d "$SCRIPT_DIR/.venv" ]; then
+    source "$SCRIPT_DIR/.venv/bin/activate"
+fi
+
 # Kill any existing processes on ports 5000 and 5173
 echo "[1/4] Checking for existing processes..."
 lsof -ti:5000 | xargs -r kill -9 2>/dev/null
