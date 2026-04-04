@@ -663,6 +663,17 @@ MIT License - See LICENSE file for details.
 
 ---
 
+## Project Members
+
+| Name | Role | GitHub |
+|------|------|--------|
+| [Your Name](https://github.com/yourusername) | Lead Developer | [GitHub](https://github.com/yourusername) |
+| [Your Name](https://github.com/yourusername) | Backend Developer | [GitHub](https://github.com/yourusername) |
+| [Your Name](https://github.com/yourusername) | Frontend Developer | [GitHub](https://github.com/yourusername) |
+| [Your Name](https://github.com/yourusername) | Documentation | [GitHub](https://github.com/yourusername) |
+
+---
+
 <p align="center">
   BTECH FINAL YEAR PROJECT
 </p>

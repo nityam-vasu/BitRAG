@@ -170,6 +170,28 @@ export default function Header() {
               </div>
 
               <div>
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Quick Guide</h4>
+                <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-600 dark:text-blue-400 mt-0.5">1.</span>
+                    <span><strong>Upload Documents:</strong> Go to Documents tab and upload PDF, TXT, DOC, etc.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-600 dark:text-blue-400 mt-0.5">2.</span>
+                    <span><strong>Start Chatting:</strong> Ask questions about your documents in the Chat tab</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-600 dark:text-blue-400 mt-0.5">3.</span>
+                    <span><strong>View Graph:</strong> Explore document relationships in the Graph tab</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-blue-600 dark:text-blue-400 mt-0.5">4.</span>
+                    <span><strong>Configure:</strong> Select models and adjust settings in the Settings tab</span>
+                  </li>
+                </ul>
+              </div>
+
+              <div>
                 <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Features</h4>
                 <ul className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
                   <li className="flex items-start gap-2">
