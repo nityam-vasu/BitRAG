@@ -161,6 +161,15 @@ export default function Header() {
             {/* Modal Body */}
             <div className="p-6 space-y-4">
               <div>
+                <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">Why BitRAG?</h4>
+                <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
+                  BitRAG stands for "Bit" (lightweight, minimal footprint) + "RAG" (Retrieval-Augmented Generation). 
+                  Designed to run efficiently on minimal CPU resources with low operational costs - perfect for 
+                  home labs, laptops, and resource-constrained environments.
+                </p>
+              </div>
+
+              <div>
                 <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">About</h4>
                 <p className="text-sm text-gray-700 dark:text-gray-300 leading-relaxed">
                   BitRAG is a comprehensive Retrieval-Augmented Generation (RAG) application that combines 

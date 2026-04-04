@@ -6,6 +6,8 @@
   <img src="https://img.shields.io/badge/License-MIT-orange?style=flat-square" alt="License">
 </p>
 
+> **Why "BitRAG"?** The name comes from "Bit" (lightweight, minimal footprint) + "RAG" (Retrieval-Augmented Generation). It's designed to run efficiently on minimal CPU resources with low operational costs - perfect for home labs, laptops, and resource-constrained environments.
+
 A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with PDF documents. Built with ChromaDB for vector storage, Ollama for local LLM inference, and supports hybrid search combining vector similarity with BM25 keyword search.
 
 ## ✨ New Features
