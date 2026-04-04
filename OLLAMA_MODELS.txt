@@ -1,0 +1,21 @@
+# Ollama models for BitRAG
+# Edit this file to change which model to use
+# First model in the list will be used as default
+# Lines starting with # are comments and will be skipped
+
+# Default recommended models
+falcon3:1b
+llama3.2:1b
+
+# Alternative smaller models (uncomment to use)
+#llama3.2:3b
+#qwen2.5:0.5b
+#qwen2.5:3b
+
+# Additional models (uncomment to download)
+gemma3:1b
+tinyllama:1.1b
+deepseek-r1:1.5b
+qwen3:1.7b
+granite3.1-moe:1b
+qwen3:0.6b

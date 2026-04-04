@@ -1,11 +1,39 @@
-# BitRAG - 1-bit LLM RAG System
+# BitRAG - Local RAG System
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python&logoColor=white" alt="Python">
   <img src="https://img.shields.io/badge/Version-2.1-green?style=flat-square" alt="Version">
 </p>
 
-A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with PDF documents using 1-bit LLMs. Built with ChromaDB for vector storage, Ollama for local LLM inference, and supports hybrid search combining vector similarity with BM25 keyword search.
+> **Why "BitRAG"?** The name comes from "Bit" (lightweight, minimal footprint) + "RAG" (Retrieval-Augmented Generation). It's designed to run efficiently on minimal CPU resources with low operational costs - perfect for home labs, laptops, and resource-constrained environments.
+
+A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with PDF documents. Built with ChromaDB for vector storage, Ollama for local LLM inference, and supports hybrid search combining vector similarity with BM25 keyword search.
+
+## ✨ New Features
+
+### 🚀 AI-Powered Knowledge Graph
+- **Automatic Summarization** - LLM generates summaries for each document
+- **Smart Tagging** - Extracts 5-10 semantic tags per document
+- **Dynamic Visualization** - Interactive force-graph with zoom, pan, and node details
+- **Connection-Based Sizing** - Node size reflects document relationships
+
+### 💬 Enhanced Chat Experience
+- **Persistent Sessions** - Save and load chat history
+- **TXT Export** - Export conversations as text files
+- **Model Selection** - Choose different models for chat, summaries, and tags
+
+### 📊 System Information
+- **Real-time Metrics** - CPU, RAM, GPU usage
+- **Software Versions** - Flask, Ollama, ChromaDB, LlamaIndex status
+- **Model Availability** - See all available Ollama models
+
+### ⚡ Custom Ollama Parameters
+- **Pre-made Presets** - Office Laptop and Home Server
+- **CPU Optimization** - Thread count, batch size, context window tuning
+- **Memory Management** - Memory mapping (mmap) control
+- **GPU Layers** - Configure how many layers run on GPU
+- **NUMA Support** - Multi-socket server optimization
+- **Save Custom Configs** - Save and load your own configurations
 
 ## Features
 
@@ -28,6 +56,7 @@ A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with 
 - 🔄 **Streaming Responses** - Real-time streaming output from LLM
 - 📁 **Multi-Format Support** - PDF, TXT, MD, DOC, DOCX files **(WIP)**
 - ⚙️ **Configurable Parameters** - Chunk size, overlap, top-k, hybrid alpha
+- 🤖 **Model Selection** - Separate models for chat, summaries, and tags
 
 ## Architecture
 
@@ -38,7 +67,11 @@ BitRAG/
 │   │   ├── config.py       # Configuration management
 │   │   ├── indexer.py      # PDF indexing with ChromaDB
 │   │   ├── query.py        # Query engine with Ollama integration
-│   │   └── hybrid_search.py # Vector + BM25 hybrid search
+│   │   ├── hybrid_search.py # Vector + BM25 hybrid search
+│   │   ├── summary_generator.py  # LLM-based document summarization
+│   │   ├── tag_extractor.py     # LLM-based tag extraction
+│   │   ├── graph_builder.py     # Knowledge graph construction
+│   │   └── session_exporter.py  # Session export utilities
 │   ├── cli/                 # CLI interface (Click-based)
 │   │   └── main.py
 ├── frontend/               # React frontend for web GUI
@@ -56,7 +89,6 @@ BitRAG/
 ├── install.sh              # Installation script
 ├── requirements.txt       # Python dependencies
 ├── web_requirements.txt    # Web-specific dependencies
-├── pyproject.toml          # Package configuration
 └── README.md
 ```
 
@@ -66,7 +98,7 @@ BitRAG/
 |-------------|---------|-------|
 | Python | 3.10+ | |
 | Ollama | Latest | [Install](https://ollama.com) |
-| RAM | 2GB+ | Works with CPU |
+| RAM | 3GB+ | Works with CPU |
 
 ## Quick Start
 
@@ -75,23 +107,38 @@ BitRAG/
 git clone https://github.com/nityam-vasu/BitRAG.git
 cd BitRAG
 
-# Install dependencies
-pip install -e .
+# Run setup (creates venv, installs deps, checks Ollama)
+./setup.sh
 
-# Start Ollama (in another terminal)
+# or else Activate virtual environment
+source .venv/bin/activate
+
+# and Start Ollama (in another terminal)
 ollama serve
 
-# Run the application
+# Download models (optional - see Model Downloader section)
+./download_models.sh
+
+# Run the web application
+./run_web.sh
+# Open http://localhost:5000
+
+# Or run the terminal interface
 ./run.sh
 ```
 
 ## Installation
 
-### Using the setup script
+### Automatic Setup (Recommended)
 
 ```bash
-chmod +x setup.sh
+# Run the setup script - handles everything
 ./setup.sh
+
+# Or with options
+./setup.sh --venv .venv           # Custom venv directory
+./setup.sh --skip-ollama          # Skip Ollama check
+./setup.sh --check                # Check requirements only
 ```
 
 ### Manual Installation
@@ -103,32 +150,191 @@ source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+pip install -r web_requirements.txt
 
 # Install package
 pip install -e .
+```
+
+### Quick Install (Minimal)
+
+```bash
+./install.sh                    # Full installation
+./install.sh --skip-deps        # Skip pip install (already installed)
+./install.sh --check            # Check system requirements
+```
+
+## Shell Scripts
+
+All shell scripts support `--help` to show available options.
+
+### `./setup.sh` - Environment Setup
+
+```bash
+./setup.sh [OPTIONS]
+
+Options:
+  --help, -h              Show help message
+  --venv, -v <dir>        Virtual environment directory (default: .venv)
+  --skip-venv             Skip virtual environment creation
+  --skip-deps             Skip dependency installation
+  --skip-ollama           Skip Ollama check
+  --check                 Check system requirements only
+
+Examples:
+  ./setup.sh                       # Full setup
+  ./setup.sh --venv myenv          # Use custom venv
+  ./setup.sh --check              # Check requirements
+```
+
+### `./install.sh` - Quick Install
+
+```bash
+./install.sh [OPTIONS]
+
+Options:
+  --help, -h              Show help message
+  --venv, -v <dir>        Virtual environment directory (default: venv)
+  --skip-deps             Skip dependency installation
+  --check                 Check system requirements only
+
+Examples:
+  ./install.sh                     # Full installation
+  ./install.sh --skip-deps         # Skip pip install
+  ./install.sh --check             # Check requirements
+```
+
+### `./run_web.sh` - Web Server
+
+```bash
+./run_web.sh [OPTIONS]
+
+Options:
+  --help, -h              Show help message
+  --port, -p <port>       Port to run server on (default: 5000)
+  --host, -H <host>       Host to bind to (default: 0.0.0.0)
+  --no-install            Skip dependency installation
+  --check                 Check system requirements only
+
+Examples:
+  ./run_web.sh                        # Start on localhost:5000
+  ./run_web.sh --port 8080            # Start on port 8080
+  ./run_web.sh --host 127.0.0.1       # Bind to localhost only
+  ./run_web.sh --check                # Check requirements
+```
+
+### `./download_models.sh` - Model Downloader
+
+```bash
+./download_models.sh [OPTIONS]
+
+Options:
+  --help, -h              Show help message
+  --list, -l              List models in OLLAMA_MODELS.txt
+  --model, -m <name>      Download specific model
+  --check, -c             Check Ollama status only
+
+Examples:
+  ./download_models.sh                 # Download all models
+  ./download_models.sh --list          # List available models
+  ./download_models.sh --model llama3.2:1b  # Download specific model
+  ./download_models.sh --check        # Check Ollama status
+```
+
+### `./run.sh` - Main Runner
+
+```bash
+./run.sh [command] [options]
+
+Commands:
+  (none)           Start TUI (default)
+  tui              Start Terminal User Interface
+  cli              Start Command Line Interface
+  status           Show system status
+  logs             View log file
+  clear-logs       Clear log file
+  web              Start Web UI (alias for run_web.sh)
+  help             Show this help message
+
+Options:
+  --session <id>   Session ID to use
+  --model <name>   Model to use
+
+Examples:
+  ./run.sh                    # Start TUI
+  ./run.sh tui               # Start TUI
+  ./run.sh cli                # Start CLI
+  ./run.sh status             # Show status
+  ./run.sh web                # Start web UI
+  ./run.sh tui --session myproject  # Start with custom session
+```
+
+## Python Scripts
+
+### `web_app.py` - Flask Backend
+
+```bash
+python web_app.py [OPTIONS]
+
+Options:
+  --help, -h              Show help message
+  --port, -p <port>       Port to run on (default: 5000)
+  --host, -H <host>       Host to bind to (default: 0.0.0.0)
+  --debug                 Enable debug mode
+  --check                 Check system requirements only
+
+Examples:
+  python web_app.py                    # Run with defaults
+  python web_app.py --port 8080        # Run on port 8080
+  python web_app.py --host 127.0.0.1   # Bind to localhost
+  python web_app.py --debug            # Enable debug mode
+  python web_app.py --check            # Check requirements
+```
+
+### `bitrag.py` - Main CLI Entry Point
+
+```bash
+bitrag [command] [options]
+
+Commands:
+  (none)           Start TUI (default)
+  tui              Start Terminal User Interface
+  cli              Start Command Line Interface
+  status           Show system status
+  interactive      Start interactive mode
+
+Examples:
+  bitrag                     # Start TUI
+  bitrag tui                 # Start TUI
+  bitrag cli                 # Start CLI
+  bitrag status              # Show status
+  bitrag --help              # Show help
 ```
 
 ## Usage
 
 ### Web User Interface (GUI)
 
-The easiest way to use BitRAG:
-
 ```bash
 # Start the web server
 ./run_web.sh
+# or
+python web_app.py
 
 # Open in browser
 # http://localhost:5000
 ```
 
-Features:
+**Web GUI Features:**
 - Modern React-based chat interface
 - Document upload and management
-- Model selection and settings
-- Document knowledge graph visualization
+- Knowledge graph visualization with AI summaries and tags
+- Model selection for chat, summaries, and tags
+- System information panel
 - Real-time streaming responses
+- Session export to TXT
 - Reasoning model support with thinking display
+- Custom Ollama parameters for CPU/memory optimization
 
 ### Command Line Interface (CLI)
 
@@ -152,6 +358,21 @@ bitrag model use llama3.2:1b
 # Session management
 bitrag session list
 bitrag session create my_project
+```
+
+### Session Scripts
+
+```bash
+# Create a new session
+python scripts/create_session.py
+python scripts/create_session.py --name my_project    # Custom name
+python scripts/create_session.py --list                # List sessions
+python scripts/create_session.py --delete <session_id>  # Delete session
+
+# Activate session and upload documents
+python scripts/activate_session.py --session <session_id>
+python scripts/activate_session.py --session <id> --upload doc.pdf --index
+python scripts/activate_session.py --session <id> --list  # List session documents
 ```
 
 ### Interactive Commands
@@ -193,12 +414,42 @@ Create `.bitrag_config.json`:
   "chroma_dir": "./chroma_db",
   "sessions_dir": "./sessions",
   "default_model": "llama3.2:1b",
+  "summary_model": "llama3.2:1b",
+  "tag_model": "llama3.2:1b",
   "ollama_base_url": "http://localhost:11434",
   "chunk_size": 512,
   "chunk_overlap": 50,
-  "top_k": 3
+  "top_k": 3,
+  "ollama_params": {
+    "threads": 4,
+    "batch": 512,
+    "ctx": 4096,
+    "mmap": 1,
+    "numa": false,
+    "gpu": 0
+  }
 }
 ```
+
+## Knowledge Graph
+
+The knowledge graph provides visual document relationships:
+
+### How It Works
+1. **Document Upload** - PDFs are indexed and stored in ChromaDB
+2. **Summary Generation** - LLM creates 2-3 sentence summaries
+3. **Tag Extraction** - LLM extracts 5-10 semantic tags per document
+4. **Edge Creation** - Documents sharing tags are connected
+5. **Visualization** - Interactive force-graph displays the network
+
+### Node Properties
+- **Size** - Reflects number of connections (more connections = larger)
+- **Color** - Category based on file type
+- **Details** - Summary and tags on click
+
+### Edge Properties
+- **Weight** - Number of shared tags
+- **Label** - Top 3 shared tags shown
 
 ## Hybrid Search
 
@@ -214,8 +465,11 @@ The `alpha` parameter controls the balance:
 - `alpha=1.0` - Pure vector search
 
 
-### Using the scripts
+Enable NUMA optimization for multi-socket server systems to improve memory locality and reduce latency.
 
+### Real-World Examples
+
+**Office Laptop (Core i5, 4 cores, 16GB RAM):**
 ```bash
 # Download a model
 python scripts/download_model.py --type ollama --model llama3.2:1b
@@ -223,28 +477,32 @@ python scripts/download_model.py --type ollama --model llama3.2:1b
 
 ## Supported Models
 
-### Ollama Models (Recommended)
+### Quick Setup
 
 | Model | Size | Description |
 |-------|------|-------------|
-| llama3.2:1b | ~1.3GB | Fast, reliable - recommended for beginners |
-| llama3.2:3b | ~1.8GB | Better quality, larger model |
-| qwen2.5:0.5b | ~350MB | Lightest option - ultra fast |
-| qwen2.5:3b | ~900MB | Small but capable |
-| gemma3:1b  | ~810MB | Googles Open Weight Model, 
-| tinyllama:1.1b | ~630MB | Very small, fast |
-| gemma3:1b | ~815MB | Lightweight Google model, efficient and balanced |
-| deepseek-r1:1.5b | ~1.1GB | Strong reasoning-focused model, good for logic tasks |
-| qwen3:1.7b | ~1.4GB | Improved Qwen model, solid performance and versatility |
-| granite3.1-moe:1b | ~1.4GB | Mixture-of-experts model, optimized for efficiency and scaling |
-| llama3.2:1b | ~1.3GB | Fast, reliable - great general-purpose model |
-| qwen3:0.6b | ~522MB | Very lightweight, ultra-fast with basic capabilities |
+| **falcon3:1b** | ~1.2GB | Falcon 3B - Fast, capable, good for general use |
+| **llama3.2:1b** | ~1.3GB | Meta Llama 3.2 1B - Excellent quality, recommended default |
+| **llama3.2:3b** | ~2.0GB | Meta Llama 3.2 3B - Better reasoning, slightly larger |
+| **qwen2.5:0.5b** | ~400MB | Qwen 2.5 0.5B - Ultra light, very fast |
+| **qwen2.5:3b** | ~2.0GB | Qwen 2.5 3B - Great balance of speed and quality |
+| **gemma3:1b** | ~800MB | Google Gemma 3 1B - Good multilingual support |
+| **tinyllama:1.1b** | ~630MB | TinyLlama - Minimal resource usage |
+| **deepseek-r1:1.5b** | ~1.4GB | DeepSeek R1 - Excellent reasoning, chain-of-thought |
+| **qwen3:1.7b** | ~1.2GB | Qwen 3 1.7B - Latest Qwen, strong performance |
+| **qwen3:0.6b** | ~500MB | Qwen 3 0.6B - Lightweight with latest improvements |
+| **granite3.1-moe:1b** | ~700MB | IBM Granite 3.1 MoE - Mixture of experts, efficient |
 
-### BitNet Models (1-bit) **{WIP}*
+### Model Selection for Different Tasks
 
-| Model | Size | Description |
-|-------|------|-------------|
-| microsoft/bitnet-b1.58-2B-4T | ~700MB | True 1.58-bit model |
+| Task | Recommended Models |
+|------|-------------------|
+| **Fast responses** | falcon3:1b, qwen3:0.6b, qwen2.5:0.5b |
+| **General Q&A** | llama3.2:1b, qwen3:1.7b, falcon3:1b |
+| **Reasoning tasks** | deepseek-r1:1.5b, llama3.2:3b |
+| **Low memory** | tinyllama:1.1b, qwen2.5:0.5b, qwen3:0.6b |
+| **Document summarization** | llama3.2:1b, qwen2.5:3b |
+| **Tag extraction** | falcon3:1b, llama3.2:1b |
 
 ## Troubleshooting
 
@@ -267,6 +525,23 @@ bitrag upload /path/to/document.pdf
 ```bash
 # Pull a model
 ollama pull llama3.2:1b
+
+# Or use the automatic downloader
+./download_models.sh
+```
+
+### Model Download Issues
+
+If automatic download fails:
+```bash
+# Manually download specific model
+ollama pull llama3.2:1b
+
+# Check which models are installed
+ollama list
+
+# Remove problematic model
+ollama rm model_name
 ```
 
 
@@ -297,6 +572,16 @@ ollama pull llama3.2:1b
 - `tqdm>=4.65.0` - Progress bars
 - `colorama>=0.4.0` - Terminal colors
 
+
+
+## Project Members
+
+| Name | Role | GitHub |
+|------|------|--------|
+| [Your Name](https://github.com/yourusername) | Lead Developer | [GitHub](https://github.com/yourusername) |
+| [Your Name](https://github.com/yourusername) | Backend Developer | [GitHub](https://github.com/yourusername) |
+| [Your Name](https://github.com/yourusername) | Frontend Developer | [GitHub](https://github.com/yourusername) |
+| [Your Name](https://github.com/yourusername) | Documentation | [GitHub](https://github.com/yourusername) |
 
 
 ---

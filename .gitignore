@@ -79,3 +79,16 @@ models/
 *.pem
 *.key
 credentials.json
+
+# Planning & Research by opecode
+.planning/
+
+# Frontend (generated during build)
+frontend/dist/
+frontend/.vite/
+frontend/node_modules/
+
+# Logs
+/tmp/
+*.log
+
