@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { Upload, Send, ChevronRight, FileText, Download } from "lucide-react";
 import ProcessingCard from "../components/ProcessingCard";
-import { sendChat, getStatus } from "../../api/index";
+import { sendChat } from "../../api/index";
+import { useServerStatus } from "../context/ServerStatusContext";
 
 interface Message {
   id: string;
@@ -16,29 +17,13 @@ export default function ChatPage() {
   const [showProcessing, setShowProcessing] = useState(false);
   const [processingExpanded, setProcessingExpanded] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
-  const [serverStatus, setServerStatus] = useState<{ initialized: boolean }>({ initialized: false });
+  const { serverStatus } = useServerStatus();
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Check server status on mount
-  useEffect(() => {
-    checkServerStatus();
-    const interval = setInterval(checkServerStatus, 5000);
-    return () => clearInterval(interval);
-  }, []);
 
   // Scroll to bottom on new messages
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, showProcessing]);
-
-  const checkServerStatus = async () => {
-    try {
-      const status = await getStatus();
-      setServerStatus(status);
-    } catch (err) {
-      setServerStatus({ initialized: false });
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
