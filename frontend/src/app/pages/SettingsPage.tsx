@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { RefreshCw, Download, Trash2, FileText, Save, CircuitBoard, ChevronDown, Cpu, Monitor, HardDrive, Check, X as XIcon } from "lucide-react";
-import { getSystemInfo, getSettings } from "../../api/index";
+import { getSystemInfo, getSettings, getModels } from "../../api/index";
 
 interface SystemInfo {
   cpu: number;
@@ -35,6 +35,7 @@ export default function SettingsPage() {
   useEffect(() => {
     fetchSystemInfo();
     fetchSettings();
+    fetchAvailableModels();
     
     // Poll every 5 seconds
     const interval = setInterval(fetchSystemInfo, 5000);
@@ -58,6 +59,20 @@ export default function SettingsPage() {
       setConnected(data.ollamaStatus === 'running');
     } catch (err) {
       console.error('Failed to fetch settings:', err);
+    }
+  };
+
+  const fetchAvailableModels = async () => {
+    try {
+      const models = await getModels();
+      setAvailableModels(models);
+      if (models.length > 0 && !chatModel) {
+        setChatModel(models[0]);
+        setSummaryModel(models[0]);
+        setTagModel(models[0]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch models:', err);
     }
   };
   
@@ -169,64 +184,8 @@ export default function SettingsPage() {
                     </div>
                     <p className="text-lg font-semibold text-gray-900 dark:text-white">
                       {systemInfoDisplayDisplay.os.name}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Monitor className="text-blue-500" size={20} />
-                      <span className="text-xs uppercase text-gray-500 dark:text-gray-400">Documents</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <FileText className="text-blue-500" size={20} />
-                      <span className="text-xs uppercase text-gray-500 dark:text-gray-400">Documents</span>
-                    </div>
+                    </p>
                   </div>
-                  
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Cpu className="text-blue-500" size={20} />
-                          <span className="text-xs uppercase text-gray-500 dark:text-gray-400">CPU</span>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {systemInfoDisplayDisplay.cpu.usage}
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{systemInfoDisplayDisplay.cpu.cores} cores</p>
-                      </div>
-
-                      <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                          <HardDrive className="text-blue-500" size={20} />
-                          <span className="text-xs uppercase text-gray-500 dark:text-gray-400">RAM</span>
-                        </div>
-                        <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                          {systemInfoDisplayDisplay.ram.used}GB / {systemInfoDisplayDisplay.ram.total}GB
-                        </p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{systemInfoDisplayDisplay.ram.percentage}% used</p>
-                      </div>
-                    </div>
-
-                    <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs uppercase text-gray-500 dark:text-gray-400">GPU</span>
-                        {systemInfoDisplayDisplay.gpu.available ? (
-                          <span className="text-green-500 text-xs">Available</span>
-                        ) : (
-                          <span className="text-yellow-500 text-xs">Not Available</span>
-                        )}
-                      </div>
-                      {systemInfoDisplayDisplay.gpu.available ? (
-                        <>
-                          <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                            {systemInfoDisplayDisplay.gpu.utilization}%
-                          </p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">
-                            VRAM: {systemInfoDisplayDisplay.gpu.vram.used}GB / {systemInfoDisplayDisplay.gpu.vram.total}GB
-                          </p>
-                        </>
-                      ) : (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">No GPU detected</p>
-                      )}
-                    </div>
 
                   {/* RAM */}
                   <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
@@ -235,26 +194,32 @@ export default function SettingsPage() {
                       <span className="text-xs uppercase text-gray-500 dark:text-gray-400">RAM</span>
                     </div>
                     <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {systemInfoDisplay.ram.used}GB / {systemInfoDisplay.ram.total}GB
+                      {systemInfoDisplayDisplay.ram.used}GB / {systemInfoDisplayDisplay.ram.total}GB
                     </p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{systemInfoDisplay.ram.percentage}% used</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{systemInfoDisplayDisplay.ram.percentage}% used</p>
                   </div>
 
                   {/* GPU */}
                   <div className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <CircuitBoard className="text-blue-500" size={20} />
+                    <div className="flex items-center justify-between mb-2">
                       <span className="text-xs uppercase text-gray-500 dark:text-gray-400">GPU</span>
+                      {systemInfoDisplayDisplay.gpu.available ? (
+                        <span className="text-green-500 text-xs">Available</span>
+                      ) : (
+                        <span className="text-yellow-500 text-xs">Not Available</span>
+                      )}
                     </div>
-                    {systemInfoDisplay.gpu.available ? (
+                    {systemInfoDisplayDisplay.gpu.available ? (
                       <>
-                        <p className="text-lg font-semibold text-green-600 dark:text-green-400">Available</p>
+                        <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                          {systemInfoDisplayDisplay.gpu.utilization}%
+                        </p>
                         <p className="text-sm text-gray-500 dark:text-gray-400">
-                          VRAM: {systemInfoDisplay.gpu.vram.used}GB / {systemInfoDisplay.gpu.vram.total}GB ({systemInfoDisplay.gpu.utilization}%)
+                          VRAM: {systemInfoDisplayDisplay.gpu.vram.used}GB / {systemInfoDisplayDisplay.gpu.vram.total}GB
                         </p>
                       </>
                     ) : (
-                      <p className="text-lg font-semibold text-yellow-600 dark:text-yellow-400">Not Available</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">No GPU detected</p>
                     )}
                   </div>
                 </div>

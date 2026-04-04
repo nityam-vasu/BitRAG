@@ -19,14 +19,78 @@ export default function GraphPageEnhanced() {
   const [loading, setLoading] = useState(false);
   const [nodes, setNodes] = useState<Node[]>([]);
   const [zoom, setZoom] = useState(1);
+  const [viewBox, setViewBox] = useState({ width: 800, height: 600 });
 
   const categories = [
-    { name: 'Documents', color: 'bg-blue-500', textColor: 'text-blue-500' },
-    { name: 'Text Files', color: 'bg-green-500', textColor: 'text-green-500' },
-    { name: 'Code', color: 'bg-amber-500', textColor: 'text-amber-500' },
-    { name: 'Images', color: 'bg-pink-500', textColor: 'text-pink-500' },
-    { name: 'Other', color: 'bg-gray-500', textColor: 'text-gray-500' },
+    { name: 'Documents', color: 'fill-blue-500', borderColor: 'border-blue-500' },
+    { name: 'Text Files', color: 'fill-green-500', borderColor: 'border-green-500' },
+    { name: 'Code', color: 'fill-amber-500', borderColor: 'border-amber-500' },
+    { name: 'Images', color: 'fill-pink-500', borderColor: 'border-pink-500' },
+    { name: 'Other', color: 'fill-gray-500', borderColor: 'border-gray-500' },
   ];
+
+  // Force-directed layout simulation
+  const runForceLayout = (nodeList: Node[]) => {
+    if (nodeList.length === 0) return nodeList;
+    
+    const width = 800;
+    const height = 600;
+    const padding = 50;
+    
+    // Initialize positions if not set
+    let positioned = nodeList.map((node, i) => ({
+      ...node,
+      x: node.x || Math.random() * (width - 2 * padding) + padding,
+      y: node.y || Math.random() * (height - 2 * padding) + padding,
+      vx: 0,
+      vy: 0,
+    }));
+    
+    // Run force simulation
+    for (let iteration = 0; iteration < 100; iteration++) {
+      // Repulsion between all nodes
+      for (let i = 0; i < positioned.length; i++) {
+        for (let j = i + 1; j < positioned.length; j++) {
+          const dx = positioned[j].x - positioned[i].x;
+          const dy = positioned[j].y - positioned[i].y;
+          const distance = Math.sqrt(dx * dx + dy * dy) || 1;
+          const force = 5000 / (distance * distance);
+          
+          const fx = (dx / distance) * force;
+          const fy = (dy / distance) * force;
+          
+          positioned[i].vx -= fx;
+          positioned[i].vy -= fy;
+          positioned[j].vx += fx;
+          positioned[j].vy += fy;
+        }
+      }
+      
+      // Attraction towards center
+      const centerX = width / 2;
+      const centerY = height / 2;
+      for (let i = 0; i < positioned.length; i++) {
+        positioned[i].vx += (centerX - positioned[i].x) * 0.01;
+        positioned[i].vy += (centerY - positioned[i].y) * 0.01;
+      }
+      
+      // Apply velocities and constrain to bounds
+      for (let i = 0; i < positioned.length; i++) {
+        positioned[i].x += positioned[i].vx * 0.5;
+        positioned[i].y += positioned[i].vy * 0.5;
+        
+        // Damping
+        positioned[i].vx *= 0.9;
+        positioned[i].vy *= 0.9;
+        
+        // Keep within bounds
+        positioned[i].x = Math.max(padding, Math.min(width - padding, positioned[i].x));
+        positioned[i].y = Math.max(padding, Math.min(height - padding, positioned[i].y));
+      }
+    }
+    
+    return positioned.map(({ vx, vy, ...rest }) => rest);
+  };
 
   // Fetch graph data from API
   useEffect(() => {
@@ -36,21 +100,22 @@ export default function GraphPageEnhanced() {
         const data = await getGraph();
         
         // Transform API response to Node format
-        const transformedNodes: Node[] = data.nodes.map(node => ({
+        const rawNodes: Node[] = data.nodes.map(node => ({
           id: node.id,
           name: node.name,
           category: 'document' as const,
           summary: node.summary || '',
           tags: node.tags || [],
           connections: node.val || 1,
-          x: Math.random() * 600 + 100,
-          y: Math.random() * 400 + 100,
+          x: 0,
+          y: 0,
         }));
         
-        setNodes(transformedNodes);
+        // Apply force-directed layout
+        const layoutedNodes = runForceLayout(rawNodes);
+        setNodes(layoutedNodes);
       } catch (err) {
         console.error('Failed to fetch graph:', err);
-        // Fall back to empty
         setNodes([]);
       } finally {
         setLoading(false);
@@ -62,25 +127,29 @@ export default function GraphPageEnhanced() {
 
   const handleRefresh = () => {
     setLoading(true);
-    // Refresh graph from API
     getGraph().then(data => {
-      const transformedNodes: Node[] = data.nodes.map(node => ({
+      const rawNodes: Node[] = data.nodes.map(node => ({
         id: node.id,
         name: node.name,
         category: 'document' as const,
         summary: node.summary || '',
         tags: node.tags || [],
         connections: node.val || 1,
-        x: Math.random() * 600 + 100,
-        y: Math.random() * 400 + 100,
+        x: 0,
+        y: 0,
       }));
-      setNodes(transformedNodes);
+      const layoutedNodes = runForceLayout(rawNodes);
+      setNodes(layoutedNodes);
     }).finally(() => setLoading(false));
+  };
+
+  const handleFitScreen = () => {
+    setZoom(1);
+    setViewBox({ width: 800, height: 600 });
   };
 
   const handleZoomIn = () => setZoom(Math.min(zoom + 0.2, 2));
   const handleZoomOut = () => setZoom(Math.max(zoom - 0.2, 0.5));
-  const handleFitScreen = () => setZoom(1);
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -190,8 +259,8 @@ export default function GraphPageEnhanced() {
             <div className="w-full h-full relative p-8">
               <svg
                 className="w-full h-full"
-                style={{ transform: `scale(${zoom})` }}
-                viewBox="0 0 600 400"
+                style={{ transform: `scale(${zoom})`, transformOrigin: 'center' }}
+                viewBox={`0 0 ${viewBox.width} ${viewBox.height}`}
               >
                 {/* Draw connections */}
                 {filteredNodes.map((node, i) => (
@@ -221,7 +290,7 @@ export default function GraphPageEnhanced() {
                       cx={node.x}
                       cy={node.y}
                       r="20"
-                      className={`${getCategoryColor(node.category)} transition-all hover:opacity-80`}
+                      className={`${getCategoryColor(node.category)} stroke-2 stroke-white dark:stroke-gray-900 transition-all hover:opacity-80`}
                     />
                     <text
                       x={node.x}
@@ -307,18 +376,6 @@ export default function GraphPageEnhanced() {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Legend Bar */}
-      <div className="px-6 py-3 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
-        <div className="flex items-center justify-center gap-6">
-          {categories.map((category, index) => (
-            <div key={index} className="flex items-center gap-2">
-              <span className={`w-3 h-3 rounded-full ${category.color}`}></span>
-              <span className="text-sm text-gray-600 dark:text-gray-400">{category.name}</span>
-            </div>
-          ))}
-        </div>
       </div>
     </div>
   );

@@ -3,25 +3,41 @@ import { NavLink } from "react-router";
 import { useState, useEffect } from "react";
 
 export default function Header() {
-  const [darkMode, setDarkMode] = useState(false);
+  const [isDark, setIsDark] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
 
   useEffect(() => {
-    // Light mode by default
-    document.documentElement.classList.remove('dark');
+    // Check saved theme or system preference
+    const savedTheme = localStorage.getItem('theme');
+    const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const dark = savedTheme === 'dark' || (!savedTheme && systemPrefersDark);
+    
+    // Apply immediately
+    if (dark) {
+      document.documentElement.classList.add('dark');
+    }
+    setIsDark(dark);
   }, []);
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-    document.documentElement.classList.toggle('dark');
+  const toggleTheme = () => {
+    const newIsDark = !isDark;
+    setIsDark(newIsDark);
+    
+    if (newIsDark) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
   };
 
   return (
-    <header className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800">
+    <header className="border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
       <div className="flex items-center justify-between px-6 py-3">
         {/* Logo */}
         <div className="flex items-center gap-6">
-          <h1 className="text-xl font-bold">BitRAG</h1>
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white">BitRAG</h1>
           
           {/* Navigation */}
           <nav className="flex items-center gap-1">
@@ -94,11 +110,11 @@ export default function Header() {
           </button>
           
           <button
-            onClick={toggleDarkMode}
-            className="p-2 rounded-full bg-gray-800 dark:bg-gray-700 text-white hover:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
-            title="Toggle dark mode"
+            onClick={toggleTheme}
+            className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            title={isDark ? "Switch to light mode" : "Switch to dark mode"}
           >
-            {darkMode ? <Moon size={20} /> : <Sun size={20} />}
+            {isDark ? <Moon size={20} /> : <Sun size={20} />}
           </button>
           
           <NavLink

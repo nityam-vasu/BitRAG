@@ -154,14 +154,14 @@ export default function DocumentsPage() {
                 <input
                   type="file"
                   multiple
-                  accept=".pdf"
+                  accept=".pdf,.doc,.docx,.txt,.md,.json,.xml,.csv,.html,.rtf"
                   onChange={handleFileSelect}
                   className="hidden"
                 />
                 <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-12 text-center hover:border-blue-500 dark:hover:border-blue-500 transition-colors bg-gray-50 dark:bg-gray-700/50">
                   <Upload className="mx-auto mb-4 text-gray-400 dark:text-gray-500" size={48} />
                   <p className="text-gray-600 dark:text-gray-400 mb-1">Click to browse files</p>
-                  <p className="text-sm text-gray-500 dark:text-gray-500">Supported formats: PDF</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-500">Supported formats: PDF, DOC, DOCX, TXT, MD, JSON, XML, CSV, HTML, RTF</p>
                 </div>
               </label>
 
