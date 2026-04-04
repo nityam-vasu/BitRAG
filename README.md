@@ -2,8 +2,7 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/Version-1.0.0-green?style=flat-square" alt="Version">
-  <img src="https://img.shields.io/badge/License-MIT-orange?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/Version-2.1-green?style=flat-square" alt="Version">
 </p>
 
 > **Why "BitRAG"?** The name comes from "Bit" (lightweight, minimal footprint) + "RAG" (Retrieval-Augmented Generation). It's designed to run efficiently on minimal CPU resources with low operational costs - perfect for home labs, laptops, and resource-constrained environments.
@@ -53,9 +52,9 @@ A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with 
 
 ### Advanced Features
 - 💭 **Reasoning Model Support** - Special handling for thinking/reasoning models
-- 📊 **Knowledge Graph** - Visualize document relationships with AI-generated summaries and tags
+- 📊 **Document Knowledge Graph** - Visualize document relationships in web GUI **(WIP)**
 - 🔄 **Streaming Responses** - Real-time streaming output from LLM
-- 📁 **Multi-Format Support** - PDF, TXT, MD, DOC, DOCX files
+- 📁 **Multi-Format Support** - PDF, TXT, MD, DOC, DOCX files **(WIP)**
 - ⚙️ **Configurable Parameters** - Chunk size, overlap, top-k, hybrid alpha
 - 🤖 **Model Selection** - Separate models for chat, summaries, and tags
 
@@ -75,13 +74,19 @@ BitRAG/
 │   │   └── session_exporter.py  # Session export utilities
 │   ├── cli/                 # CLI interface (Click-based)
 │   │   └── main.py
-│   └── tui/                 # Terminal User Interface
-│       ├── app.py          # Main TUI application
-│       ├── chat.py         # Chat session management
-│       ├── documents.py    # Document management UI
-│       └── settings.py     # Settings management
 ├── frontend/               # React frontend for web GUI
-├── web_app.py             # Flask web application
+├── web/                     # Flask web server
+├── scripts/                 # Utility scripts
+│   ├── download_model.py   # Model downloader
+│   ├── create_session.py   # Session creator
+│   └── activate_session.py # Session activator
+├── tests/                   # Test suite
+├── pdfs/                    # Sample PDFs for testing
+├── web_app.py              # Flask web application
+├── bitrag.py               # Main launcher (CLI)
+├── run_web.sh              # Web GUI launcher
+├── setup.sh                # Setup script
+├── install.sh              # Installation script
 ├── requirements.txt       # Python dependencies
 ├── web_requirements.txt    # Web-specific dependencies
 └── README.md
@@ -331,19 +336,6 @@ python web_app.py
 - Reasoning model support with thinking display
 - Custom Ollama parameters for CPU/memory optimization
 
-### Terminal User Interface (TUI)
-
-```bash
-./run.sh
-```
-
-Interactive menu options:
-- **1. Chat** - Ask questions about your documents
-- **2. Documents** - Manage indexed documents (upload, list, delete)
-- **3. Settings** - View configuration
-- **4. Status** - System information
-- **5. Exit** - Exit the application
-
 ### Command Line Interface (CLI)
 
 ```bash
@@ -472,56 +464,6 @@ The `alpha` parameter controls the balance:
 - `alpha=0.5` - Balanced (default)
 - `alpha=1.0` - Pure vector search
 
-## Custom Ollama Parameters
-
-BitRAG allows fine-tuning Ollama's runtime parameters for optimal performance on your hardware.
-
-### Web UI Configuration
-
-Navigate to **Ollama Params** in the sidebar to access:
-- Pre-made presets for common hardware configurations
-- Custom configuration editor
-- Save and load your own configurations
-
-### Available Parameters
-
-| Parameter | Description | Example |
-|-----------|-------------|---------|
-| `--threads` | CPU thread count | `4`, `8`, `16` |
-| `--batch` | Batch size for prompt processing | `64`, `256`, `512` |
-| `--ctx` | Context window size (tokens) | `4096`, `8192`, `32768` |
-| `--mmap` | Memory mapping (0=disable, 1=enable) | `0`, `1` |
-| `--numa` | NUMA awareness for multi-socket | `true`, `false` |
-| `--gpu` | GPU layers (0=CPU only) | `0`, `1`, `99` |
-
-### Preset Configurations
-
-| Preset | Hardware | Threads | Batch | Context |
-|--------|----------|---------|-------|---------|
-| **Office Laptop** | 4 cores, 16GB RAM | 2 | 64 | 4096 |
-| **Home Server** | 16 cores, 64GB RAM | 12 | 256 | 8192 |
-| **Headless Server** | 48 cores, 256GB RAM | 40 | 512 | 32768 |
-
-### Configuration Guidelines
-
-#### Thread Management (`--threads`)
-
-| CPU Category | Recommended Threads | Command Example |
-|--------------|-------------------|-----------------|
-| Budget (≤4 cores) | cores - 2 | `ollama run phi:2.7b --threads 2` |
-| Mid-Range (6-8 cores) | cores - 2 to cores - 4 | `ollama run mistral:7b --threads 4` |
-| High-Performance (12+ cores) | cores - 2 | `ollama run llama3:8b --threads 10` |
-| Server (24+ cores) | cores - 4 | `ollama run mixtral:8x7b --threads 24` |
-
-#### Memory Mapping (`--mmap`)
-
-| RAM to Model Size Ratio | `--mmap` Setting | Performance Impact |
-|------------------------|------------------|-------------------|
-| RAM > 2× Model Size | `--mmap 0` (disabled) | Maximum performance |
-| RAM = 1.5× Model Size | `--mmap 1` (enabled) | Balanced approach |
-| RAM < Model Size | `--mmap 1` (enabled) | Memory conservation |
-
-#### NUMA Configuration (`--numa`)
 
 Enable NUMA optimization for multi-socket server systems to improve memory locality and reduce latency.
 
@@ -529,40 +471,13 @@ Enable NUMA optimization for multi-socket server systems to improve memory local
 
 **Office Laptop (Core i5, 4 cores, 16GB RAM):**
 ```bash
-ollama run phi:2.7b --threads 2 --batch 64 --ctx 4096
-```
-
-**Home Server (Ryzen 9, 16 cores, 64GB RAM):**
-```bash
-ollama run llama3:13b --threads 12 --batch 256 --ctx 8192 --mmap 0
-```
-
-**Headless Server (Dual Xeon, 48 cores, 256GB RAM):**
-```bash
-ollama run mixtral:8x7b --threads 40 --batch 512 --ctx 32768 --numa
+# Download a model
+python scripts/download_model.py --type ollama --model llama3.2:1b
 ```
 
 ## Supported Models
 
 ### Quick Setup
-
-BitRAG includes an automatic model downloader. Edit `OLLAMA_MODELS.txt` to customize which models to download:
-
-```bash
-# Download all models specified in OLLAMA_MODELS.txt
-./download_models.sh
-
-# Or use Python directly
-python download_model.py
-
-# With options
-python download_model.py --list              # List available models
-python download_model.py --model llama3.2:1b # Download specific model
-```
-
-**First non-commented model in the list becomes the default.**
-
-### Ollama Models
 
 | Model | Size | Description |
 |-------|------|-------------|
@@ -658,12 +573,6 @@ ollama rm model_name
 - `colorama>=0.4.0` - Terminal colors
 
 
-## License
-
-MIT License - See LICENSE file for details.
-
-
----
 
 ## Project Members
 
@@ -674,8 +583,9 @@ MIT License - See LICENSE file for details.
 | [Your Name](https://github.com/yourusername) | Frontend Developer | [GitHub](https://github.com/yourusername) |
 | [Your Name](https://github.com/yourusername) | Documentation | [GitHub](https://github.com/yourusername) |
 
+
 ---
 
 <p align="center">
-  BTECH FINAL YEAR PROJECT
+  BTech Final Year Project
 </p>
