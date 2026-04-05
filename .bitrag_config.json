@@ -1,0 +1,5 @@
+{
+  "default_model": "falcon3:1b",
+  "summary_model": "falcon3:1b",
+  "tag_model": "falcon3:1b"
+}

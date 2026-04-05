@@ -162,7 +162,7 @@ elif [ "$COMMAND" = "download" ]; then
     echo -e "${GREEN}✓ Model downloaded successfully!${NC}"
 else
     # Download all models from file - show native ollama progress
-    local models_file="$SCRIPT_DIR/OLLAMA_MODELS.txt"
+    models_file="$SCRIPT_DIR/OLLAMA_MODELS.txt"
     
     if [ ! -f "$models_file" ]; then
         echo -e "${RED}✗ Models file not found: $models_file${NC}"
@@ -173,7 +173,7 @@ else
     echo ""
     
     # Read models and download each one with native progress
-    local count=0
+    count=0
     while IFS= read -r line; do
         # Skip empty lines and comments
         [[ -z "$line" || "$line" =~ ^# ]] && continue
