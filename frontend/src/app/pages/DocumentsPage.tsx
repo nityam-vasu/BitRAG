@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Upload, FileText, X, Trash2 } from "lucide-react";
+import { Upload, FileText, X, Trash2, Sparkles } from "lucide-react";
 import Toast, { ToastType } from "../components/Toast";
 import { getDocuments, uploadDocument, deleteDocument, Document } from "../../api/index";
 
@@ -7,6 +7,7 @@ export default function DocumentsPage() {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [processForGraph, setProcessForGraph] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,13 +43,19 @@ export default function DocumentsPage() {
     
     try {
       for (const file of selectedFiles) {
-        await uploadDocument(file);
+        // Pass the processForGraph flag to the upload function
+        await uploadDocument(file, processForGraph);
       }
       
       await fetchDocuments();
       setSelectedFiles([]);
       setShowUploadModal(false);
-      setToast({ message: `${selectedFiles.length} document${selectedFiles.length !== 1 ? 's' : ''} uploaded successfully!`, type: 'success' });
+      
+      if (processForGraph) {
+        setToast({ message: `${selectedFiles.length} document${selectedFiles.length !== 1 ? 's' : ''} uploaded and processed for graph!`, type: 'success' });
+      } else {
+        setToast({ message: `${selectedFiles.length} document${selectedFiles.length !== 1 ? 's' : ''} uploaded successfully!`, type: 'success' });
+      }
     } catch (err) {
       setToast({ message: err instanceof Error ? err.message : 'Upload failed', type: 'error' });
     } finally {
@@ -203,6 +210,29 @@ export default function DocumentsPage() {
                   </div>
                 </div>
               )}
+
+              {/* Process for Graph Option */}
+              <div className="mt-6 p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={processForGraph}
+                    onChange={(e) => setProcessForGraph(e.target.checked)}
+                    className="mt-1 w-4 h-4 text-blue-600 rounded border-gray-300 dark:border-gray-600 focus:ring-blue-500"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <Sparkles size={16} className="text-purple-500" />
+                      <span className="text-sm font-medium text-gray-900 dark:text-white">
+                        Summarize & Generate Tags for Graph
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                      When enabled, documents will be summarized, tags will be extracted, and connections will be created based on tag matching. Only works when clicking "Visualize" on the Graph page.
+                    </p>
+                  </div>
+                </label>
+              </div>
             </div>
 
             {/* Modal Footer */}
@@ -212,8 +242,17 @@ export default function DocumentsPage() {
                 disabled={selectedFiles.length === 0 || uploading}
                 className="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg text-white font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Upload size={18} />
-                Upload & Index {selectedFiles.length} Document{selectedFiles.length !== 1 ? 's' : ''}
+                {processForGraph ? (
+                  <>
+                    <Sparkles size={18} />
+                    Upload & Process for Graph
+                  </>
+                ) : (
+                  <>
+                    <Upload size={18} />
+                    Upload & Index {selectedFiles.length} Document{selectedFiles.length !== 1 ? 's' : ''}
+                  </>
+                )}
               </button>
             </div>
           </div>

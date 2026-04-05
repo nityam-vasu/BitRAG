@@ -4,7 +4,6 @@ import { Activity, Laptop, Server, Zap, Cpu, Save, Check, Info, X as XIcon } fro
 interface Preset {
   name: string;
   icon: any;
-  hardware: string;
   description: string;
   params: {
     threads: number;
@@ -50,21 +49,18 @@ export default function OllamaParamsPage() {
     {
       name: "Office Laptop",
       icon: Laptop,
-      hardware: "Core i5 (4 cores), 16GB RAM",
       description: "Optimized for light workloads and efficient battery usage",
       params: { threads: 4, batch: 256, ctx: 2048, gpu: 0, mmap: 1, numa: false }
     },
     {
       name: "Home Server",
       icon: Server,
-      hardware: "Ryzen 9 (16 cores), 64GB RAM",
       description: "Balanced performance for moderate workloads",
       params: { threads: 8, batch: 512, ctx: 4096, gpu: 0, mmap: 0, numa: false }
     },
     {
-      name: "Headless Server",
+      name: "Power Server",
       icon: Zap,
-      hardware: "Dual Xeon (48 cores), 256GB RAM",
       description: "Maximum performance for intensive workloads",
       params: { threads: 32, batch: 2048, ctx: 8192, gpu: 0, mmap: 0, numa: true }
     }
@@ -194,7 +190,6 @@ export default function OllamaParamsPage() {
                     {isActive && <Check className="text-green-500" size={20} />}
                   </div>
                   <h3 className="font-semibold text-gray-900 dark:text-white mb-2">{preset.name}</h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">{preset.hardware}</p>
                   <p className="text-sm text-gray-500 dark:text-gray-500 mb-3">{preset.description}</p>
                   <div className="flex flex-wrap gap-2 text-xs text-gray-600 dark:text-gray-400">
                     <span>threads: {preset.params.threads}</span>

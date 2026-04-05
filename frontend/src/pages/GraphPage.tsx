@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react'
-import { RefreshCw, Download, Search, ZoomIn, ZoomOut, Maximize2 } from 'lucide-react'
+import { RefreshCw, Download, Search, ZoomIn, ZoomOut, Maximize2, BarChart3 } from 'lucide-react'
 import ForceGraph, { ForceGraphMethods } from 'force-graph'
-import { getGraph, regenerateGraph, GraphData, GraphNode, GraphLink } from '../api'
+import { getGraph, regenerateGraph, getGraphInfo, GraphData, GraphNode, GraphLink } from '../api'
 
 // Color palette for groups
 const GROUP_COLORS: Record<number, string> = {
@@ -18,16 +18,40 @@ export default function GraphPage() {
   
   const [graphData, setGraphData] = useState<GraphData>({ nodes: [], links: [] })
   const [loading, setLoading] = useState(true)
+  const [visualizeClicked, setVisualizeClicked] = useState(false)
   const [selectedNode, setSelectedNode] = useState<GraphNode | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [hoveredNode, setHoveredNode] = useState<GraphNode | null>(null)
+  const [graphInitialized, setGraphInitialized] = useState(false)
 
-  // Load graph data
-  const loadGraph = useCallback(async (refresh = false) => {
+  // Check if graph data exists (without loading it)
+  const checkGraphData = useCallback(async () => {
     setLoading(true)
     try {
-      const data = await getGraph(refresh)
+      const info = await getGraphInfo()
+      // If graph is initialized and has data, we can show the Visualize option
+      return info.initialized && info.cache_size > 0
+    } catch (err) {
+      console.error('Failed to check graph info:', err)
+      return false
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  // Initial check on mount
+  useEffect(() => {
+    checkGraphData()
+  }, [checkGraphData])
+
+  // Load graph data only when Visualize is clicked
+  const handleVisualize = useCallback(async () => {
+    setLoading(true)
+    setVisualizeClicked(true)
+    try {
+      const data = await getGraph(false)
       setGraphData(data)
+      setGraphInitialized(true)
     } catch (err) {
       console.error('Failed to load graph:', err)
     } finally {
@@ -35,13 +59,9 @@ export default function GraphPage() {
     }
   }, [])
 
+  // Initialize force-graph (only when visualize clicked and data available)
   useEffect(() => {
-    loadGraph()
-  }, [loadGraph])
-
-  // Initialize force-graph
-  useEffect(() => {
-    if (!graphRef.current || graphData.nodes.length === 0) return
+    if (!graphRef.current || graphData.nodes.length === 0 || !visualizeClicked) return
 
     // Clean up previous instance
     if (fgRef.current) {
@@ -96,7 +116,7 @@ export default function GraphPage() {
     return () => {
       graph._destructor()
     }
-  }, [graphData, hoveredNode])
+  }, [graphData, hoveredNode, visualizeClicked, graphInitialized])
 
   // Handle refresh
   const handleRefresh = async () => {
@@ -131,6 +151,14 @@ export default function GraphPage() {
           <h2 className="text-xl font-semibold">Knowledge Graph</h2>
           <div className="flex items-center gap-2">
             <button
+              onClick={handleVisualize}
+              disabled={loading}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 rounded-lg disabled:opacity-50"
+            >
+              <BarChart3 size={16} />
+              Visualize
+            </button>
+            <button
               onClick={handleRefresh}
               disabled={loading}
               className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50"
@@ -141,7 +169,8 @@ export default function GraphPage() {
           </div>
         </div>
         
-        {/* Search and controls */}
+        {/* Search and controls - show only after visualize clicked */}
+        {visualizeClicked && (
         <div className="mt-4 flex items-center gap-4">
           <div className="relative flex-1 max-w-md">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
@@ -170,6 +199,7 @@ export default function GraphPage() {
             {graphData.nodes.length} nodes, {graphData.links.length} links
           </div>
         </div>
+        )}
       </header>
 
       {/* Main content */}
@@ -182,8 +212,16 @@ export default function GraphPage() {
             </div>
           )}
           {graphData.nodes.length === 0 && !loading && (
-            <div className="absolute inset-0 flex items-center justify-center text-gray-400">
-              <p>No documents to display. Upload some documents first!</p>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-400">
+              {visualizeClicked ? (
+                <p>No documents to display. Upload some documents first!</p>
+              ) : (
+                <>
+                  <BarChart3 size={48} className="mb-4 opacity-50" />
+                  <p className="text-lg mb-2">Click "Visualize" to generate the knowledge graph</p>
+                  <p className="text-sm">This will show connections between your documents based on tags and summaries</p>
+                </>
+              )}
             </div>
           )}
         </div>

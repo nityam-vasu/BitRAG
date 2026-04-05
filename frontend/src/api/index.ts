@@ -118,9 +118,10 @@ export async function getDocuments(): Promise<Document[]> {
   return res.json();
 }
 
-export async function uploadDocument(file: File): Promise<{ success: boolean; id: string; name: string }> {
+export async function uploadDocument(file: File, processForGraph: boolean = false): Promise<{ success: boolean; id: string; name: string; metadata?: { summary: string; tags: string[] }; graph_updated?: boolean }> {
   const formData = new FormData();
   formData.append('file', file);
+  formData.append('process', processForGraph.toString());
   
   const res = await fetch(`${API_BASE}/api/documents`, {
     method: 'POST',
