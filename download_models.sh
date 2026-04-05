@@ -156,14 +156,38 @@ elif [ "$COMMAND" = "download" ]; then
     fi
     echo -e "${BLUE}Downloading model: ${GREEN}$MODEL_NAME${NC}"
     echo ""
+    # Use ollama pull directly to show native progress
     ollama pull "$MODEL_NAME"
     echo ""
     echo -e "${GREEN}✓ Model downloaded successfully!${NC}"
 else
-    # Download all models from file
+    # Download all models from file - show native ollama progress
+    local models_file="$SCRIPT_DIR/OLLAMA_MODELS.txt"
+    
+    if [ ! -f "$models_file" ]; then
+        echo -e "${RED}✗ Models file not found: $models_file${NC}"
+        exit 1
+    fi
+    
     echo -e "${BLUE}Downloading models from OLLAMA_MODELS.txt...${NC}"
     echo ""
-    python3 "$SCRIPT_DIR/download_model.py"
+    
+    # Read models and download each one with native progress
+    local count=0
+    while IFS= read -r line; do
+        # Skip empty lines and comments
+        [[ -z "$line" || "$line" =~ ^# ]] && continue
+        count=$((count + 1))
+        
+        echo -e "${BLUE}Downloading ($count): ${GREEN}$line${NC}"
+        echo ""
+        ollama pull "$line"
+        echo ""
+        echo -e "${GREEN}✓ $line downloaded${NC}"
+        echo "----------------------------------------"
+    done < "$models_file"
+    
+    echo -e "${GREEN}✓ All models downloaded!${NC}"
 fi
 
 echo ""
