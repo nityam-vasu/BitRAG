@@ -84,7 +84,7 @@ BitRAG/
 ├── pdfs/                    # Sample PDFs for testing
 ├── web_app.py              # Flask web application
 ├── bitrag.py               # Main launcher (CLI)
-├── run_web.sh              # Web GUI launcher
+├── start.sh                # Main startup script (Web UI launcher)
 ├── setup.sh                # Setup script
 ├── install.sh              # Installation script
 ├── requirements.txt       # Python dependencies
@@ -120,7 +120,7 @@ ollama serve
 ./download_models.sh
 
 # Run the web application
-./run_web.sh
+./start.sh
 # Open http://localhost:5000
 
 # Or run the terminal interface
@@ -204,23 +204,24 @@ Examples:
   ./install.sh --check             # Check requirements
 ```
 
-### `./run_web.sh` - Web Server
+### `./start.sh` - Web Server (Main Startup)
 
 ```bash
-./run_web.sh [OPTIONS]
+./start.sh [OPTIONS]
 
 Options:
   --help, -h              Show help message
   --port, -p <port>       Port to run server on (default: 5000)
   --host, -H <host>       Host to bind to (default: 0.0.0.0)
+  --frontend-port, -f <port>  Frontend dev server port (default: 5173)
   --no-install            Skip dependency installation
   --check                 Check system requirements only
 
 Examples:
-  ./run_web.sh                        # Start on localhost:5000
-  ./run_web.sh --port 8080            # Start on port 8080
-  ./run_web.sh --host 127.0.0.1       # Bind to localhost only
-  ./run_web.sh --check                # Check requirements
+  ./start.sh                        # Start on localhost:5000
+  ./start.sh --port 8080            # Start on port 8080
+  ./start.sh --host 127.0.0.1       # Bind to localhost only
+  ./start.sh --check                # Check requirements
 ```
 
 ### `./download_models.sh` - Model Downloader
@@ -253,7 +254,7 @@ Commands:
   status           Show system status
   logs             View log file
   clear-logs       Clear log file
-  web              Start Web UI (alias for run_web.sh)
+  web              Start Web UI (alias for start.sh)
   help             Show this help message
 
 Options:
@@ -317,7 +318,7 @@ Examples:
 
 ```bash
 # Start the web server
-./run_web.sh
+./start.sh
 # or
 python web_app.py
 

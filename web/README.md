@@ -20,7 +20,7 @@ python web_app.py
 Or use the convenience script:
 
 ```bash
-./run_web.sh
+./start.sh
 ```
 
 ## API Endpoints
