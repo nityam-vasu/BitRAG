@@ -58,22 +58,25 @@ export default function ChatPage() {
     }
   };
 
-  const exportChat = (format: 'txt' | 'pdf') => {
+  const exportChat = () => {
+    // Generate Markdown export with proper formatting
+    // USER headings in bold, Reply in bold, answers in italic
     const chatContent = messages
-      .map((msg) => `${msg.role.toUpperCase()}: ${msg.content}${msg.sources ? `\nSources: ${msg.sources.join(', ')}` : ''}`)
-      .join('\n\n');
+      .map((msg) => {
+        const heading = msg.role === 'user' ? '**USER**' : '**REPLY**';
+        const content = `*${msg.content}*`;
+        const sources = msg.sources?.length ? `\n\n*Sources: ${msg.sources.join(', ')}*` : '';
+        return `${heading}\n\n${content}${sources}`;
+      })
+      .join('\n\n---\n\n');
     
-    if (format === 'txt') {
-      const blob = new Blob([chatContent], { type: 'text/plain' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `chat-export-${Date.now()}.txt`;
-      a.click();
-      URL.revokeObjectURL(url);
-    } else if (format === 'pdf') {
-      alert('PDF export would be implemented with a library like jsPDF');
-    }
+    const blob = new Blob([chatContent], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `chat-export-${Date.now()}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
     setShowExportMenu(false);
   };
   
@@ -96,16 +99,10 @@ export default function ChatPage() {
               {showExportMenu && (
                 <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg z-10">
                   <button
-                    onClick={() => exportChat('txt')}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-t-lg transition-colors"
+                    onClick={exportChat}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-lg transition-colors"
                   >
-                    Export as TXT
-                  </button>
-                  <button
-                    onClick={() => exportChat('pdf')}
-                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-b-lg transition-colors"
-                  >
-                    Export as PDF
+                    Export as Markdown
                   </button>
                 </div>
               )}

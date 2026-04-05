@@ -1,7 +1,7 @@
 """
 BitRAG Session Exporter Module
 
-Provides functionality to export chat sessions as TXT files.
+Provides functionality to export chat sessions as Markdown files.
 """
 
 import json
@@ -25,43 +25,43 @@ def load_session(session_dir: Path) -> Optional[Dict[str, Any]]:
         return None
 
 
-def export_session_as_text(session_data: Dict[str, Any], session_id: str) -> str:
+def export_session_as_markdown(session_data: Dict[str, Any], session_id: str) -> str:
     """
-    Export a session as formatted text.
+    Export a session as formatted Markdown.
+
+    USER headings are bold, REPLY headings are bold, answers are in italic.
 
     Args:
         session_data: Session data dictionary
         session_id: Session ID
 
     Returns:
-        Formatted text string
+        Formatted Markdown string
     """
     lines = []
 
     # Header
-    lines.append("=" * 50)
-    lines.append("BitRAG Chat Export")
-    lines.append("=" * 50)
+    lines.append("# BitRAG Chat Export")
     lines.append("")
-    lines.append(f"Session: {session_data.get('session_id', session_id)}")
-    lines.append(f"Title: {session_data.get('title', 'Untitled Session')}")
-    lines.append(f"Created: {session_data.get('created_at', 'Unknown')}")
-    lines.append(f"Last Updated: {session_data.get('updated_at', 'Unknown')}")
+    lines.append(f"**Session:** {session_data.get('session_id', session_id)}")
+    lines.append(f"**Title:** {session_data.get('title', 'Untitled Session')}")
+    lines.append(f"**Created:** {session_data.get('created_at', 'Unknown')}")
+    lines.append(f"**Last Updated:** {session_data.get('updated_at', 'Unknown')}")
     lines.append("")
 
     # Chat history
-    lines.append("-" * 50)
-    lines.append("Chat History")
-    lines.append("-" * 50)
+    lines.append("---")
+    lines.append("")
+    lines.append("## Chat History")
     lines.append("")
 
     messages = session_data.get("messages", [])
 
     if not messages:
-        lines.append("(No messages in this session)")
+        lines.append("*No messages in this session*")
     else:
         for msg in messages:
-            role = msg.get("role", "unknown").upper()
+            role = msg.get("role", "unknown").lower()
             content = msg.get("content", "")
             timestamp = msg.get("timestamp", "")
             sources = msg.get("sources", [])
@@ -76,22 +76,30 @@ def export_session_as_text(session_data: Dict[str, Any], session_id: str) -> str
             else:
                 formatted_time = ""
 
-            # Role label
-            role_label = f"[{role}]"
+            # Role label - USER and REPLY in bold
+            if role == "user":
+                role_label = "**USER**"
+            else:
+                role_label = "**REPLY**"
+
             if formatted_time:
-                role_label += f" {formatted_time}"
+                role_label += f" ({formatted_time})"
 
             lines.append(role_label)
-            lines.append(content)
+            lines.append("")
+            # Content in italic
+            lines.append(f"*{content}*")
 
             # Add sources if present
             if sources:
-                lines.append(f"Sources: {', '.join(sources)}")
+                lines.append("")
+                lines.append(f"*Sources: {', '.join(sources)}*")
 
             lines.append("")
+            lines.append("---")
+            lines.append("")
 
-    lines.append("-" * 50)
-    lines.append(f"Total messages: {len(messages)}")
+    lines.append(f"*Total messages: {len(messages)}*")
     lines.append("")
 
     return "\n".join(lines)

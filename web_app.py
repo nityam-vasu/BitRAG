@@ -119,7 +119,7 @@ from bitrag.core.tag_extractor import TagExtractor, get_tag_extractor
 from bitrag.core.session_exporter import (
     list_sessions,
     load_session,
-    export_session_as_text,
+    export_session_as_markdown,
     delete_session_files,
     rename_session,
     create_session,
@@ -230,9 +230,31 @@ def generate_thinking_steps(question: str, sources_count: int, has_context: bool
     return "\n".join(steps)
 
 
+def get_available_ollama_models():
+    """Get list of available Ollama models"""
+    import subprocess
+
+    try:
+        result = subprocess.run(["ollama", "list"], capture_output=True, text=True, timeout=10)
+        if result.returncode == 0:
+            lines = result.stdout.strip().split("\n")[1:]
+            models = []
+            for line in lines:
+                if line.strip():
+                    parts = line.split()
+                    if parts:
+                        model_name = parts[0]
+                        if model_name not in models:
+                            models.append(model_name)
+            return models
+    except Exception:
+        pass
+    return []
+
+
 def initialize_components():
     """Initialize BitRAG components (called lazily on first request)"""
-    global indexer, query_engine, initialized, initializing
+    global indexer, query_engine, initialized, initializing, current_model
 
     # Double-check with lock to avoid race conditions
     if initialized:
@@ -251,6 +273,22 @@ def initialize_components():
             # Initialize config (fast)
             config = get_config()
             print("✓ Configuration loaded")
+
+            # Check if configured model is available, fallback if not
+            config_model = config.default_model
+            available_models = get_available_ollama_models()
+
+            if available_models:
+                if config_model in available_models:
+                    print(f"✓ Using configured model: {config_model}")
+                else:
+                    # Fallback to first available model
+                    current_model = available_models[0]
+                    print(f"⚠ Configured model '{config_model}' not available")
+                    print(f"✓ Falling back to: {current_model}")
+            else:
+                # No models available - use configured as-is (may fail later)
+                print(f"⚠ No Ollama models detected, using configured: {config_model}")
 
             # Initialize indexer
             print("✓ Initializing indexer...", end=" ")
@@ -489,7 +527,7 @@ def chat_stream():
 
 @app.route("/api/chat/export", methods=["GET"])
 def export_current_chat():
-    """Export the current (default) session as TXT file."""
+    """Export the current (default) session as Markdown file."""
     try:
         config = get_config()
         session_dir = Path(config.sessions_dir) / "default"
@@ -505,14 +543,14 @@ def export_current_chat():
                 "messages": [],
             }
 
-        # Generate text export
-        text = export_session_as_text(session_data, "default")
+        # Generate Markdown export with USER/REPLY in bold, answers in italic
+        markdown = export_session_as_markdown(session_data, "default")
 
         # Return as downloadable file
-        response = make_response(text)
-        response.headers["Content-Type"] = "text/plain"
+        response = make_response(markdown)
+        response.headers["Content-Type"] = "text/markdown"
         response.headers["Content-Disposition"] = (
-            f"attachment; filename=chat_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
+            f"attachment; filename=chat_export_{datetime.now().strftime('%Y%m%d_%H%M%S')}.md"
         )
 
         return response
@@ -582,13 +620,46 @@ def upload_document():
         doc_id = indexer.index_document(temp_path)
         os.remove(temp_path)
 
-        return jsonify(
-            {
-                "success": True,
-                "id": doc_id,
-                "name": file.filename,
-            }
-        )
+        # Get optional parameter to process document (summarize, tag, build graph)
+        process_doc = request.form.get("process", "false").lower() == "true"
+
+        result = {
+            "success": True,
+            "id": doc_id,
+            "name": file.filename,
+        }
+
+        # If requested, process document for graph (summarize, tag, connect)
+        if process_doc:
+            try:
+                # Create graph builder if not exists
+                global graph_builder
+                if graph_builder is None:
+                    from bitrag.core.summary_generator import (
+                        SummaryGenerator,
+                        get_summary_generator,
+                    )
+                    from bitrag.core.tag_extractor import TagExtractor, get_tag_extractor
+
+                    summary_gen = get_summary_generator()
+                    tag_gen = get_tag_extractor()
+                    graph_builder = GraphBuilder(
+                        indexer=indexer, summary_generator=summary_gen, tag_extractor=tag_gen
+                    )
+
+                # Process the document (summarize, tag, and connect to graph)
+                metadata = graph_builder.regenerate_document(doc_id)
+                result["metadata"] = {
+                    "summary": metadata.summary,
+                    "tags": metadata.tags,
+                }
+                result["graph_updated"] = True
+            except Exception as e:
+                print(f"Error processing document for graph: {e}")
+                result["graph_updated"] = False
+                result["graph_error"] = str(e)
+
+        return jsonify(result)
 
     except FileNotFoundError as e:
         return jsonify({"error": "File not found", "message": str(e)}), 404
@@ -845,7 +916,7 @@ def delete_session(session_id):
 
 @app.route("/api/sessions/<session_id>/export", methods=["GET"])
 def export_session(session_id):
-    """Export a session as TXT file."""
+    """Export a session as Markdown file."""
     try:
         config = get_config()
         session_dir = Path(config.sessions_dir) / session_id
@@ -854,16 +925,16 @@ def export_session(session_id):
         if not session_data:
             return jsonify({"error": "Session not found"}), 404
 
-        # Generate text export
-        text = export_session_as_text(session_data, session_id)
+        # Generate Markdown export
+        markdown = export_session_as_markdown(session_data, session_id)
 
         # Return as downloadable file
         from flask import make_response
 
-        response = make_response(text)
-        response.headers["Content-Type"] = "text/plain"
+        response = make_response(markdown)
+        response.headers["Content-Type"] = "text/markdown"
         response.headers["Content-Disposition"] = (
-            f"attachment; filename=chat_{session_id}_{datetime.now().strftime('%Y%m%d')}.txt"
+            f"attachment; filename=chat_{session_id}_{datetime.now().strftime('%Y%m%d')}.md"
         )
 
         return response
