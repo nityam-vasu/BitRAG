@@ -1,0 +1,268 @@
+=== BitRAG Inference Test Results ===
+
+[Metadata]
+timestamp: 2026-04-06T15:30:43.270600
+timestamp_unix: 1775469643
+query: Summarize the story, Give me Characters name
+output_file: inference_results.txt
+
+[System Information]
+platform: Linux
+python_version: 3.13.11
+cpu_count_physical: 12
+cpu_count_logical: 16
+total_memory_gb: 23.16
+available_memory_gb: 2.7
+gpu_info: NVIDIA GeForce RTX 3050 Laptop GPU
+gpu_memory_total_mb: 0
+gpu_memory_used_mb: 0
+
+[Ollama Configuration]
+llm_model: granite3.1-moe:1b
+temperature: 0.1
+top_p: 0.9
+top_k: 40
+ctx_size: 2048
+num_ctx: 2048
+repeat_penalty: 1.1
+seed: -1
+num_gpu_layers: -1
+threads: -1
+batch_size: 512
+mmap: True
+numa: True
+format: json
+inference_method: ollama
+
+[Indexing Information]
+embedding_model: sentence-transformers/all-MiniLM-L6-v2
+chunk_size: 512
+chunk_overlap: 50
+total_documents_indexed: 0
+total_chunks_stored: 0
+vector_store: ChromaDB
+
+[Performance Metrics]
+total_inference_time_seconds: 17.2624
+retrieval_time_seconds: 12.4428
+llm_generation_time_seconds: 0.0000
+time_to_first_token_seconds: 0.0000
+time_per_token_seconds: 0.0000
+tokens_generated: 0
+tokens_per_second: 0.00
+memory_used_mb: 138.41
+peak_memory_mb: 776.99
+cpu_usage_percent: 4.40
+gpu_memory_delta_mb: 0.00
+
+[Query Information]
+query_length_chars: 44
+query_length_words: 7
+query_timestamp: 2026-04-06T15:30:43.270600
+
+[Response Information]
+response: The story unfolds in a train station far away from where it appears. Thunder signals an approaching storm, causing the air to feel cooler with a hint of wet soil. The speaker announces that the train will arrive in ten minutes. Ravi and Meera exchange relief as they stand up, stretching their legs. A faint headlight appears on the horizon, signaling the start of the station's life anew. Conversations begin, bags are lifted, and a stray dog wakes up from its slumber amidst the sudden movement. The ordinary platform transforms into a place where strangers silently agree that waiting together makes the delay easier.
+response_length_chars: 620
+response_length_words: 104
+response_timestamp: 2026-04-06T15:30:43.270712
+
+[Source Context]
+retrieved_chunks: 3
+sources: 
+  - chunk_1:
+      text: "Somewhere
+ 
+far
+ 
+away,
+ 
+thunder
+ 
+rolled,
+ 
+hinting
+ 
+at
+ 
+an
+ 
+approaching
+ 
+storm.
+ 
+The
+ 
+air
+ 
+became
+ 
+cooler,
+ 
+carrying
+ 
+the
+ 
+smell
+ 
+of
+ 
+wet
+ 
+soil
+ 
+even
+ 
+before
+ 
+the
+ 
+first
+ 
+drop
+ 
+..."
+      document: unknown
+      page: N/A
+      chunk_index: 0
+      similarity_score: 0.2545
+  - chunk_2:
+      text: "Somewhere
+ 
+far
+ 
+away,
+ 
+thunder
+ 
+rolled,
+ 
+hinting
+ 
+at
+ 
+an
+ 
+approaching
+ 
+storm.
+ 
+The
+ 
+air
+ 
+became
+ 
+cooler,
+ 
+carrying
+ 
+the
+ 
+smell
+ 
+of
+ 
+wet
+ 
+soil
+ 
+even
+ 
+before
+ 
+the
+ 
+first
+ 
+drop
+ 
+..."
+      document: unknown
+      page: N/A
+      chunk_index: 0
+      similarity_score: 0.2545
+  - chunk_3:
+      text: "Somewhere
+ 
+far
+ 
+away,
+ 
+thunder
+ 
+rolled,
+ 
+hinting
+ 
+at
+ 
+an
+ 
+approaching
+ 
+storm.
+ 
+The
+ 
+air
+ 
+became
+ 
+cooler,
+ 
+carrying
+ 
+the
+ 
+smell
+ 
+of
+ 
+wet
+ 
+soil
+ 
+even
+ 
+before
+ 
+the
+ 
+first
+ 
+drop
+ 
+..."
+      document: unknown
+      page: N/A
+      chunk_index: 0
+      similarity_score: 0.2545
+
+[Token Usage]
+prompt_tokens: 11
+completion_tokens: 155
+total_tokens: 166
+prompt_token_time_seconds: 0.0000
+completion_token_time_seconds: 0.0000
+
+[Reasoning Information]
+support_reasoning: 0
+reasoning_content: 
+
+[Model Information]
+model_size_bytes: 0
+model_size_mb: 0.00
+model_quantization: N/A
+model_architecture: N/A
+
+[Results]
+success: True
+error: None
+error_type: None
+
+[Chart Data]
+total_time: 17.2624
+retrieval_time: 12.4428
+generation_time: 0.0000
+memory_delta: 138.41
+throughput_tokens_per_sec: 0.00

@@ -113,13 +113,13 @@ install() {
 
     # Upgrade pip
     echo -e "${BLUE}[2/4] Upgrading pip...${NC}"
-    pip install --upgrade pip --quiet
+    pip install --upgrade pip #--quiet
     echo -e "${GREEN}✓ pip upgraded${NC}"
 
     # Install dependencies
     if [ "$SKIP_DEPS" = false ]; then
         echo -e "${BLUE}[3/4] Installing dependencies (this may take 5-10 minutes)...${NC}"
-        pip install -e . --quiet
+        pip install -e . #--quiet
         echo -e "${GREEN}✓ Dependencies installed${NC}"
     else
         echo -e "${YELLOW}⚠ Skipping dependency installation${NC}"

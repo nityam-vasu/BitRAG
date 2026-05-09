@@ -24,7 +24,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
 # Default values
-VENV_DIR=".venv"
+VENV_DIR="venv"
 SKIP_VENV=false
 SKIP_DEPS=false
 SKIP_OLLAMA=false

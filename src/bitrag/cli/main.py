@@ -14,6 +14,8 @@ import logging
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+os.environ["HF_HUB_DISABLE_WARNINGS"] = "1"  # Suppress HF hub warnings
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"  # Suppress progress bars
 
 # Suppress specific warnings
 warnings.filterwarnings("ignore", message=".*position_ids.*")
@@ -125,6 +127,7 @@ def print_help():
   {c("/documents", Colors.CYAN)}          List indexed documents
   {c("/get <name>", Colors.CYAN)}         Get document details
   {c("/delete <name>", Colors.CYAN)}      Delete document by filename
+  {c("/delete-all", Colors.RED)}       Delete ALL indexed documents (with warning)
   {c("/browse", Colors.CYAN)}            Browse for PDF files
   {c("/query <text>", Colors.CYAN)}      Query indexed documents  
   {c("/chat", Colors.CYAN)}               Start interactive chat mode
@@ -143,7 +146,7 @@ def print_help():
 
 {header("🚀 Quick Start:")}
   1. {c("/browse", Colors.GREEN)} - Find PDF files
-  2. {c("/upload <filename>", Colors.GREEN)} - Upload a document
+  2. {c("/upload ", Colors.GREEN)} - Upload a document
   3. {c('/query "What is this?"', Colors.GREEN)} - Ask a question
   4. {c("/chat", Colors.GREEN)} - Start chatting
 """
@@ -352,6 +355,9 @@ def run_interactive(session: str = "default", model: str = None):
                     continue
                 handle_delete_document(args[0], current_session)
 
+            elif cmd == "delete-all":
+                handle_delete_all(current_session)
+
             elif cmd == "browse":
                 handle_browse(current_session)
 
@@ -523,6 +529,47 @@ def handle_delete_document(filename: str, session: str):
             # Fall back to old ID-based deletion
             indexer.delete_document(filename)
             click.echo(success(f"Deleted: {filename}"))
+
+    except Exception as e:
+        click.echo(error(str(e)))
+
+
+def handle_delete_all(session: str):
+    """Handle delete-all command with warning confirmation"""
+    try:
+        indexer = DocumentIndexer(session)
+
+        # First, get document count to show
+        docs = indexer.list_documents()
+        doc_count = len(docs)
+
+        if doc_count == 0:
+            click.echo(info("No documents to delete in this session"))
+            return
+
+        # Show warning
+        click.echo(header("\n⚠️  WARNING: Delete All Documents"))
+        click.echo(error(f"  This will PERMANENTLY delete ALL {doc_count} indexed documents"))
+        click.echo(f"  from session '{session}'")
+        click.echo(f"\n  {c('Files to be deleted:', Colors.YELLOW)}:")
+        for doc in docs:
+            click.echo(f"    • {doc['file_name']}")
+
+        click.echo(f"\n  {c('This action cannot be undone!', Colors.RED)}")
+
+        # Prompt for confirmation
+        click.echo(f"\n{info('Type')} {c('yes', Colors.YELLOW)} {info('to confirm deletion:')}")
+        confirmation = input(c("\n> ", Colors.RED))
+
+        if confirmation.strip().lower() != "yes":
+            click.echo(info("Deletion cancelled."))
+            return
+
+        # Proceed with deletion
+        result = indexer.delete_all_documents()
+
+        click.echo(success(f"\nDeleted {result['documents_deleted']} document chunks"))
+        click.echo(success(f"Deleted {result['files_deleted']} uploaded files"))
 
     except Exception as e:
         click.echo(error(str(e)))
@@ -807,6 +854,53 @@ def delete(doc_id, session):
 
 
 @cli.command()
+@click.option("--session", "-s", default="default", help="Session ID")
+@click.option("--force", "-f", is_flag=True, help="Skip confirmation (for scripting)")
+def delete_all(session, force):
+    """Delete ALL indexed documents from the session"""
+    try:
+        indexer = DocumentIndexer(session)
+
+        # First, get document count to show
+        docs = indexer.list_documents()
+        doc_count = len(docs)
+
+        if doc_count == 0:
+            click.echo(info("No documents to delete in this session"))
+            return
+
+        # Show warning
+        click.echo(header("\n⚠️  WARNING: Delete All Documents"))
+        click.echo(error(f"  This will PERMANENTLY delete ALL {doc_count} indexed documents"))
+        click.echo(f"  from session '{session}'")
+        click.echo(f"\n  {c('Files to be deleted:', Colors.YELLOW)}:")
+        for doc in docs:
+            click.echo(f"    • {doc['file_name']}")
+
+        click.echo(f"\n  {c('This action cannot be undone!', Colors.RED)}")
+
+        # Prompt for confirmation unless --force is used
+        if not force:
+            click.echo(f"\n{info('Type')} {c('yes', Colors.YELLOW)} {info('to confirm deletion:')}")
+            confirmation = input(c("\n> ", Colors.RED))
+        else:
+            confirmation = "yes"
+
+        if confirmation.strip().lower() != "yes":
+            click.echo(info("Deletion cancelled."))
+            return
+
+        # Proceed with deletion
+        result = indexer.delete_all_documents()
+
+        click.echo(success(f"\nDeleted {result['documents_deleted']} document chunks"))
+        click.echo(success(f"Deleted {result['files_deleted']} uploaded files"))
+
+    except Exception as e:
+        click.echo(error(str(e)))
+
+
+@cli.command()
 @click.argument("filename")
 @click.option("--session", "-s", default="default", help="Session ID")
 def get_document(filename, session):
@@ -946,7 +1040,7 @@ def model_use(model_name):
 def model_download(model_name):
     """Download a model using Ollama"""
     try:
-        click.echo(f"⬇️  Downloading model: {model_name}")
+        click.echo(f"Downloading model: {model_name}")
 
         # Run ollama pull
         result = subprocess.run(["ollama", "pull", model_name], capture_output=True, text=True)
@@ -958,6 +1052,144 @@ def model_download(model_name):
 
     except FileNotFoundError:
         click.echo(error("Ollama not found"))
+    except Exception as e:
+        click.echo(error(f"Error: {e}"))
+
+
+# ================== Embedding Model Commands ==================
+
+
+@cli.group()
+def embedding():
+    """Embedding model management"""
+    pass
+
+
+@embedding.command(name="list")
+def embedding_list():
+    """List available embedding models"""
+    from pathlib import Path
+
+    # Use the same PROJECT_ROOT as config.py (4 levels: cli->bitrag->src->BitRAG)
+    # /BitRAG/src/bitrag/cli/main.py resolve goes to: /BitRAG
+    # Then we use BitRAG as project root reference, not Personal_Project
+    embedding_file = Path(__file__).resolve().parent.parent.parent.parent / "EMBEDDING_MODELS.txt"
+
+    # Fallback: try relative to config (in project root)
+    if not embedding_file.exists():
+        # Try from CWD as fallback
+        embedding_file = Path.cwd() / "EMBEDDING_MODELS.txt"
+
+    if not embedding_file.exists():
+        click.echo(info("No EMBEDDING_MODELS.txt found"))
+        return
+
+    with open(embedding_file, "r") as f:
+        models = [line.strip() for line in f if line.strip() and not line.startswith("#")]
+
+    config = get_config()
+    current = config.embedding_model
+
+    click.echo(header("\n: Embedding Models:"))
+    click.echo("-" * 40)
+
+    for i, model in enumerate(models, 1):
+        marker = c(" *", Colors.GREEN) if model == current else "  "
+        click.echo(f"{marker} {model}")
+
+    click.echo()
+    click.echo(f"{c('Current:', Colors.DIM)} {current}")
+
+
+@embedding.command(name="status")
+def embedding_status():
+    """Show current embedding model"""
+    import json
+    from pathlib import Path
+
+    # Read directly from config file to avoid caching issues
+    config_file = Path(".") / ".bitrag_config.json"
+    if config_file.exists():
+        with open(config_file, "r") as f:
+            config_data = json.load(f)
+        model = config_data.get("embedding_model", "sentence-transformers/all-MiniLM-L6-v2")
+    else:
+        config = get_config()
+        model = config.embedding_model
+
+    click.echo(header("\n: Current Embedding Model:"))
+    click.echo(f"  {c('Model:', Colors.DIM)} {model}")
+
+    # Try to get embedding dimension
+    try:
+        from sentence_transformers import SentenceTransformer
+
+        model = SentenceTransformer(config.embedding_model)
+        dim = model.get_sentence_embedding_dimension()
+        click.echo(f"  {c('Dimension:', Colors.DIM)} {dim}")
+    except Exception as e:
+        pass
+
+
+@embedding.command(name="use")
+@click.argument("model_name")
+def embedding_use(model_name):
+    """Set embedding model to use"""
+    import json
+    from pathlib import Path
+
+    # Validate model format
+    valid_prefixes = ["sentence-transformers/", "BAAI/", "intfloat/", "microsoft/", "google/"]
+
+    # Check if model name needs prefix
+    if not any(model_name.startswith(prefix) for prefix in valid_prefixes):
+        # Try common prefixes
+        possible = [
+            f"sentence-transformers/{model_name}",
+            f"BAAI/{model_name}",
+        ]
+        for p in possible:
+            if p.replace("BAAI/", "BAAI/").replace(
+                "sentence-transformers/", "sentence-transformers/"
+            ):
+                model_name = p
+                break
+
+    # Update config file directly
+    config_file = Path(".") / ".bitrag_config.json"
+    config_data = {}
+    if config_file.exists():
+        with open(config_file, "r") as f:
+            config_data = json.load(f)
+
+    config_data["embedding_model"] = model_name
+
+    with open(config_file, "w") as f:
+        json.dump(config_data, f, indent=2)
+
+    click.echo(success(f"Embedding model set to: {model_name}"))
+    click.echo(info("Will be downloaded on first use if not cached"))
+
+
+@embedding.command(name="download")
+@click.argument("model_name")
+def embedding_download(model_name):
+    """Download an embedding model"""
+    try:
+        click.echo(f": Downloading embedding model: {model_name}")
+
+        result = subprocess.run(
+            ["python", "download_embedding.py", "--model", model_name],
+            capture_output=True,
+            text=True,
+            cwd=Path(__file__).parent.parent.parent,
+        )
+
+        if result.returncode == 0:
+            click.echo(success(f"Successfully downloaded: {model_name}"))
+        else:
+            click.echo(error(f"Failed: {result.stderr}"))
+
     except Exception as e:
         click.echo(error(f"Error: {e}"))
 

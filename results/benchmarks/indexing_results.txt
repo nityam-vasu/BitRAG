@@ -1,0 +1,47 @@
+=== BitRAG Indexing Test Results ===
+
+[Metadata]
+timestamp: 2026-04-06T15:27:31.190069
+timestamp_unix: 1775469451
+input_file: /mnt/ed624ec7-962a-4a2a-95ca-e887f1cd9c96/Personal_Project/bitrag/Github_Latest/BitRAG/test_PDF/Test_Story.pdf
+output_file: indexing_results.txt
+
+[System Information]
+platform: Linux
+python_version: 3.13.11
+cpu_count_physical: 12
+cpu_count_logical: 16
+total_memory_gb: 23.16
+available_memory_gb: 6.15
+gpu_info: NVIDIA GeForce RTX 3050 Laptop GPU
+gpu_memory_total_mb: 0
+gpu_memory_used_mb: 0
+
+[Indexing Configuration]
+chunk_size: 512
+chunk_overlap: 50
+embedding_model: sentence-transformers/all-MiniLM-L6-v2
+vector_store: ChromaDB
+
+[Performance Metrics]
+total_indexing_time_seconds: 5.0714
+embedding_generation_time_seconds: 0.3736
+vector_storage_time_seconds: 0.0000
+memory_used_mb: 0.00
+peak_memory_mb: 776.65
+cpu_usage_percent: 7.10
+memory_delta_mb: 0.00
+
+[Document Information]
+document_type: pdf
+file_size_bytes: 44337
+file_size_mb: 0.04
+total_characters: 3662
+total_words: 0
+total_chunks: 9
+pages: 2
+
+[Results]
+document_id: Test_Story
+indexed: True
+error: None

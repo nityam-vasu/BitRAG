@@ -45,7 +45,7 @@ def test_config(temp_dir):
 def sample_pdf_path():
     """Provide path to a sample test PDF."""
     # Use the sample PDFs included in the repo
-    pdf_path = Path(__file__).parent.parent / "pdfs" / "Test_Story.pdf"
+    pdf_path = Path(__file__).parent.parent / "test_PDF" / "Test_Story.pdf"
     if pdf_path.exists():
         return str(pdf_path)
     return None

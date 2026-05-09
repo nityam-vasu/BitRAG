@@ -10,6 +10,20 @@ import requests
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Generator
 from datetime import datetime
+import logging
+import warnings
+
+# Suppress warnings
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+os.environ["HF_HUB_DISABLE_WARNINGS"] = "1"
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+
+logging.getLogger("sentence_transformers").setLevel(logging.ERROR)
+logging.getLogger("transformers").setLevel(logging.ERROR)
+logging.getLogger("huggingface_hub").setLevel(logging.ERROR)
+warnings.filterwarnings("ignore")
 
 from llama_index.core import VectorStoreIndex
 from llama_index.core.retrievers import VectorIndexRetriever
@@ -309,11 +323,18 @@ class QueryEngine:
 
     def _init_llm(self):
         """Initialize Ollama LLM"""
+        # Configure options for thinking mode
+        options = {}
+        if hasattr(self.config, "thinking") and not self.config.thinking:
+            # Disable thinking for models that support it
+            options["thinking"] = False
+
         self.llm = Ollama(
             model=self.model,
             base_url=self.config.ollama_base_url,
             temperature=0.1,
             request_timeout=120,  # 2 minute timeout for generation
+            options=options if options else None,
         )
 
     def _init_synthesizer(self):
@@ -457,8 +478,16 @@ class QueryEngine:
         # Generate response using LLM directly
         prompt = DEFAULT_RAG_PROMPT.format(context=context, question=question)
 
+        # Check if thinking is configured
+        thinking_enabled = getattr(self.config, "thinking", True)
+
         # Generate response
         response = self.llm.complete(prompt)
+
+        # Extract thinking content if available
+        thinking_content = ""
+        if hasattr(response, "additional_kwargs") and response.additional_kwargs:
+            thinking_content = response.additional_kwargs.get("thinking", "")
 
         return {
             "question": question,
@@ -466,6 +495,7 @@ class QueryEngine:
             "sources": retrieved_context,
             "model": self.model,
             "llm_type": self.llm_type,
+            "thinking": thinking_content if thinking_enabled else None,
         }
 
     def query_streaming(self, question: str) -> Generator[Dict[str, Any], None, None]:

@@ -2,14 +2,32 @@
 
 <p align="center">
   <img src="https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python&logoColor=white" alt="Python">
-  <img src="https://img.shields.io/badge/Version-2.1-green?style=flat-square" alt="Version">
+  <img src="https://img.shields.io/badge/Version-2.2-green?style=flat-square" alt="Version">
 </p>
 
-> **Why "BitRAG"?** The name comes from "Bit" (lightweight, minimal footprint) + "RAG" (Retrieval-Augmented Generation). It's designed to run efficiently on minimal CPU resources with low operational costs - perfect for home labs, laptops, and resource-constrained environments.
+> **Why "BitRAG"?** The name comes from "Bit" (lightweight, minimal footprint) + "RAG" (Retrieval-Augmented Generation). It's designed to run efficiently on minimal CPU resources with low operational costs - perfect for laptops and resource-constrained environments.
 
 A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with PDF documents. Built with ChromaDB for vector storage, Ollama for local LLM inference, and supports hybrid search combining vector similarity with BM25 keyword search.
 
+## Project Members
+
+| Name | GitHub |
+|------|--------|
+| [Harsk Kumar Sinha](https://github.com/yourusername) | [GitHub](https://github.com/yourusername) |
+| [Vaishnavi Majumdar](https://github.com/yourusername) | [GitHub](https://github.com/yourusername) |
+| [Ankita Sahu](https://github.com/yourusername) | [GitHub](https://github.com/yourusername) |
+| [Poonam Kalihari](https://github.com/yourusername) | [GitHub](https://github.com/yourusername) |
+
 ## ✨ New Features
+
+### 🚀 Custom Embedding Models
+- **Model Selection** - Choose from popular embedding models (BGE, MiniLM, E5)
+- **Automatic Download** - Downloads on first use
+
+### 🧠 Thinking Mode Support
+- **Reasoning Models** - Support for qwen3, deepseek-r1 with thinking
+- **Enable/Disable** - `--thinking` / `--no-thinking` flags
+- **Thinking Display** - View reasoning process in results
 
 ### 🚀 AI-Powered Knowledge Graph
 - **Automatic Summarization** - LLM generates summaries for each document
@@ -46,9 +64,7 @@ A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with 
 - 🔀 **Hybrid Search** - Combines vector + BM25 keyword search using Reciprocal Rank Fusion
 
 ### User Interfaces
-- 🖥️ **Interactive TUI** - Terminal interface with menu system and PyTermGUI
 - 🌐 **Web GUI** - Modern web interface with React frontend
-- ⌨️ **Command Line Interface** - Full CLI for scripting and automation
 
 ### Advanced Features
 - 💭 **Reasoning Model Support** - Special handling for thinking/reasoning models
@@ -57,6 +73,14 @@ A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with 
 - 📁 **Multi-Format Support** - PDF, TXT, MD, DOC, DOCX files **(WIP)**
 - ⚙️ **Configurable Parameters** - Chunk size, overlap, top-k, hybrid alpha
 - 🤖 **Model Selection** - Separate models for chat, summaries, and tags
+
+### Testing & Benchmarking
+- 🧪 **Comprehensive Test Suite** - Validate RAG system performance
+- 📈 **Needle-in-Haystack** - Test retrieval accuracy with 20 files
+- 🎯 **RAGAS-Lite** - Quality assessment (faithfulness, relevance, precision)
+- 🔍 **Hallucination Detection** - Verify answer accuracy against sources
+- ⏱️ **Performance Benchmarks** - Indexing speed, inference latency
+- 📁 **Results Directory** - All test outputs saved to `results/` with `--results-dir` flag
 
 ## Architecture
 
@@ -72,7 +96,7 @@ BitRAG/
 │   │   ├── tag_extractor.py     # LLM-based tag extraction
 │   │   ├── graph_builder.py     # Knowledge graph construction
 │   │   └── session_exporter.py  # Session export utilities
-│   ├── cli/                 # CLI interface (Click-based)
+│   ├── cli/                 # Command interface (Click-based)
 │   │   └── main.py
 ├── frontend/               # React frontend for web GUI
 ├── web/                     # Flask web server
@@ -80,10 +104,23 @@ BitRAG/
 │   ├── download_model.py   # Model downloader
 │   ├── create_session.py   # Session creator
 │   └── activate_session.py # Session activator
-├── tests/                   # Test suite
-├── pdfs/                    # Sample PDFs for testing
+├── tests/                   # Unit test suite
+├── testing/                 # Comprehensive test suite
+│   ├── test_indexing.py    # Indexing performance tests
+│   ├── test_inference.py   # Inference tests
+│   ├── test_needle_20.py   # Needle-in-haystack tests
+│   ├── test_ragas_lite.py  # Quality assessment
+│   ├── test_faithfulness.py # Hallucination detection
+│   └── README.md           # Testing documentation
+├── results/                 # Test results and benchmarks
+│   ├── SUMMARY.md          # Results overview
+│   ├── benchmarks/          # Performance benchmarks
+│   ├── comprehensive/       # Detailed test results
+│   └── raw/                # Raw JSON data
+├── for_metrics/            # Sample PDFs for RAG evaluation
+├── test_PDF/               # Test documents
 ├── web_app.py              # Flask web application
-├── bitrag.py               # Main launcher (CLI)
+├── bitrag.py               # Main launcher
 ├── start.sh                # Main startup script (Web UI launcher)
 ├── setup.sh                # Setup script
 ├── install.sh              # Installation script
@@ -248,13 +285,10 @@ Examples:
 ./run.sh [command] [options]
 
 Commands:
-  (none)           Start TUI (default)
-  tui              Start Terminal User Interface
-  cli              Start Command Line Interface
   status           Show system status
   logs             View log file
   clear-logs       Clear log file
-  web              Start Web UI (alias for start.sh)
+  web              Start Web UI
   help             Show this help message
 
 Options:
@@ -262,12 +296,10 @@ Options:
   --model <name>   Model to use
 
 Examples:
-  ./run.sh                    # Start TUI
-  ./run.sh tui               # Start TUI
-  ./run.sh cli                # Start CLI
+  ./run.sh                    # Start Web UI
+  ./run.sh web                # Start Web UI
   ./run.sh status             # Show status
-  ./run.sh web                # Start web UI
-  ./run.sh tui --session myproject  # Start with custom session
+  ./run.sh web --session myproject  # Start with custom session
 ```
 
 ## Python Scripts
@@ -292,22 +324,17 @@ Examples:
   python web_app.py --check            # Check requirements
 ```
 
-### `bitrag.py` - Main CLI Entry Point
+### `bitrag.py` - Main Entry Point
 
 ```bash
 bitrag [command] [options]
 
 Commands:
-  (none)           Start TUI (default)
-  tui              Start Terminal User Interface
-  cli              Start Command Line Interface
   status           Show system status
   interactive      Start interactive mode
 
 Examples:
-  bitrag                     # Start TUI
-  bitrag tui                 # Start TUI
-  bitrag cli                 # Start CLI
+  bitrag                     # Start web interface
   bitrag status              # Show status
   bitrag --help              # Show help
 ```
@@ -336,30 +363,6 @@ python web_app.py
 - Session export to TXT
 - Reasoning model support with thinking display
 - Custom Ollama parameters for CPU/memory optimization
-
-### Command Line Interface (CLI)
-
-```bash
-# Upload a document
-bitrag upload document.pdf
-
-# List documents
-bitrag documents
-
-# Query documents
-bitrag query "What is this document about?"
-
-# Start chat mode
-bitrag chat
-
-# Model management
-bitrag model list
-bitrag model use llama3.2:1b
-
-# Session management
-bitrag session list
-bitrag session create my_project
-```
 
 ### Session Scripts
 
@@ -489,10 +492,13 @@ python scripts/download_model.py --type ollama --model llama3.2:1b
 | **qwen2.5:3b** | ~2.0GB | Qwen 2.5 3B - Great balance of speed and quality |
 | **gemma3:1b** | ~800MB | Google Gemma 3 1B - Good multilingual support |
 | **tinyllama:1.1b** | ~630MB | TinyLlama - Minimal resource usage |
-| **deepseek-r1:1.5b** | ~1.4GB | DeepSeek R1 - Excellent reasoning, chain-of-thought |
-| **qwen3:1.7b** | ~1.2GB | Qwen 3 1.7B - Latest Qwen, strong performance |
-| **qwen3:0.6b** | ~500MB | Qwen 3 0.6B - Lightweight with latest improvements |
+| **deepseek-r1:1.5b** | ~1.4GB | DeepSeek R1 - Excellent reasoning, supports **thinking** |
+| **qwen3:1.7b** | ~1.2GB | Qwen 3 1.7B - Latest Qwen, supports **thinking** |
+| **qwen3:0.6b** | ~500MB | Qwen 3 0.6B - Lightweight with latest improvements, supports **thinking** |
+| **qwen3.5:0.8b** | ~500MB | Qwen 3.5 0.8B - Best small model, supports **thinking** |
 | **granite3.1-moe:1b** | ~700MB | IBM Granite 3.1 MoE - Mixture of experts, efficient |
+
+> **Note**: Models that support "thinking" can display their reasoning process. Use `--thinking` or `--no-thinking` flags to control this.
 
 ### Model Selection for Different Tasks
 
@@ -565,24 +571,13 @@ ollama rm model_name
 - `flask-cors>=4.0.0` - CORS support
 - `psutil>=5.9.0` - System information
 
-### CLI & Utilities
-- `click>=8.1.0` - CLI framework
+### Utilities
+- `click>=8.1.0` - Command framework
 - `python-dotenv>=1.0.0` - Environment variables
 - `pyyaml>=6.0.0` - YAML support
 - `requests>=2.31.0` - HTTP requests
 - `tqdm>=4.65.0` - Progress bars
 - `colorama>=0.4.0` - Terminal colors
-
-
-
-## Project Members
-
-| Name | Role | GitHub |
-|------|------|--------|
-| [Your Name](https://github.com/yourusername) | Lead Developer | [GitHub](https://github.com/yourusername) |
-| [Your Name](https://github.com/yourusername) | Backend Developer | [GitHub](https://github.com/yourusername) |
-| [Your Name](https://github.com/yourusername) | Frontend Developer | [GitHub](https://github.com/yourusername) |
-| [Your Name](https://github.com/yourusername) | Documentation | [GitHub](https://github.com/yourusername) |
 
 
 ---

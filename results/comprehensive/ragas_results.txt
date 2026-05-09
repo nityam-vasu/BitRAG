@@ -1,0 +1,338 @@
+=== BitRAG RAGAS-Lite Test Results ===
+
+Timestamp: 2026-04-12T22:27:17.876642
+Total Tests: 8
+Successful: 8
+
+--- Aggregate Scores ---
+faithfulness: 0.988
+  Description: Are claims in answer from sources?
+relevance: 0.562
+  Description: Does answer address the question?
+precision: 0.875
+  Description: Are top-k chunks actually useful?
+source_citations_verified: 0.750
+  Description: Does answer cite info from sources?
+hallucination_rate: 0.000
+  Description: Answer mentions info NOT in sources?
+avg_confidence: 0.272
+  Description: Mean similarity score from embeddings
+overall: 0.795
+  Description: 
+
+--- Configuration ---
+  chunk_size: 512
+  chunk_overlap: 50
+  embedding_model: sentence-transformers/all-MiniLM-L6-v2
+  top_k: 3
+  llm_model: llama3.2:1b
+
+--- Per-Test Results ---
+------------------------------------------------------------
+
+Test 1: What is the project name?
+  Category: entity_extraction
+  Faithfulness: 1.000
+  Relevance: 0.500
+  Precision: 1.000
+  Source Citation: True
+  Hallucination: False
+  Confidence: 0.311
+  Overall: 0.800
+  Sources: 3
+
+Test 2: What programming languages are used?
+  Category: list_extraction
+  Faithfulness: 1.000
+  Relevance: 0.667
+  Precision: 1.000
+  Source Citation: True
+  Hallucination: False
+  Confidence: 0.192
+  Overall: 0.867
+  Sources: 3
+
+Test 3: Who are the team members?
+  Category: list_extraction
+  Faithfulness: 1.000
+  Relevance: 0.500
+  Precision: 1.000
+  Source Citation: True
+  Hallucination: False
+  Confidence: 0.230
+  Overall: 0.800
+  Sources: 3
+
+Test 4: What is the budget information?
+  Category: fact_extraction
+  Faithfulness: 1.000
+  Relevance: 0.500
+  Precision: 1.000
+  Source Citation: True
+  Hallucination: False
+  Confidence: 0.309
+  Overall: 0.800
+  Sources: 3
+
+Test 5: When was the project launched?
+  Category: date_extraction
+  Faithfulness: 1.000
+  Relevance: 0.667
+  Precision: 1.000
+  Source Citation: True
+  Hallucination: False
+  Confidence: 0.333
+  Overall: 0.867
+  Sources: 3
+
+Test 6: What are the success metrics?
+  Category: list_extraction
+  Faithfulness: 1.000
+  Relevance: 0.500
+  Precision: 1.000
+  Source Citation: False
+  Hallucination: False
+  Confidence: 0.285
+  Overall: 0.800
+  Sources: 3
+
+Test 7: What are the identified risks?
+  Category: list_extraction
+  Faithfulness: 0.900
+  Relevance: 0.500
+  Precision: 1.000
+  Source Citation: True
+  Hallucination: False
+  Confidence: 0.222
+  Overall: 0.760
+  Sources: 3
+  Unverified: ['1']
+
+Test 8: What cloud provider is used?
+  Category: entity_extraction
+  Faithfulness: 1.000
+  Relevance: 0.667
+  Precision: 0.000
+  Source Citation: False
+  Hallucination: False
+  Confidence: 0.291
+  Overall: 0.667
+  Sources: 3
+
+
+--- JSON Data ---
+{
+  "total_tests": 8,
+  "successful": 8,
+  "metrics": {
+    "faithfulness": {
+      "average": 0.9875,
+      "description": "Are claims in answer from sources?"
+    },
+    "relevance": {
+      "average": 0.5625,
+      "description": "Does answer address the question?"
+    },
+    "precision": {
+      "average": 0.875,
+      "description": "Are top-k chunks actually useful?"
+    },
+    "source_citations_verified": {
+      "average": 0.75,
+      "description": "Does answer cite info from sources?"
+    },
+    "hallucination_rate": {
+      "average": 0.0,
+      "description": "Answer mentions info NOT in sources?"
+    },
+    "avg_confidence": {
+      "average": 0.2716260772435245,
+      "description": "Mean similarity score from embeddings"
+    },
+    "overall": {
+      "average": 0.795,
+      "formula": "0.4*faithfulness + 0.4*relevance + 0.2*precision"
+    }
+  },
+  "config": {
+    "chunk_size": 512,
+    "chunk_overlap": 50,
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "top_k": 3,
+    "llm_model": "llama3.2:1b"
+  },
+  "results": [
+    {
+      "success": true,
+      "question": "What is the project name?",
+      "category": "entity_extraction",
+      "expected_keywords": [
+        "Project Alpha",
+        "Alpha"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.5,
+      "precision": 1.0,
+      "overall": 0.8,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "avg_confidence": 0.3112817591637053,
+      "unverified_claims": [],
+      "response": "The project name is \"Project Alpha\".",
+      "sources_count": 3
+    },
+    {
+      "success": true,
+      "question": "What programming languages are used?",
+      "category": "list_extraction",
+      "expected_keywords": [
+        "React",
+        "TypeScript",
+        "Node.js",
+        "JavaScript",
+        "PostgreSQL"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.6666666666666666,
+      "precision": 1.0,
+      "overall": 0.8666666666666667,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "avg_confidence": 0.19172410872277865,
+      "unverified_claims": [],
+      "response": "Based on the provided context, the programming languages used for Project Alpha are:\n\n1. Frontend: React 18 with TypeScript\n2. Backend: Node.js with Express",
+      "sources_count": 3
+    },
+    {
+      "success": true,
+      "question": "Who are the team members?",
+      "category": "list_extraction",
+      "expected_keywords": [
+        "Alice",
+        "Bob",
+        "Carol",
+        "Dave",
+        "Eve"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.5,
+      "precision": 1.0,
+      "overall": 0.8,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "avg_confidence": 0.2301330603016283,
+      "unverified_claims": [],
+      "response": "The team members mentioned in the Project Alpha Documentation are:\n\n1. Alice - Project Lead\n2. Bob - Backend Developer\n3. Carol - Frontend Developer\n4. Dave - DevOps Engineer\n5. Eve - QA Engineer",
+      "sources_count": 3
+    },
+    {
+      "success": true,
+      "question": "What is the budget information?",
+      "category": "fact_extraction",
+      "expected_keywords": [
+        "$150,000",
+        "120,000",
+        "30,000",
+        "budget"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.5,
+      "precision": 1.0,
+      "overall": 0.8,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "avg_confidence": 0.3092764903610326,
+      "unverified_claims": [],
+      "response": "The budget information provided includes:\n\n1. Total Approved Budget: $150,000\n2. Expenditure Breakdown:\n   - Personnel costs: $95,000 (5 engineers x 6 months x average rate)\n   - Cloud infrastructure setup: $18,000\n   - Software licenses and tools: $12,000\n   - Training and documentation: $5,000\n   ",
+      "sources_count": 3
+    },
+    {
+      "success": true,
+      "question": "When was the project launched?",
+      "category": "date_extraction",
+      "expected_keywords": [
+        "July 2024",
+        "July",
+        "2024"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.6666666666666666,
+      "precision": 1.0,
+      "overall": 0.8666666666666667,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "avg_confidence": 0.33319177588869203,
+      "unverified_claims": [],
+      "response": "The project was launched on July 1, 2024.",
+      "sources_count": 3
+    },
+    {
+      "success": true,
+      "question": "What are the success metrics?",
+      "category": "list_extraction",
+      "expected_keywords": [
+        "99.9%",
+        "200ms",
+        "1000",
+        "users",
+        "uptime",
+        "response time"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.5,
+      "precision": 1.0,
+      "overall": 0.8,
+      "source_citation_verified": false,
+      "hallucination_detected": false,
+      "avg_confidence": 0.28479185351013064,
+      "unverified_claims": [],
+      "response": "Based on the provided context, the success metrics for Project Alpha include:\n\n- Daily Active Users: 2,500+\n- API Response Time: Average 45ms\n- Email Deliverability: 99.8%\n- Report Generation: Average 3.2 seconds\n- Data Sync Frequency: Every 15 minutes\n- Backup Success Rate: 100%\n- Security Incident",
+      "sources_count": 3
+    },
+    {
+      "success": true,
+      "question": "What are the identified risks?",
+      "category": "list_extraction",
+      "expected_keywords": [
+        "deadline",
+        "testing",
+        "API",
+        "risks"
+      ],
+      "faithfulness": 0.9,
+      "relevance": 0.5,
+      "precision": 1.0,
+      "overall": 0.76,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "avg_confidence": 0.22204701878660804,
+      "unverified_claims": [
+        "1"
+      ],
+      "response": "The identified risks are:\n\n1. Risk 2: Limited testing resources - Probability: Medium, Impact: High\n2. Risk 3: Dependency on third-party API - Probability: Medium, Impact: High\n3. Risk 4: Data migration complexity - Probability: Low, Impact: High\n4. Risk 5: User adoption challenges - Probability: Me",
+      "sources_count": 3
+    },
+    {
+      "success": true,
+      "question": "What cloud provider is used?",
+      "category": "entity_extraction",
+      "expected_keywords": [
+        "AWS",
+        "Amazon",
+        "EC2",
+        "RDS",
+        "S3"
+      ],
+      "faithfulness": 1.0,
+      "relevance": 0.6666666666666666,
+      "precision": 0.0,
+      "overall": 0.6666666666666667,
+      "source_citation_verified": false,
+      "hallucination_detected": false,
+      "avg_confidence": 0.29056255121362023,
+      "unverified_claims": [],
+      "response": "The cloud provider used in this project is Salesforce CRM.",
+      "sources_count": 3
+    }
+  ]
+}

@@ -4,14 +4,20 @@ This directory contains the Flask web application for BitRAG.
 
 ## Structure
 
-- `web/uploads/` - Directory for uploaded documents
-- `web_app.py` - Main Flask application
+```
+web/
+├── uploads/          # Directory for uploaded documents
+└── README.md         # This file
+```
+
+The main Flask application (`web_app.py`) is located at the project root.
 
 ## Running the Web Application
 
 ```bash
 # Install dependencies
 pip install -r requirements.txt
+pip install -r web_requirements.txt
 
 # Run the web server
 python web_app.py
@@ -22,6 +28,8 @@ Or use the convenience script:
 ```bash
 ./start.sh
 ```
+
+Then open http://localhost:5000 in your browser.
 
 ## API Endpoints
 
@@ -40,3 +48,14 @@ Or use the convenience script:
 | GET/POST | `/api/settings` | Get/update settings |
 | GET | `/api/system/info` | System information |
 | GET | `/api/graph` | Document knowledge graph |
+| GET | `/api/sessions` | List sessions |
+| POST | `/api/sessions` | Create session |
+| DELETE | `/api/sessions/<id>` | Delete session |
+
+## Testing Results Integration
+
+Test results from the `testing/` directory can be viewed and analyzed through the web interface. Use the `--results-dir` flag to specify output location:
+
+```bash
+python testing/test_indexing.py -i test.pdf -r results
+```

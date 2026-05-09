@@ -148,13 +148,13 @@ else
 fi
 
 # Check/create virtual environment
-if [ ! -d "$SCRIPT_DIR/.venv" ]; then
+if [ ! -d "$SCRIPT_DIR/venv" ]; then
     echo -e "${YELLOW}Creating virtual environment...${NC}"
-    python3 -m venv "$SCRIPT_DIR/.venv"
+    python3 -m venv "$SCRIPT_DIR/venv"
 fi
 
 # Activate virtual environment
-source "$SCRIPT_DIR/.venv/bin/activate"
+source "$SCRIPT_DIR/venv/bin/activate"
 
 # Check if Flask is installed
 if ! pip show flask > /dev/null 2>&1; then

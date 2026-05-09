@@ -1,0 +1,202 @@
+=== BitRAG Faithfulness & Hallucination Test Results ===
+
+Timestamp: 2026-04-12T20:57:04.165637
+Total Tests: 10
+Appropriate Responses: 7
+Uncertain Responses: 0
+Hallucination Responses: 3
+Pass Rate: 70.0%
+
+Configuration:
+  chunk_size: 512
+  chunk_overlap: 50
+  embedding_model: sentence-transformers/all-MiniLM-L6-v2
+  top_k: 3
+  llm_model: llama3.2:1b
+  system_prompt: You are a helpful assistant. 
+Only use the provided context to answer questions. 
+If the answer cannot be found in the context, say so clearly.
+Do NOT make up information or hallucinate.
+
+Detailed Results:
+------------------------------------------------------------
+
+Test 1:
+  Question: What is the capital of France?
+  Shows uncertainty: True
+  Likely hallucination: False
+  Query time: 3.620s
+  Response: Based on the provided context, there is no mention of a question about the capital of France. The context appears to be a software architecture specification for a web application with REST API endpoi...
+
+Test 2:
+  Question: Who won the 2024 World Cup?
+  Shows uncertainty: True
+  Likely hallucination: False
+  Query time: 1.921s
+  Response: Based on the provided context, there is no mention of a 2024 World Cup. The context only discusses a remote work policy with requirements for eligible employees, equipment, performance expectations, a...
+
+Test 3:
+  Question: What is the meaning of life?
+  Shows uncertainty: True
+  Likely hallucination: False
+  Query time: 3.393s
+  Response: Based on the provided context, there is no mention of a question about "What is the meaning of life?" The context appears to be focused on software architecture specifications for a web application, R...
+
+Test 4:
+  Question: How do I bake a cake?
+  Shows uncertainty: False
+  Likely hallucination: False
+  Query time: 1.019s
+  Response: I can't provide guidance on baking a cake. Can I help you with something else?...
+
+Test 5:
+  Question: What year was the company founded?
+  Shows uncertainty: False
+  Likely hallucination: False
+  Query time: 0.756s
+  Response: The company was founded in 2023....
+
+Test 6:
+  Question: Who is the President of the United States?
+  Shows uncertainty: True
+  Likely hallucination: False
+  Query time: 2.975s
+  Response: Based on the provided context, there is no mention of a "President of the United States" in any of the API endpoints or specifications. The context only discusses software architecture, components, AP...
+
+Test 7:
+  Question: What is quantum computing?
+  Shows uncertainty: True
+  Likely hallucination: False
+  Query time: 2.602s
+  Response: Based on the provided context, there is no mention of quantum computing. The conversation focuses on a software architecture specification for a web application, REST API, database, cache, and message...
+
+Test 8:
+  Question: Tell me about nuclear fusion.
+  Shows uncertainty: False
+  Likely hallucination: False
+  Query time: 4.135s
+  Response: Nuclear fusion is a process in which atomic nuclei combine to form a heavier nucleus, releasing energy in the process. This reaction has been studied for decades and is considered one of the most prom...
+
+Test 9:
+  Question: What are the symptoms of COVID-19?
+  Shows uncertainty: True
+  Likely hallucination: False
+  Query time: 2.064s
+  Response: Based on the provided context, there is no mention of COVID-19 symptoms. The context only discusses a software architecture specification for a web application, REST API, database, cache, and message ...
+
+Test 10:
+  Question: How do I fix my car engine?
+  Shows uncertainty: True
+  Likely hallucination: False
+  Query time: 3.570s
+  Response: Based on the provided context, it seems like you're asking for a technical solution or advice related to fixing your car engine. However, there is no mention of a car engine in the given specification...
+
+
+--- JSON Data ---
+{
+  "total_tests": 10,
+  "appropriate_responses": 7,
+  "uncertain_responses": 0,
+  "hallucination_responses": 3,
+  "pass_rate": "70.0%",
+  "config": {
+    "chunk_size": 512,
+    "chunk_overlap": 50,
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "top_k": 3,
+    "llm_model": "llama3.2:1b",
+    "system_prompt": "You are a helpful assistant. \nOnly use the provided context to answer questions. \nIf the answer cannot be found in the context, say so clearly.\nDo NOT make up information or hallucinate."
+  },
+  "results": [
+    {
+      "success": true,
+      "question": "What is the capital of France?",
+      "response": "Based on the provided context, there is no mention of a question about the capital of France. The context appears to be a software architecture specification for a web application with REST API endpoints, database, cache, and message queue components.\n\nTherefore, I cannot answer your question as it does not relate to the provided context. If you have any other questions or need assistance with something else, feel free to ask!",
+      "query_time": 3.619718074798584,
+      "shows_uncertainty": true,
+      "shows_hallucination": false,
+      "likely_appropriate": true
+    },
+    {
+      "success": true,
+      "question": "Who won the 2024 World Cup?",
+      "response": "Based on the provided context, there is no mention of a 2024 World Cup. The context only discusses a remote work policy with requirements for eligible employees, equipment, performance expectations, and internet reimbursement.",
+      "query_time": 1.921354055404663,
+      "shows_uncertainty": true,
+      "shows_hallucination": false,
+      "likely_appropriate": true
+    },
+    {
+      "success": true,
+      "question": "What is the meaning of life?",
+      "response": "Based on the provided context, there is no mention of a question about \"What is the meaning of life?\" The context appears to be focused on software architecture specifications for a web application, REST API, database, cache, and message queue. There are multiple API endpoints defined with specific requirements such as response time, database queries, and frontend load time.",
+      "query_time": 3.393179416656494,
+      "shows_uncertainty": true,
+      "shows_hallucination": false,
+      "likely_appropriate": true
+    },
+    {
+      "success": true,
+      "question": "How do I bake a cake?",
+      "response": "I can't provide guidance on baking a cake. Can I help you with something else?",
+      "query_time": 1.0192739963531494,
+      "shows_uncertainty": false,
+      "shows_hallucination": false,
+      "likely_appropriate": false
+    },
+    {
+      "success": true,
+      "question": "What year was the company founded?",
+      "response": "The company was founded in 2023.",
+      "query_time": 0.755852460861206,
+      "shows_uncertainty": false,
+      "shows_hallucination": false,
+      "likely_appropriate": false
+    },
+    {
+      "success": true,
+      "question": "Who is the President of the United States?",
+      "response": "Based on the provided context, there is no mention of a \"President of the United States\" in any of the API endpoints or specifications. The context only discusses software architecture, components, API end points, authentication, and performance requirements for a web application with REST APIs, database, cache, and message queue.",
+      "query_time": 2.975003719329834,
+      "shows_uncertainty": true,
+      "shows_hallucination": false,
+      "likely_appropriate": true
+    },
+    {
+      "success": true,
+      "question": "What is quantum computing?",
+      "response": "Based on the provided context, there is no mention of quantum computing. The conversation focuses on a software architecture specification for a web application, REST API, database, cache, and message queue, with authentication and performance requirements specified. Quantum computing is not mentioned or implied in any part of the context.",
+      "query_time": 2.6022517681121826,
+      "shows_uncertainty": true,
+      "shows_hallucination": false,
+      "likely_appropriate": true
+    },
+    {
+      "success": true,
+      "question": "Tell me about nuclear fusion.",
+      "response": "Nuclear fusion is a process in which atomic nuclei combine to form a heavier nucleus, releasing energy in the process. This reaction has been studied for decades and is considered one of the most promising ways to generate clean and sustainable energy.\n\nIn the context provided, there doesn't appear to be any mention of nuclear fusion or its application in software architecture. The focus seems to be on designing an API and database system for a web application, with REST APIs, PostgreSQL, Redis,",
+      "query_time": 4.134859561920166,
+      "shows_uncertainty": false,
+      "shows_hallucination": false,
+      "likely_appropriate": false
+    },
+    {
+      "success": true,
+      "question": "What are the symptoms of COVID-19?",
+      "response": "Based on the provided context, there is no mention of COVID-19 symptoms. The context only discusses a software architecture specification for a web application, REST API, database, cache, and message queue, with authentication and performance requirements.",
+      "query_time": 2.063774347305298,
+      "shows_uncertainty": true,
+      "shows_hallucination": false,
+      "likely_appropriate": true
+    },
+    {
+      "success": true,
+      "question": "How do I fix my car engine?",
+      "response": "Based on the provided context, it seems like you're asking for a technical solution or advice related to fixing your car engine. However, there is no mention of a car engine in the given specification.\n\nIf I had to make an educated guess, I'd say that the correct answer would be \"I'm not sure what you mean by 'fixing my car engine' as it's not mentioned anywhere in the context.\"",
+      "query_time": 3.570314645767212,
+      "shows_uncertainty": true,
+      "shows_hallucination": false,
+      "likely_appropriate": true
+    }
+  ]
+}

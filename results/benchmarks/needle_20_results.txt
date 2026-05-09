@@ -1,0 +1,783 @@
+=== BitRAG Needle-in-Haystack Test Results ===
+
+Timestamp: 2026-04-12T22:17:04.367640
+
+--- ENHANCED METRICS Summary ---
+Total Tests: 20
+Files Retrieved: 19 (95.0%)
+Keywords Matched: 19 (95.0%)
+Answers Correct: 20 (100.0%)
+Retrieval Precision: 95.0%
+Source Citations Verified: 95.0%
+Hallucination Rate: 95.0%
+Avg Confidence Score: 0.601
+
+--- Configuration ---
+  chunk_size: 1500
+  chunk_overlap: 100
+  embedding_model: sentence-transformers/all-MiniLM-L6-v2
+  top_k: 3
+  llm_model: gemma3n:e2b
+  thinking: False
+
+--- Detailed Results ---
+------------------------------------------------------------
+
+Test 1: 01_server_password.txt
+  Query: What is the server room password?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 7.98s
+
+Test 2: 02_ceo_mobile.txt
+  Query: What is the CEO's personal mobile number?
+  File retrieved: False
+  Keyword match: 0.0%
+  Answer correct: True
+  Time: 2.28s
+
+Test 3: 03_deadline.txt
+  Query: When is the project deadline?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 1.08s
+
+Test 4: 04_hidden_password.txt
+  Query: What is the hidden password for backup system?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 1.87s
+
+Test 5: 05_usb_label.txt
+  Query: What is the label on the USB drive with encryption key?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 0.64s
+
+Test 6: 06_budget.txt
+  Query: What is the annual AI research budget?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 0.83s
+
+Test 7: 07_building_code.txt
+  Query: What is the security code for the main building?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 0.76s
+
+Test 8: 08_wifi_password.txt
+  Query: What is the guest WiFi password?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 0.78s
+
+Test 9: 09_meeting_code.txt
+  Query: What is the booking code for client meeting room?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 0.67s
+
+Test 10: 10_api_endpoint.txt
+  Query: What is the production API endpoint URL?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 0.74s
+
+Test 11: 11_db_password.txt
+  Query: What is the main database password?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 1.64s
+
+Test 12: 12_license_code.txt
+  Query: What is the software activation code?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 0.95s
+
+Test 13: 13_emergency_contact.txt
+  Query: What is the emergency contact number for after-hours?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 0.81s
+
+Test 14: 14_vault_combo.txt
+  Query: What is the vault combination?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 0.80s
+
+Test 15: 15_satellite_phone.txt
+  Query: What is the satellite phone number?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 0.78s
+
+Test 16: 16_launch_date.txt
+  Query: When is the product launch date?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 0.69s
+
+Test 17: 17_bonus_q1.txt
+  Query: What is the Q1 2026 quarterly bonus percentage?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 1.00s
+
+Test 18: 18_ssh_key.txt
+  Query: What is the admin SSH key fingerprint?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 1.28s
+
+Test 19: 19_vpn_code.txt
+  Query: What is the VPN access code?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 0.71s
+
+Test 20: 20_report_id.txt
+  Query: What is the confidential report ID?
+  File retrieved: True
+  Keyword match: 100.0%
+  Answer correct: True
+  Time: 3.09s
+
+
+--- JSON ---
+{
+  "total_tests": 20,
+  "files_retrieved": 19,
+  "keywords_matched": 19,
+  "answers_correct": 20,
+  "retrieval_accuracy": "95.0%",
+  "keyword_accuracy": "95.0%",
+  "answer_accuracy": "100.0%",
+  "retrieval_precision": "95.0%",
+  "source_citations_verified": "95.0%",
+  "hallucination_rate": "95.0%",
+  "avg_confidence": 0.6007586338420504,
+  "config": {
+    "chunk_size": 1500,
+    "chunk_overlap": 100,
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "top_k": 3,
+    "llm_model": "gemma3n:e2b",
+    "thinking": false
+  },
+  "results": [
+    {
+      "success": true,
+      "file": "01_server_password.txt",
+      "query": "What is the server room password?",
+      "expected_keywords": [
+        "QUANTUM-2026-X7",
+        "server room"
+      ],
+      "found_keywords": [
+        "QUANTUM-2026-X7",
+        "server room"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "The secret password for the server room is QUANTUM-2026-X7. It changes every quarter and is currently valid until March 2026. Contact IT for updates.\n\n\n\n",
+      "thinking": null,
+      "query_time": 7.975980520248413,
+      "retrieved_files": [
+        "01_server_password.txt",
+        "01_server_password.txt",
+        "01_server_password.txt"
+      ],
+      "avg_confidence": 0.5930559813989609,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "02_ceo_mobile.txt",
+      "query": "What is the CEO's personal mobile number?",
+      "expected_keywords": [
+        "+1-555-0127-8944",
+        "CEO"
+      ],
+      "found_keywords": [],
+      "keyword_match_rate": 0.0,
+      "retrieval_precision": 0.0,
+      "source_citation_verified": false,
+      "hallucination_detected": true,
+      "needle_file_retrieved": false,
+      "answer_contains_info": true,
+      "response": "The provided context does not contain the CEO's personal mobile number. It only lists the company's contact information for general inquiries: email info@company.com or call +1-555-0100.\n\n\n\n",
+      "thinking": null,
+      "query_time": 2.276604413986206,
+      "retrieved_files": [
+        "distractor_1.txt",
+        "distractor_3.txt",
+        "distractor_0.txt"
+      ],
+      "avg_confidence": 0.2808837902957286,
+      "relevant_chunks": 0,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "03_deadline.txt",
+      "query": "When is the project deadline?",
+      "expected_keywords": [
+        "November 15th",
+        "2026",
+        "5:00 PM EST"
+      ],
+      "found_keywords": [
+        "November 15th",
+        "2026",
+        "5:00 PM EST"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "The project deadline is exactly November 15th, 2026 at 5:00 PM EST.",
+      "thinking": null,
+      "query_time": 1.0783319473266602,
+      "retrieved_files": [
+        "03_deadline.txt",
+        "03_deadline.txt",
+        "03_deadline.txt"
+      ],
+      "avg_confidence": 0.608848918140681,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "04_hidden_password.txt",
+      "query": "What is the hidden password for backup system?",
+      "expected_keywords": [
+        "\u9f99\u5377\u98ce2026",
+        "tornado2026"
+      ],
+      "found_keywords": [
+        "\u9f99\u5377\u98ce2026",
+        "tornado2026"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "\u9f99\u5377\u98ce2026 (tornado2026)",
+      "thinking": null,
+      "query_time": 1.8669373989105225,
+      "retrieved_files": [
+        "04_hidden_password.txt",
+        "04_hidden_password.txt",
+        "04_hidden_password.txt"
+      ],
+      "avg_confidence": 0.4757457237326635,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "05_usb_label.txt",
+      "query": "What is the label on the USB drive with encryption key?",
+      "expected_keywords": [
+        "KEY-SILVER-773",
+        "USB"
+      ],
+      "found_keywords": [
+        "KEY-SILVER-773",
+        "USB"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "KEY-SILVER-773\n",
+      "thinking": null,
+      "query_time": 0.6442651748657227,
+      "retrieved_files": [
+        "05_usb_label.txt",
+        "05_usb_label.txt",
+        "05_usb_label.txt"
+      ],
+      "avg_confidence": 0.6703115718058821,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "06_budget.txt",
+      "query": "What is the annual AI research budget?",
+      "expected_keywords": [
+        "$2,847,500",
+        "AI research"
+      ],
+      "found_keywords": [
+        "$2,847,500",
+        "AI research"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "The annual AI research budget is $2,847,500.",
+      "thinking": null,
+      "query_time": 0.8318266868591309,
+      "retrieved_files": [
+        "06_budget.txt",
+        "06_budget.txt",
+        "06_budget.txt"
+      ],
+      "avg_confidence": 0.7623108938783622,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "07_building_code.txt",
+      "query": "What is the security code for the main building?",
+      "expected_keywords": [
+        "4921",
+        "north entrance"
+      ],
+      "found_keywords": [
+        "4921",
+        "north entrance"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "The security code for the main building is 4921.\n",
+      "thinking": null,
+      "query_time": 0.7573981285095215,
+      "retrieved_files": [
+        "07_building_code.txt",
+        "07_building_code.txt",
+        "07_building_code.txt"
+      ],
+      "avg_confidence": 0.6314768302422605,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "08_wifi_password.txt",
+      "query": "What is the guest WiFi password?",
+      "expected_keywords": [
+        "WelcomeGuest2026",
+        "Corp-Guest"
+      ],
+      "found_keywords": [
+        "WelcomeGuest2026",
+        "Corp-Guest"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "The WiFi password for guest access is WelcomeGuest2026!",
+      "thinking": null,
+      "query_time": 0.7756989002227783,
+      "retrieved_files": [
+        "08_wifi_password.txt",
+        "08_wifi_password.txt",
+        "08_wifi_password.txt"
+      ],
+      "avg_confidence": 0.6890772103758215,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "09_meeting_code.txt",
+      "query": "What is the booking code for client meeting room?",
+      "expected_keywords": [
+        "MTG-ROOM-ALPHA-77"
+      ],
+      "found_keywords": [
+        "MTG-ROOM-ALPHA-77"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "MTG-ROOM-ALPHA-77\n",
+      "thinking": null,
+      "query_time": 0.6730003356933594,
+      "retrieved_files": [
+        "09_meeting_code.txt",
+        "09_meeting_code.txt",
+        "09_meeting_code.txt"
+      ],
+      "avg_confidence": 0.7673353393091936,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "10_api_endpoint.txt",
+      "query": "What is the production API endpoint URL?",
+      "expected_keywords": [
+        "api.company.com",
+        "v2",
+        "prod"
+      ],
+      "found_keywords": [
+        "api.company.com",
+        "v2",
+        "prod"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "https://api.compaany.com/v2/prod",
+      "thinking": null,
+      "query_time": 0.7394394874572754,
+      "retrieved_files": [
+        "10_api_endpoint.txt",
+        "10_api_endpoint.txt",
+        "10_api_endpoint.txt"
+      ],
+      "avg_confidence": 0.663944599370923,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "11_db_password.txt",
+      "query": "What is the main database password?",
+      "expected_keywords": [
+        "PostgresSecure#2026"
+      ],
+      "found_keywords": [
+        "PostgresSecure#2026"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "The main database password is PostgresSecure#2026!\n\n\n\n",
+      "thinking": null,
+      "query_time": 1.6425254344940186,
+      "retrieved_files": [
+        "11_db_password.txt",
+        "11_db_password.txt",
+        "11_db_password.txt"
+      ],
+      "avg_confidence": 0.47443002005958707,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "12_license_code.txt",
+      "query": "What is the software activation code?",
+      "expected_keywords": [
+        "ACTIV-8F3D-2026-X"
+      ],
+      "found_keywords": [
+        "ACTIV-8F3D-2026-X"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "The software activation code is ACTIV-8F3D-2026-X.\n\n\n\n",
+      "thinking": null,
+      "query_time": 0.9535255432128906,
+      "retrieved_files": [
+        "12_license_code.txt",
+        "12_license_code.txt",
+        "12_license_code.txt"
+      ],
+      "avg_confidence": 0.5231652472829145,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "13_emergency_contact.txt",
+      "query": "What is the emergency contact number for after-hours?",
+      "expected_keywords": [
+        "+1-555-0199",
+        "SUPPORT",
+        "24/7"
+      ],
+      "found_keywords": [
+        "+1-555-0199",
+        "SUPPORT",
+        "24/7"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "+1-555-0199-SUPPORT\n",
+      "thinking": null,
+      "query_time": 0.8112730979919434,
+      "retrieved_files": [
+        "13_emergency_contact.txt",
+        "13_emergency_contact.txt",
+        "13_emergency_contact.txt"
+      ],
+      "avg_confidence": 0.7001695870141368,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "14_vault_combo.txt",
+      "query": "What is the vault combination?",
+      "expected_keywords": [
+        "34-7-19-42",
+        "CFO"
+      ],
+      "found_keywords": [
+        "34-7-19-42",
+        "CFO"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "The vault combination is 34-7-19-42.",
+      "thinking": null,
+      "query_time": 0.7953591346740723,
+      "retrieved_files": [
+        "14_vault_combo.txt",
+        "14_vault_combo.txt",
+        "14_vault_combo.txt"
+      ],
+      "avg_confidence": 0.5845127788375303,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "15_satellite_phone.txt",
+      "query": "What is the satellite phone number?",
+      "expected_keywords": [
+        "+1-555-8823",
+        "MARS"
+      ],
+      "found_keywords": [
+        "+1-555-8823",
+        "MARS"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "+1-555-8823-MARS\n",
+      "thinking": null,
+      "query_time": 0.783024787902832,
+      "retrieved_files": [
+        "15_satellite_phone.txt",
+        "15_satellite_phone.txt",
+        "15_satellite_phone.txt"
+      ],
+      "avg_confidence": 0.4731576164612641,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "16_launch_date.txt",
+      "query": "When is the product launch date?",
+      "expected_keywords": [
+        "June 1st",
+        "2026"
+      ],
+      "found_keywords": [
+        "June 1st",
+        "2026"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "June 1st, 2026.\n",
+      "thinking": null,
+      "query_time": 0.6935803890228271,
+      "retrieved_files": [
+        "16_launch_date.txt",
+        "16_launch_date.txt",
+        "16_launch_date.txt"
+      ],
+      "avg_confidence": 0.6161396912058441,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "17_bonus_q1.txt",
+      "query": "What is the Q1 2026 quarterly bonus percentage?",
+      "expected_keywords": [
+        "15%",
+        "April 15th"
+      ],
+      "found_keywords": [
+        "15%",
+        "April 15th"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "The quarterly bonus percentage for Q1 2026 is 15% of base salary. \n",
+      "thinking": null,
+      "query_time": 0.9953043460845947,
+      "retrieved_files": [
+        "17_bonus_q1.txt",
+        "17_bonus_q1.txt",
+        "17_bonus_q1.txt"
+      ],
+      "avg_confidence": 0.7253859515696163,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "18_ssh_key.txt",
+      "query": "What is the admin SSH key fingerprint?",
+      "expected_keywords": [
+        "SHA256:A1B2C3D4E5F6G7H8I9J0"
+      ],
+      "found_keywords": [
+        "SHA256:A1B2C3D4E5F6G7H8I9J0"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "The admin SSH key fingerprint is SHA256:A1B2C3D4E5F6G7H8I9J0.",
+      "thinking": null,
+      "query_time": 1.2846202850341797,
+      "retrieved_files": [
+        "18_ssh_key.txt",
+        "18_ssh_key.txt",
+        "18_ssh_key.txt"
+      ],
+      "avg_confidence": 0.6305100617774102,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "19_vpn_code.txt",
+      "query": "What is the VPN access code?",
+      "expected_keywords": [
+        "VPN-SPLIT-TUNNEL-442"
+      ],
+      "found_keywords": [
+        "VPN-SPLIT-TUNNEL-442"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "VPN-SPLIT-TUNNEL-442\n",
+      "thinking": null,
+      "query_time": 0.7136304378509521,
+      "retrieved_files": [
+        "19_vpn_code.txt",
+        "19_vpn_code.txt",
+        "19_vpn_code.txt"
+      ],
+      "avg_confidence": 0.6494560445415294,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    },
+    {
+      "success": true,
+      "file": "20_report_id.txt",
+      "query": "What is the confidential report ID?",
+      "expected_keywords": [
+        "RPT-2026-ALPHA-OMEGA-X",
+        "Top Secret"
+      ],
+      "found_keywords": [
+        "RPT-2026-ALPHA-OMEGA-X",
+        "Top Secret"
+      ],
+      "keyword_match_rate": 1.0,
+      "retrieval_precision": 1.0,
+      "source_citation_verified": true,
+      "hallucination_detected": false,
+      "needle_file_retrieved": true,
+      "answer_contains_info": true,
+      "response": "RPT-2026-ALPHA-OMEGA-X",
+      "thinking": null,
+      "query_time": 3.090402841567993,
+      "retrieved_files": [
+        "20_report_id.txt",
+        "20_report_id.txt",
+        "20_report_id.txt"
+      ],
+      "avg_confidence": 0.49525481954069933,
+      "relevant_chunks": 3,
+      "total_retrieved": 3
+    }
+  ]
+}

@@ -1,0 +1,204 @@
+=== BitRAG Faithfulness & Hallucination Test Results ===
+
+Timestamp: 2026-04-12T22:26:35.833630
+Total Tests: 10
+Appropriate Responses: 8
+Uncertain Responses: 0
+Hallucination Responses: 2
+Pass Rate: 80.0%
+
+Configuration:
+  chunk_size: 512
+  chunk_overlap: 50
+  embedding_model: sentence-transformers/all-MiniLM-L6-v2
+  top_k: 3
+  llm_model: llama3.2:1b
+  system_prompt: You are a helpful assistant. 
+Only use the provided context to answer questions. 
+If the answer cannot be found in the context, say so clearly.
+Do NOT make up information or hallucinate.
+
+Detailed Results:
+------------------------------------------------------------
+
+Test 1:
+  Question: What is the capital of France?
+  Shows uncertainty: True
+  Likely hallucination: False
+  Query time: 3.313s
+  Response: Based on the provided context, there is no mention of a question about the capital of France. The context appears to be a software architecture specification for a web application with REST API endpoi...
+
+Test 2:
+  Question: Who won the 2024 World Cup?
+  Shows uncertainty: True
+  Likely hallucination: False
+  Query time: 2.592s
+  Response: Based on the provided context, there is no mention of a 2024 World Cup. The context only talks about a remote work policy with requirements such as available during core hours, responding to messages ...
+
+Test 3:
+  Question: What is the meaning of life?
+  Shows uncertainty: True
+  Likely hallucination: False
+  Query time: 2.989s
+  Response: Based on the provided context, there is no mention of a question related to "What is the meaning of life?" The context appears to be focused on software architecture specifications for a web applicati...
+
+Test 4:
+  Question: How do I bake a cake?
+  Shows uncertainty: False
+  Likely hallucination: False
+  Query time: 0.862s
+  Response: I can't provide guidance on baking a cake. Can I help you with something else?...
+
+Test 5:
+  Question: What year was the company founded?
+  Shows uncertainty: False
+  Likely hallucination: False
+  Query time: 0.588s
+  Response: The company was founded in 2023....
+
+Test 6:
+  Question: Who is the President of the United States?
+  Shows uncertainty: True
+  Likely hallucination: False
+  Query time: 2.665s
+  Response: Based on the provided context, there is no mention of a "President of the United States" in any of the API endpoints or specifications. The context only discusses software architecture, components, AP...
+
+Test 7:
+  Question: What is quantum computing?
+  Shows uncertainty: True
+  Likely hallucination: False
+  Query time: 2.403s
+  Response: Based on the provided context, there is no mention of quantum computing. The conversation appears to be about a software architecture specification for a web application, REST API, database, cache, an...
+
+Test 8:
+  Question: Tell me about nuclear fusion.
+  Shows uncertainty: True
+  Likely hallucination: False
+  Query time: 2.728s
+  Response: I can't answer this question based on the provided context, which appears to be a software architecture specification for an application. The context only discusses API endpoints, authentication, auth...
+
+Test 9:
+  Question: What are the symptoms of COVID-19?
+  Shows uncertainty: True
+  Likely hallucination: False
+  Query time: 1.878s
+  Response: Based on the provided context, there is no mention of COVID-19 symptoms. The context only discusses a software architecture specification for a web application, REST API, database, cache, and message ...
+
+Test 10:
+  Question: How do I fix my car engine?
+  Shows uncertainty: True
+  Likely hallucination: False
+  Query time: 4.001s
+  Response: Based on the provided context, it seems like you're asking for a technical solution or advice related to car engine maintenance. However, there is no mention of cars in your question.
+
+If I had to mak...
+
+
+--- JSON Data ---
+{
+  "total_tests": 10,
+  "appropriate_responses": 8,
+  "uncertain_responses": 0,
+  "hallucination_responses": 2,
+  "pass_rate": "80.0%",
+  "config": {
+    "chunk_size": 512,
+    "chunk_overlap": 50,
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "top_k": 3,
+    "llm_model": "llama3.2:1b",
+    "system_prompt": "You are a helpful assistant. \nOnly use the provided context to answer questions. \nIf the answer cannot be found in the context, say so clearly.\nDo NOT make up information or hallucinate."
+  },
+  "results": [
+    {
+      "success": true,
+      "question": "What is the capital of France?",
+      "response": "Based on the provided context, there is no mention of a question about the capital of France. The context appears to be a software architecture specification for a web application with REST API endpoints, database, cache, and message queue components.\n\nTherefore, I cannot answer your question as it does not relate to the provided context. If you have any other questions or need assistance with something else, feel free to ask!",
+      "query_time": 3.312680959701538,
+      "shows_uncertainty": true,
+      "shows_hallucination": false,
+      "likely_appropriate": true
+    },
+    {
+      "success": true,
+      "question": "Who won the 2024 World Cup?",
+      "response": "Based on the provided context, there is no mention of a 2024 World Cup. The context only talks about a remote work policy with requirements such as available during core hours, responding to messages within 2 hours, attending meetings, and maintaining a secure home office setup. There is also no information about sports or events.",
+      "query_time": 2.592489242553711,
+      "shows_uncertainty": true,
+      "shows_hallucination": false,
+      "likely_appropriate": true
+    },
+    {
+      "success": true,
+      "question": "What is the meaning of life?",
+      "response": "Based on the provided context, there is no mention of a question related to \"What is the meaning of life?\" The context appears to be focused on software architecture specifications for a web application, REST API, database, cache, and message queue. There are multiple API endpoints defined with specific requirements such as response time, database queries, and frontend load time.",
+      "query_time": 2.9885106086730957,
+      "shows_uncertainty": true,
+      "shows_hallucination": false,
+      "likely_appropriate": true
+    },
+    {
+      "success": true,
+      "question": "How do I bake a cake?",
+      "response": "I can't provide guidance on baking a cake. Can I help you with something else?",
+      "query_time": 0.861924409866333,
+      "shows_uncertainty": false,
+      "shows_hallucination": false,
+      "likely_appropriate": false
+    },
+    {
+      "success": true,
+      "question": "What year was the company founded?",
+      "response": "The company was founded in 2023.",
+      "query_time": 0.5876595973968506,
+      "shows_uncertainty": false,
+      "shows_hallucination": false,
+      "likely_appropriate": false
+    },
+    {
+      "success": true,
+      "question": "Who is the President of the United States?",
+      "response": "Based on the provided context, there is no mention of a \"President of the United States\" in any of the API endpoints or specifications. The context only discusses software architecture, components, API endpoints, authentication, and performance requirements for a web application with a REST API, database, cache, and message queue.",
+      "query_time": 2.6646575927734375,
+      "shows_uncertainty": true,
+      "shows_hallucination": false,
+      "likely_appropriate": true
+    },
+    {
+      "success": true,
+      "question": "What is quantum computing?",
+      "response": "Based on the provided context, there is no mention of quantum computing. The conversation appears to be about a software architecture specification for a web application, REST API, database, cache, and message queue, with specific requirements for performance and authentication/authorization mechanisms. Quantum computing is not mentioned or implied in any way.",
+      "query_time": 2.4026589393615723,
+      "shows_uncertainty": true,
+      "shows_hallucination": false,
+      "likely_appropriate": true
+    },
+    {
+      "success": true,
+      "question": "Tell me about nuclear fusion.",
+      "response": "I can't answer this question based on the provided context, which appears to be a software architecture specification for an application. The context only discusses API endpoints, authentication, authorization, performance requirements, and components, but does not mention nuclear fusion or any related technology. If you have more information about nuclear fusion, I'd be happy to try and help further.",
+      "query_time": 2.727717876434326,
+      "shows_uncertainty": true,
+      "shows_hallucination": false,
+      "likely_appropriate": true
+    },
+    {
+      "success": true,
+      "question": "What are the symptoms of COVID-19?",
+      "response": "Based on the provided context, there is no mention of COVID-19 symptoms. The context only discusses a software architecture specification for a web application, REST API, database, cache, and message queue, with authentication and performance requirements.",
+      "query_time": 1.8779659271240234,
+      "shows_uncertainty": true,
+      "shows_hallucination": false,
+      "likely_appropriate": true
+    },
+    {
+      "success": true,
+      "question": "How do I fix my car engine?",
+      "response": "Based on the provided context, it seems like you're asking for a technical solution or advice related to car engine maintenance. However, there is no mention of cars in your question.\n\nIf I had to make an educated guess, I'd say that your question might be related to troubleshooting or repairing a specific issue with your vehicle's engine. In this case, I couldn't find any information on how to fix a car engine based solely on the provided context.\n\nCould you please provide more context or clari",
+      "query_time": 4.000945806503296,
+      "shows_uncertainty": true,
+      "shows_hallucination": false,
+      "likely_appropriate": true
+    }
+  ]
+}

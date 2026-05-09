@@ -4,10 +4,16 @@ Tests for BitRAG configuration module.
 
 import os
 import sys
+
+# Add src to path - this must be FIRST to avoid bitrag.py conflict
+_SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+_PROJECT_ROOT = os.path.dirname(_SCRIPT_DIR)
+_SRC_PATH = os.path.join(_PROJECT_ROOT, 'src')
+if _SRC_PATH not in sys.path:
+    sys.path.insert(0, _SRC_PATH)
+
 import pytest
 from pathlib import Path
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 
 class TestConfig:

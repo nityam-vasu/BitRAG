@@ -1,0 +1,164 @@
+=== BitRAG Latency & Resource Benchmark Results ===
+
+Timestamp: 2026-04-12T22:31:50.240233
+Total Queries: 5
+
+--- Performance Statistics ---
+Average Total Time: 6.750s
+Min Total Time: 1.292s
+Max Total Time: 10.059s
+Std Dev: 3.939s
+
+--- Token Throughput ---
+Average TPS: 31.19
+Min TPS: 24.38
+Max TPS: 39.05
+
+--- Memory Usage ---
+Average Delta: 0.21 MB
+Peak Memory: 994.16 MB
+
+--- Configuration ---
+  chunk_size: 512
+  chunk_overlap: 50
+  embedding_model: sentence-transformers/all-MiniLM-L6-v2
+  top_k: 3
+  llm_model: llama3.2:1b
+  warmup: False
+
+--- Per-Query Results ---
+------------------------------------------------------------
+
+Query 1: Basic overview query
+  Category: simple
+  Query: What is this about?
+  Total Time: 1.292s
+  Est. Tokens: 49
+  TPS: 37.91
+  Sources: 2
+  Memory Delta: 0.00 MB
+
+Query 2: Summary request
+  Category: summarization
+  Query: Summarize the main points
+  Total Time: 10.059s
+  Est. Tokens: 296
+  TPS: 29.43
+  Sources: 2
+  Memory Delta: 0.32 MB
+
+Query 3: Information extraction
+  Category: extraction
+  Query: What are the key details discussed?
+  Total Time: 9.492s
+  Est. Tokens: 239
+  TPS: 25.18
+  Sources: 2
+  Memory Delta: 0.20 MB
+
+Query 4: List extraction
+  Category: list
+  Query: List all the important items mentioned
+  Total Time: 9.066s
+  Est. Tokens: 221
+  TPS: 24.38
+  Sources: 2
+  Memory Delta: 0.26 MB
+
+Query 5: Complex explanation request
+  Category: complex
+  Query: Explain what happened and provide specific details
+  Total Time: 3.841s
+  Est. Tokens: 150
+  TPS: 39.05
+  Sources: 2
+  Memory Delta: 0.27 MB
+
+
+--- JSON Data ---
+{
+  "success": true,
+  "total_queries": 5,
+  "iterations": 1,
+  "config": {
+    "chunk_size": 512,
+    "chunk_overlap": 50,
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "top_k": 3,
+    "llm_model": "llama3.2:1b",
+    "warmup": false
+  },
+  "statistics": {
+    "avg_total_time": 6.750017929077148,
+    "min_total_time": 1.292433261871338,
+    "max_total_time": 10.058958768844604,
+    "stdev_total_time": 3.9392889906201844,
+    "avg_tps": 31.188961815959058,
+    "min_tps": 24.377713053954906,
+    "max_tps": 39.0473048854624,
+    "avg_memory_delta": 0.20859375,
+    "peak_memory_mb": 994.1640625
+  },
+  "results": [
+    {
+      "query": "What is this about?",
+      "response": "This appears to be a project documentation for Project Alpha, specifically detailing its overview, key features, technical stack, team members, timeline, budget, and success metrics.",
+      "total_time": 1.292433261871338,
+      "estimated_tokens": 49,
+      "tokens_per_second": 37.91298277874093,
+      "source_count": 2,
+      "memory_delta_mb": 0.0,
+      "memory_after_mb": 993.12109375,
+      "category": "simple",
+      "description": "Basic overview query"
+    },
+    {
+      "query": "Summarize the main points",
+      "response": "Based on the provided context, here are the main points:\n\n1. Project Alpha is a web-based application for managing customer relationships.\n2. The system was developed by a team of 5 engineers over 6 months.\n3. Key features include user authentication (OAuth2 and JWT support), dashboard with real-tim",
+      "total_time": 10.058958768844604,
+      "estimated_tokens": 296,
+      "tokens_per_second": 29.42650494967674,
+      "source_count": 2,
+      "memory_delta_mb": 0.31640625,
+      "memory_after_mb": 993.4375,
+      "category": "summarization",
+      "description": "Summary request"
+    },
+    {
+      "query": "What are the key details discussed?",
+      "response": "The key details discussed in the Project Alpha Documentation are:\n\n1. Overview of Project Alpha as a web-based application for managing customer relationships.\n2. Key features:\n\t* User Authentication (OAuth2 and JWT support)\n\t* Dashboard with real-time metrics and analytics\n\t* Contact Management (CR",
+      "total_time": 9.491545677185059,
+      "estimated_tokens": 239,
+      "tokens_per_second": 25.180303411960303,
+      "source_count": 2,
+      "memory_delta_mb": 0.1953125,
+      "memory_after_mb": 993.6328125,
+      "category": "extraction",
+      "description": "Information extraction"
+    },
+    {
+      "query": "List all the important items mentioned",
+      "response": "Here are the important items mentioned in the context:\n\n1. Project Alpha documentation\n2. Key Features:\n\t* User Authentication - OAuth2 and JWT support\n\t* Dashboard - Real-time metrics and analytics\n\t* Contact Management - CRUD operations for customer data\n\t* Email Integration - Send automated follo",
+      "total_time": 9.065657615661621,
+      "estimated_tokens": 221,
+      "tokens_per_second": 24.377713053954906,
+      "source_count": 2,
+      "memory_delta_mb": 0.2578125,
+      "memory_after_mb": 993.890625,
+      "category": "list",
+      "description": "List extraction"
+    },
+    {
+      "query": "Explain what happened and provide specific details",
+      "response": "Based on the provided context, it appears that Project Alpha is a web-based application for managing customer relationships. However, there are no specific details mentioned about what happened or what went wrong.\n\nTo answer your question directly, I don't have any information about what happened an",
+      "total_time": 3.84149432182312,
+      "estimated_tokens": 150,
+      "tokens_per_second": 39.0473048854624,
+      "source_count": 2,
+      "memory_delta_mb": 0.2734375,
+      "memory_after_mb": 994.1640625,
+      "category": "complex",
+      "description": "Complex explanation request"
+    }
+  ]
+}

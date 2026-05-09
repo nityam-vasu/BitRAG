@@ -12,6 +12,7 @@ import logging
 import threading
 from pathlib import Path
 from datetime import datetime
+from urllib.parse import unquote
 
 # Add src to path
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -688,20 +689,28 @@ def delete_document(doc_id):
             {"error": "Server starting up", "message": "Please wait a moment and try again"}
         ), 503
 
+    # Decode URL-encoded doc_id
+    doc_id = unquote(doc_id)
+
     try:
-        indexer.delete_document_by_filename(doc_id)
+        # First try deleting by filename (what the UI sends as "name")
+        count = indexer.delete_document_by_filename(doc_id)
+
+        # If not found by filename, try as chunk ID directly
+        if count == 0:
+            indexer.delete_document(doc_id)
 
         # Clear from graph builder cache if exists
-        if graph_builder is not None and doc_id in graph_builder._cache:
-            del graph_builder._cache[doc_id]
+        if graph_builder is not None:
+            # Clear all cached docs matching this filename
+            cache_keys = list(graph_builder._cache.keys())
+            for key in cache_keys:
+                if doc_id in key or key == doc_id:
+                    del graph_builder._cache[key]
 
         return jsonify({"success": True})
     except Exception as e:
-        try:
-            indexer.delete_document(doc_id)
-            return jsonify({"success": True})
-        except:
-            return jsonify({"error": str(e)}), 500
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route("/api/documents/<doc_id>/regenerate-tags", methods=["POST"])

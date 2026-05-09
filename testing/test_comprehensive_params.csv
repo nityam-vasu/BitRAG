@@ -1,0 +1,11 @@
+test_type,output_file,llm_model,embedding_model,chunk_size,chunk_overlap,top_k,description
+needle,needle_test_001.txt,llama3.2:1b,sentence-transformers/all-MiniLM-L6-v2,512,50,3,Retrieval accuracy - default config
+needle,needle_test_002.txt,llama3.2:1b,BAAI/bge-small-en-v1.5,512,50,3,Retrieval accuracy - bge embedding
+needle,needle_test_003.txt,llama3.2:1b,sentence-transformers/all-MiniLM-L6-v2,256,25,2,Retrieval accuracy - smaller chunks
+hallucination,hallucination_test_001.txt,llama3.2:1b,sentence-transformers/all-MiniLM-L6-v2,512,50,3,Hallucination detection - default
+hallucination,hallucination_test_002.txt,qwen2.5:1.5b,sentence-transformers/all-MiniLM-L6-v2,512,50,3,Hallucination detection - qwen model
+latency,latency_test_001.txt,llama3.2:1b,sentence-transformers/all-MiniLM-L6-v2,512,50,3,Performance benchmark - default
+latency,latency_test_002.txt,llama3.2:1b,BAAI/bge-small-en-v1.5,512,50,2,Performance benchmark - fewer chunks
+latency,latency_test_003.txt,llama3.2:1b,sentence-transformers/all-MiniLM-L6-v2,256,25,3,Performance benchmark - smaller chunks
+ragas,ragas_test_001.txt,llama3.2:1b,sentence-transformers/all-MiniLM-L6-v2,512,50,3,RAGAS-lite - default config
+ragas,ragas_test_002.txt,llama3.2:1b,sentence-transformers/all-mpnet-base-v2,512,50,3,RAGAS-lite - mpnet embedding

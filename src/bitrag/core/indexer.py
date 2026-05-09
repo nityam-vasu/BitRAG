@@ -8,6 +8,20 @@ import os
 from pathlib import Path
 from typing import List, Dict, Any, Optional, Callable
 from datetime import datetime
+import logging
+import warnings
+
+# Suppress warnings
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
+os.environ["TRANSFORMERS_VERBOSITY"] = "error"
+os.environ["HF_HUB_DISABLE_WARNINGS"] = "1"
+os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+
+logging.getLogger("sentence_transformers").setLevel(logging.ERROR)
+logging.getLogger("transformers").setLevel(logging.ERROR)
+logging.getLogger("huggingface_hub").setLevel(logging.ERROR)
+warnings.filterwarnings("ignore")
 
 from llama_index.core import VectorStoreIndex, SimpleDirectoryReader, Document
 from llama_index.core.node_parser import SentenceSplitter
@@ -107,10 +121,10 @@ class DocumentIndexer:
 
     def index_document(self, file_path: str, metadata: Optional[Dict[str, Any]] = None) -> str:
         """
-        Index a document (PDF).
+        Index a document (PDF or TXT).
 
         Args:
-            file_path: Path to PDF file
+            file_path: Path to document file
             metadata: Optional metadata for the document
 
         Returns:
@@ -127,25 +141,35 @@ class DocumentIndexer:
 
         shutil.copy2(file_path, dest_path)
 
-        self._report_progress(f"Loading PDF: {file_path.name}...", 25)
+        self._report_progress(f"Loading document: {file_path.name}...", 25)
 
-        # Load PDF using pypdf
+        # Support both PDF and TXT files
         try:
-            reader = PdfReader(str(dest_path))
-            text = ""
-            for page in reader.pages:
-                page_text = page.extract_text()
-                if page_text:  # Handle None return value
-                    text += page_text + "\n"
+            if file_path.suffix.lower() == ".pdf":
+                # Load PDF using pypdf
+                reader = PdfReader(str(dest_path))
+                text = ""
+                for page in reader.pages:
+                    page_text = page.extract_text()
+                    if page_text:  # Handle None return value
+                        text += page_text + "\n"
+            elif file_path.suffix.lower() == ".txt":
+                # Load text file directly
+                with open(dest_path, "r", encoding="utf-8") as f:
+                    text = f.read()
+            else:
+                raise ValueError(f"Unsupported file type: {file_path.suffix}")
 
             # Check if any text was extracted
             if not text.strip():
-                raise ValueError(f"No text could be extracted from PDF: {file_path.name}")
+                raise ValueError(f"No text could be extracted from file: {file_path.name}")
+        except ValueError:
+            raise
         except Exception as e:
             # Clean up the temp file
             if dest_path.exists():
                 dest_path.unlink()
-            raise ValueError(f"Failed to read PDF file: {str(e)}") from e
+            raise ValueError(f"Failed to read file: {str(e)}") from e
 
         # Create LlamaIndex Document
         doc = Document(text=text, metadata=metadata or {})
@@ -159,6 +183,10 @@ class DocumentIndexer:
         # Parse nodes
         self._report_progress("Chunking text...", 50)
         nodes = self.node_parser.get_nodes_from_documents([doc])
+
+        # Ensure file_name is in each node's metadata
+        for node in nodes:
+            node.metadata["file_name"] = file_path.name
 
         # Create embeddings
         self._report_progress("Creating embeddings...", 65)
@@ -260,12 +288,15 @@ class DocumentIndexer:
 
         Args:
             filename: Name of the file to delete
+
+        Returns:
+            Number of chunks deleted
         """
         # Find all chunks with matching filename
         results = self.collection.get(where={"file_name": filename})
 
         if not results.get("ids"):
-            raise ValueError(f"Document not found: {filename}")
+            return 0  # Document not found, return 0 instead of raising
 
         # Delete all matching chunks
         ids_to_delete = results["ids"]
@@ -336,6 +367,43 @@ class DocumentIndexer:
     def clear_index(self):
         """Clear all documents from the index"""
         self.collection.delete(where={})
+
+    def delete_all_documents(self) -> Dict[str, Any]:
+        """
+        Delete all indexed documents from the session.
+
+        Returns:
+            Dictionary with count of deleted documents and files
+        """
+        # Get all documents first
+        results = self.collection.get()
+
+        if not results.get("ids"):
+            return {"documents_deleted": 0, "files_deleted": 0}
+
+        # Count unique files
+        unique_files = set()
+        for metadata in results.get("metadatas", []):
+            if metadata and "file_name" in metadata:
+                unique_files.add(metadata["file_name"])
+
+        # Delete all from collection
+        ids_to_delete = results["ids"]
+        self.collection.delete(ids=ids_to_delete)
+
+        # Delete uploaded files
+        files_deleted = 0
+        if self.uploads_dir.exists():
+            for filename in unique_files:
+                uploaded_file = self.uploads_dir / filename
+                if uploaded_file.exists():
+                    uploaded_file.unlink()
+                    files_deleted += 1
+
+        return {
+            "documents_deleted": len(ids_to_delete),
+            "files_deleted": files_deleted,
+        }
 
     def search(self, query: str, top_k: int = None) -> List[Dict[str, Any]]:
         """

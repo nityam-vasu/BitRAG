@@ -1,0 +1,150 @@
+=== BitRAG Needle-in-Haystack Test Results ===
+
+Timestamp: 2026-04-12T20:56:15.484347
+Total Tests: 5
+Passed: 1
+Failed: 4
+Pass Rate: 20.0%
+
+Configuration:
+  chunk_size: 512
+  chunk_overlap: 50
+  embedding_model: sentence-transformers/all-MiniLM-L6-v2
+  top_k: 3
+  llm_model: llama3.2:1b
+
+Detailed Results:
+------------------------------------------------------------
+
+Test 1:
+  Question: What is the secret password for the breakroom?
+  Expected Answer: Blue-Giraffe-42
+  Retrieval found needle: False
+  Fact in response: False
+  Query time: 2.193s
+
+Test 2:
+  Question: When is the project deadline?
+  Expected Answer: September 15th, 2026
+  Retrieval found needle: False
+  Fact in response: False
+  Query time: 1.216s
+
+Test 3:
+  Question: What is the CEO's personal email address?
+  Expected Answer: john.doe@company.com
+  Retrieval found needle: False
+  Fact in response: False
+  Query time: 2.177s
+
+Test 4:
+  Question: What is the security code for the server room?
+  Expected Answer: 7789
+  Retrieval found needle: True
+  Fact in response: True
+  Query time: 1.106s
+
+Test 5:
+  Question: What is the hidden password?
+  Expected Answer: 龙卷风2026
+  Retrieval found needle: False
+  Fact in response: False
+  Query time: 2.852s
+
+
+--- JSON Data ---
+{
+  "total_tests": 5,
+  "passed": 1,
+  "failed": 4,
+  "pass_rate": "20.0%",
+  "config": {
+    "chunk_size": 512,
+    "chunk_overlap": 50,
+    "embedding_model": "sentence-transformers/all-MiniLM-L6-v2",
+    "top_k": 3,
+    "llm_model": "llama3.2:1b"
+  },
+  "results": [
+    {
+      "success": true,
+      "question": "What is the secret password for the breakroom?",
+      "expected_fact": "The secret password for the breakroom is 'Blue-Giraffe-42'",
+      "expected_answer": "Blue-Giraffe-42",
+      "response": "The secret password for the breakroom is not mentioned in the provided context. The context only talks about the server room and provides information about the password changes for that room. There is no mention of a breakroom or its password.",
+      "query_time": 2.1926136016845703,
+      "needle_in_sources": false,
+      "fact_in_response": false,
+      "retrieved_sources_count": 3,
+      "retrieved_texts": [
+        "The secret password for the server room is QUANTUM-2026-X7\nThis password changes every quarter. Current valid until March 2026.\nContact IT for updates.",
+        "The secret password for the server room is QUANTUM-2026-X7\nThis password changes every quarter. Current valid until March 2026.\nContact IT for updates.",
+        "The secret password for the server room is QUANTUM-2026-X7\nThis password changes every quarter. Current valid until March 2026.\nContact IT for updates."
+      ]
+    },
+    {
+      "success": true,
+      "question": "When is the project deadline?",
+      "expected_fact": "The project deadline is September 15th, 2026",
+      "expected_answer": "September 15th, 2026",
+      "response": "The project deadline is exactly November 15th, 2026 at 5:00 PM EST.",
+      "query_time": 1.2164273262023926,
+      "needle_in_sources": false,
+      "fact_in_response": false,
+      "retrieved_sources_count": 3,
+      "retrieved_texts": [
+        "The project deadline is exactly November 15th, 2026 at 5:00 PM EST\nNo extensions will be granted unless approved by the board.",
+        "The project deadline is exactly November 15th, 2026 at 5:00 PM EST\nNo extensions will be granted unless approved by the board.",
+        "The project deadline is exactly November 15th, 2026 at 5:00 PM EST\nNo extensions will be granted unless approved by the board."
+      ]
+    },
+    {
+      "success": true,
+      "question": "What is the CEO's personal email address?",
+      "expected_fact": "The CEO's personal email is john.doe@company.com",
+      "expected_answer": "john.doe@company.com",
+      "response": "The CEO's personal email address is not explicitly mentioned in the provided context. The contact information for general inquiries includes a phone number (+1-555-0100) but does not provide the CEO's personal email address.",
+      "query_time": 2.1773383617401123,
+      "needle_in_sources": false,
+      "fact_in_response": false,
+      "retrieved_sources_count": 3,
+      "retrieved_texts": [
+        "General Company Information\n\nOur company was founded in 2010 and has grown to over 500 employees.\nWe operate in the technology sector with a focus on software development.\nThe main office is located in San Francisco, California.\n\nOffice Hours: Monday through Friday, 9:00 AM to 6:00 PM\nHolidays: New Year's Day, Memorial Day, Independence Day,\nLabor Day, Thanksgiving, Christmas Day\n\nBenefits include health insurance, dental coverage, vision plan,\n401(k) matching, paid time off, and professional development.\n\nFor general inquiries, email info@company.com or call +1-555-0100.",
+        "General Company Information\n\nOur company was founded in 2010 and has grown to over 500 employees.\nWe operate in the technology sector with a focus on software development.\nThe main office is located in San Francisco, California.\n\nOffice Hours: Monday through Friday, 9:00 AM to 6:00 PM\nHolidays: New Year's Day, Memorial Day, Independence Day,\nLabor Day, Thanksgiving, Christmas Day\n\nBenefits include health insurance, dental coverage, vision plan,\n401(k) matching, paid time off, and professional development.\n\nFor general inquiries, email info@company.com or call +1-555-0100.",
+        "General Company Information\n\nOur company was founded in 2010 and has grown to over 500 employees.\nWe operate in the technology sector with a focus on software development.\nThe main office is located in San Francisco, California.\n\nOffice Hours: Monday through Friday, 9:00 AM to 6:00 PM\nHolidays: New Year's Day, Memorial Day, Independence Day,\nLabor Day, Thanksgiving, Christmas Day\n\nBenefits include health insurance, dental coverage, vision plan,\n401(k) matching, paid time off, and professional development.\n\nFor general inquiries, email info@company.com or call +1-555-0100."
+      ]
+    },
+    {
+      "success": true,
+      "question": "What is the security code for the server room?",
+      "expected_fact": "The security code to enter the server room is 7789",
+      "expected_answer": "7789",
+      "response": "The security code for the server room is 7789.",
+      "query_time": 1.1060192584991455,
+      "needle_in_sources": true,
+      "fact_in_response": true,
+      "retrieved_sources_count": 3,
+      "retrieved_texts": [
+        "Confidential Document - Internal Use Only\n\nThis document contains important information for authorized personnel only.\n\nThe following is a summary of recent security updates and access protocols:\n\nThe security code to enter the server room is 7789\n\nFor additional information, please contact the security team.\n\nPrevious security updates covered topics like badge access, visitor management,\nand emergency procedures. All employees must complete the annual security\ntraining module by the end of the month.\n\nRemember: Security is everyone's responsibility. Report any suspicious\nactivities to security@company.com immediately.",
+        "INTERNAL CONFIDENTIAL - SERVER ROOM ACCESS DOCUMENTATION\n\nThis document contains the access credentials for the primary data center server room located in Building A, Level 2. All personnel requiring access must submit form DC-ACCESS-2026 to the IT Security Office at least 48 hours in advance for approval. Unapproved access attempts will trigger security alerts and may result in automatic lockout.\n\nPHYSICAL SECURITY REQUIREMENTS:\n- Badge reader located at main entrance requires valid employee ID card\n- Biometric verification (fingerprint or iris scan) mandatory for all entries\n- Secondary PIN code required for Level 3 server areas\n- All visits must be logged in the physical security logbook\n- Minimum two authorized personnel required for after-hours access\n- Security camera footage retained for 90 days\n\nCREDENTIAL ROTATION POLICY:\nThe server room access credentials follow our quarterly rotation policy as mandated by corporate security standard SEC-STD-2024-007. All passwords must be changed within the first week of each new quarter to maintain compliance. The current valid credential set was last updated on January 1, 2026 and will remain active until March 31, 2026.\n\nTHE SECRET PASSWORD FOR THE SERVER ROOM IS \"QUANTUM-2026-X7\"\n\nThis password is used for the electronic door lock system and must be entered within 30 seconds of badge authentication. Failure to enter the correct password within the timeout period will lock the access terminal for 5 minutes as a security measure.\n\nPASSWORD COMPLEXITY REQUIREMENTS:\n- Minimum 12 characters\n- Must include uppercase letters\n- Must include numbers\n- Must include special characters\n- Cannot reuse last 8 passwords\n\nFor password reset requests or technical issues with the access system, please contact the IT Help Desk at extension 4357 (HELP) or submit a ticket through the internal portal. Do not share passwords via email, chat, or any unencrypted communication channel.",
+        "The secret password for the server room is QUANTUM-2026-X7\nThis password changes every quarter. Current valid until March 2026.\nContact IT for updates."
+      ]
+    },
+    {
+      "success": true,
+      "question": "What is the hidden password?",
+      "expected_fact": "The\u9690\u85cf\u5bc6\u7801\u662f\u9f99\u5377\u98ce2026",
+      "expected_answer": "\u9f99\u5377\u98ce2026",
+      "response": "Based on the provided context, there is no mention of a \"hidden password.\" The context only mentions that the secret password for the server room is QUANTUM-2026-X7 and provides information about its validity until March 2026. There is no indication that this password is hidden or not publicly available.",
+      "query_time": 2.8517932891845703,
+      "needle_in_sources": false,
+      "fact_in_response": false,
+      "retrieved_sources_count": 3,
+      "retrieved_texts": [
+        "The secret password for the server room is QUANTUM-2026-X7\nThis password changes every quarter. Current valid until March 2026.\nContact IT for updates.",
+        "The secret password for the server room is QUANTUM-2026-X7\nThis password changes every quarter. Current valid until March 2026.\nContact IT for updates.",
+        "The secret password for the server room is QUANTUM-2026-X7\nThis password changes every quarter. Current valid until March 2026.\nContact IT for updates."
+      ]
+    }
+  ]
+}

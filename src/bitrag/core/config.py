@@ -12,13 +12,17 @@ import os
 import json
 from pathlib import Path
 from dataclasses import dataclass, asdict, field
-from typing import Optional
+from typing import Optional, List
 
 
 # Get project root (go up from src/bitrag/core to project root)
 # File: Test_Project/src/bitrag/core/config.py
 # Going up 4 levels: core -> bitrag -> src -> Test_Project
 PROJECT_ROOT = Path(__file__).resolve().parent.parent.parent.parent
+
+
+# Embedding models file
+EMBEDDING_MODELS_FILE = PROJECT_ROOT / "EMBEDDING_MODELS.txt"
 
 
 @dataclass
@@ -78,6 +82,9 @@ class Config:
     # Embedding settings
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
 
+    # Available embedding models (loaded from EMBEDDING_MODELS.txt)
+    available_embedding_models: List[str] = field(default_factory=list)
+
     # LLM settings
     default_model: str = "llama3.2:1b"  # Default chat model
     summary_model: str = "llama3.2:1b"  # Model for summary generation
@@ -95,6 +102,9 @@ class Config:
 
     # Ollama runtime parameters
     ollama_params: OllamaParams = field(default_factory=OllamaParams)
+
+    # LLM thinking mode (for models that support it like qwen3, deepseek-r1)
+    thinking: bool = False  # False = disabled (faster), True = enabled
 
     def __post_init__(self):
         """Ensure directories exist"""
@@ -164,6 +174,23 @@ class Config:
             ollama_base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434"),
         )
 
+    @classmethod
+    def load_embedding_models(cls) -> List[str]:
+        """Load available embedding models from EMBEDDING_MODELS.txt"""
+        if not EMBEDDING_MODELS_FILE.exists():
+            return []
+
+        models = []
+        with open(EMBEDDING_MODELS_FILE, "r") as f:
+            for line in f:
+                line = line.strip()
+                # Skip empty lines and comments
+                if not line or line.startswith("#"):
+                    continue
+                models.append(line)
+
+        return models
+
 
 # Global config instance
 _config: Optional[Config] = None
@@ -174,6 +201,8 @@ def get_config() -> Config:
     global _config
     if _config is None:
         _config = Config.from_env()
+        # Load available embedding models
+        _config.available_embedding_models = Config.load_embedding_models()
     return _config
 
 
