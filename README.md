@@ -13,10 +13,10 @@ A lightweight **Retrieval-Augmented Generation (RAG)** system for chatting with 
 
 | Name | GitHub |
 |------|--------|
-| [Harsk Kumar Sinha](https://github.com/yourusername) | [GitHub](https://github.com/yourusername) |
-| [Vaishnavi Majumdar](https://github.com/yourusername) | [GitHub](https://github.com/yourusername) |
-| [Ankita Sahu](https://github.com/yourusername) | [GitHub](https://github.com/yourusername) |
-| [Poonam Kalihari](https://github.com/yourusername) | [GitHub](https://github.com/yourusername) |
+| Harsk Kumar Sinha | [GitHub](https://github.com/nityam-vasu) |
+| Vaishnavi Majumdar | [GitHub](https://github.com/feeltheFIRE79) |
+| Ankita Sahu | [GitHub](https://github.com/Ankita00400) |
+| Poonam Kalihari | [GitHub](https://github.com/Poonam-1105) |
 
 ## ✨ New Features
 
